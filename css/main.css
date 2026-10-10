@@ -1,0 +1,165 @@
+:root {
+  --ink: #fff4dc;
+  --gold: #f5c76a;
+  --bg: #1b0f08;
+  --fade: 300ms;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.is-portal { overflow: hidden; height: 100%; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- Scene ---------- */
+
+#track { position: relative; height: 100vh; }
+body.is-entered #track { height: var(--track-h, 260vh); }
+
+#stage {
+  position: sticky; top: 0;
+  width: 100%; height: 100vh; height: 100lvh;
+  overflow: hidden;
+  background: #2b5bb8; /* sky blue while the sky layer loads */
+}
+
+#scene {
+  position: absolute; left: 0; top: 0;
+  /* width/height set by JS (cover, left-anchored so the sun is never cut) */
+}
+
+.layer {
+  position: absolute; inset: 0;
+  will-change: transform;
+}
+.layer img {
+  display: block; width: 100%; height: 100%;
+  user-select: none; -webkit-user-drag: none;
+}
+
+/* Bison: breathing + glow pulse (placeholder until the Rive puppet). */
+.layer.bison .breath {
+  position: absolute; inset: 0;
+  transform-origin: var(--feet-x, 55%) var(--feet-y, 78%);
+  animation: breathe 5.2s ease-in-out infinite;
+}
+.layer.bison .glow {
+  position: absolute; inset: 0;
+  filter: blur(10px) brightness(1.7) saturate(1.3);
+  mix-blend-mode: screen;
+  opacity: 0.18;
+  animation: glow 5.2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1, 1); }
+  45% { transform: scale(1.006, 1.014); }
+}
+@keyframes glow {
+  0%, 100% { opacity: 0.12; }
+  45% { opacity: 0.42; }
+}
+
+#strip-gl, #strip-img {
+  position: absolute; left: 50%; bottom: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+#strip-img { display: none; }
+.no-webgl #strip-gl { display: none; }
+.no-webgl #strip-img { display: block; }
+
+/* ---------- Portal ---------- */
+
+#portal {
+  position: fixed; inset: 0; z-index: 10;
+  overflow: hidden;
+  background: var(--bg);
+  transition: opacity var(--fade) linear;
+}
+#portal.is-gone { opacity: 0; pointer-events: none; }
+#portal[hidden] { display: none; }
+
+#portal-box { position: absolute; left: 0; top: 0; }
+#portal-photo, #portal-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+#portal-video { opacity: 0; }
+#portal.is-playing #portal-video { opacity: 1; }
+
+/* Placeholder transition (until the AI video exists): the photo warms into gold light. */
+#portal-bloom {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background:
+    radial-gradient(60% 45% at 8% 30%, rgba(255, 236, 180, 0.95), rgba(255, 190, 90, 0.4) 45%, transparent 75%),
+    linear-gradient(180deg, rgba(255, 214, 140, 0.55), rgba(255, 170, 70, 0.25));
+  mix-blend-mode: screen;
+}
+#portal.is-blooming #portal-photo {
+  transition: filter 1.4s ease-in, transform 1.6s ease-in;
+  filter: saturate(1.6) brightness(1.25) sepia(0.25);
+  transform: scale(1.04);
+}
+#portal.is-blooming #portal-bloom { transition: opacity 1.4s ease-in; opacity: 1; }
+
+#enter {
+  position: absolute; left: 50%; bottom: max(14vh, 96px);
+  transform: translateX(-50%);
+  padding: 0.9em 2.2em;
+  font: inherit; font-size: clamp(1.1rem, 2.4vw, 1.5rem); letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(30, 14, 4, 0.28);
+  border: 1px solid rgba(245, 199, 106, 0.7);
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+  text-shadow: 0 0 12px rgba(255, 200, 110, 0.6);
+  white-space: nowrap;
+  animation: invite 3.2s ease-in-out infinite;
+}
+#enter:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+#portal.is-leaving #enter { opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+@keyframes invite {
+  0%, 100% { box-shadow: 0 0 0 rgba(245, 199, 106, 0); }
+  50% { box-shadow: 0 0 28px rgba(245, 199, 106, 0.45); }
+}
+
+/* ---------- Cursor + particles ---------- */
+
+#fx {
+  position: fixed; inset: 0; z-index: 20;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+.has-custom-cursor, .has-custom-cursor * { cursor: none !important; }
+
+#sound {
+  position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 15;
+  font: inherit; font-size: 0.85rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(30, 14, 4, 0.4);
+  border: 1px solid rgba(245, 199, 106, 0.5);
+  border-radius: 999px;
+  padding: 0.5em 1.1em;
+  cursor: pointer;
+}
+
+/* ---------- Reduced motion: still versions ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .layer.bison .breath, .layer.bison .glow, #enter { animation: none; }
+  #portal.is-blooming #portal-photo, #portal.is-blooming #portal-bloom { transition: none; }
+}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Trev</title>
+  <meta name="description" content="Trev — Sedona">
+  <meta name="theme-color" content="#1b0f08">
+  <link rel="preload" href="assets/portal/portal-placeholder.webp" as="image">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="is-portal">
+  <h1 class="visually-hidden">Trev</h1>
+
+  <!-- Scroll track: its height drives the parallax camera. -->
+  <main id="track" aria-label="Sedona">
+    <div id="stage">
+      <div id="scene" aria-hidden="true"></div>
+      <canvas id="strip-gl" aria-hidden="true"></canvas>
+      <img id="strip-img" alt="" aria-hidden="true">
+    </div>
+  </main>
+
+  <!-- Portal: realistic photo, tap to enter, then the transition video (or placeholder). -->
+  <section id="portal" aria-label="Enter">
+    <div id="portal-box">
+      <img id="portal-photo" alt="Sedona red rocks at golden hour">
+      <video id="portal-video" playsinline preload="none" aria-hidden="true"></video>
+    </div>
+    <div id="portal-bloom" aria-hidden="true"></div>
+    <button id="enter" type="button">
+      <span class="enter-label">Tap to enter</span>
+    </button>
+  </section>
+
+  <canvas id="fx" aria-hidden="true"></canvas>
+
+  <button id="sound" type="button" aria-pressed="false" hidden>Sound off</button>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
