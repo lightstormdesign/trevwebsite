@@ -247,16 +247,6 @@ def main():
         im.save(os.path.join(ROOT, "assets", "portal", "portrait.avif"), "AVIF", quality=72)
         print(f"portal portrait        {im.width}x{im.height}  after {stats(a)}")
 
-    # Portal placeholder until the realistic Sedona photo arrives: a muted, desaturated
-    # version of the scene so the flow is testable. Replace with assets/portal/sedona-photo.webp.
-    portal_dir = os.path.join(ROOT, "assets", "portal")
-    os.makedirs(portal_dir, exist_ok=True)
-    full = Image.fromarray(comp([processed[n] for n in names]).astype(np.uint8))
-    from PIL import ImageEnhance, ImageFilter
-    ph = ImageEnhance.Color(full).enhance(0.35)
-    ph = ImageEnhance.Brightness(ph).enhance(0.8).filter(ImageFilter.GaussianBlur(1.2))
-    ph.save(os.path.join(portal_dir, "portal-placeholder.webp"), "WEBP", quality=80, method=6)
-
     with open(os.path.join(OUT, "manifest.json"), "w") as f:
         json.dump(MANIFEST, f, indent=1)
 

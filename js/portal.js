@@ -1,23 +1,8 @@
-// Portal: the realistic Sedona photo, tap to enter. Then the AI transition video
-// (photo -> illustrated world, ending on the scene + bison). When it ends we crossfade
-// (~0.3s) to the live layered scene, which is framed identically.
-// Until the video exists, a placeholder "golden bloom" stands in for it.
+// Portal: the realistic Sedona plate + portrait, layered over the live illustrated scene
+// (framed identically). Tap anywhere: the fractal transformation (js/transition.js)
+// dissolves the plate from the tap point to reveal the scene underneath.
 import { PORTAL } from './config.js';
 import { fractalTransition } from './transition.js';
-
-function firstLoadable(urls) {
-  return new Promise((resolve) => {
-    const next = () => {
-      const u = urls.shift();
-      if (!u) return resolve(null);
-      const im = new Image();
-      im.onload = () => resolve(u);
-      im.onerror = next;
-      im.src = u;
-    };
-    next();
-  });
-}
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -30,8 +15,7 @@ export class Portal {
     this.video = root.querySelector('#portal-video');
     this.button = root.querySelector('#enter');
     document.documentElement.style.setProperty('--fade', `${PORTAL.crossfadeMs}ms`);
-    this.photoReady = firstLoadable([`${PORTAL.photo}.webp`, `${PORTAL.photo}.jpg`, PORTAL.placeholder])
-      .then((src) => { if (src) this.photo.src = src; });
+    this.photoReady = this.photo.decode ? this.photo.decode().catch(() => {}) : Promise.resolve();
   }
 
   // Frame the portal exactly like the scene's entry frame so the hand-off lines up.
@@ -86,7 +70,7 @@ export class Portal {
       };
       v.addEventListener('error', fail, { once: true });
       v.addEventListener('ended', () => resolve(true), { once: true });
-      setTimeout(fail, 2500); // no video / too slow: use the placeholder
+      setTimeout(fail, 2500); // no video / too slow: use the code transformation
       v.src = PORTAL.video;
       v.preload = 'auto';
       v.play().then(() => {

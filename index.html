@@ -6,7 +6,7 @@
   <title>Trev</title>
   <meta name="description" content="Trev — Sedona">
   <meta name="theme-color" content="#1b0f08">
-  <link rel="preload" href="assets/portal/sedona-photo.webp" as="image">
+  <link rel="preload" href="assets/portal/sedona-photo.avif" as="image" type="image/avif" fetchpriority="high">
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body class="is-portal">
@@ -21,10 +21,14 @@
     </div>
   </main>
 
-  <!-- Portal: realistic photo, tap to enter, then the transition video (or placeholder). -->
+  <!-- Portal: the realistic plate + portrait, layered over the live illustrated scene.
+       Tap anywhere: the fractal transformation dissolves it to reveal the scene. -->
   <section id="portal" aria-label="Enter">
     <div id="portal-box">
-      <img id="portal-photo" alt="Sedona red rocks at golden hour">
+      <picture>
+        <source type="image/avif" srcset="assets/portal/sedona-photo.avif">
+        <img id="portal-photo" src="assets/portal/sedona-photo.webp" alt="Sedona red rocks at golden hour" fetchpriority="high">
+      </picture>
       <video id="portal-video" playsinline preload="none" aria-hidden="true"></video>
     </div>
     <!-- Portrait has its own framing: always the full bust, bottom-centre, viewport height. -->

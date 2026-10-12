@@ -54,8 +54,6 @@ export const KEEP_LEFT = true;
 // swirling fractals spread from the tap point. Set `video` to a file path to play a
 // pre-rendered transition instead.
 export const PORTAL = {
-  photo: 'assets/portal/sedona-photo',   // .webp/.avif; placeholder is used if missing
-  placeholder: 'assets/portal/portal-placeholder.webp',
   video: null, // e.g. 'assets/video/transition.mp4'
   crossfadeMs: 300,
 };
