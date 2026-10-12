@@ -20,6 +20,7 @@ python3 -m http.server 8000   # then open http://localhost:8000
 
 | file (masters → `assets/masters/`) | role |
 |---|---|
+| `00-portal-portrait.png` | Trev portrait cutout over the portal photo → `assets/portal/portrait.webp/.avif` |
 | `00-portal-photo.png` | realistic Sedona photo (portal) → `assets/portal/sedona-photo.webp/.avif` |
 | `01-sky.png` | opaque sky, sun, clouds |
 | `02-clouds.png` | ornamental clouds (drift slowly) |

@@ -29,7 +29,7 @@ export class Portal {
     this.video = root.querySelector('#portal-video');
     this.button = root.querySelector('#enter');
     document.documentElement.style.setProperty('--fade', `${PORTAL.crossfadeMs}ms`);
-    this.photoReady = firstLoadable([`${PORTAL.photo}.avif`, `${PORTAL.photo}.webp`, `${PORTAL.photo}.jpg`, PORTAL.placeholder])
+    this.photoReady = firstLoadable([`${PORTAL.photo}.webp`, `${PORTAL.photo}.jpg`, PORTAL.placeholder])
       .then((src) => { if (src) this.photo.src = src; });
   }
 
@@ -41,9 +41,10 @@ export class Portal {
     });
   }
 
+  // Tap anywhere on the portal (or press the button with the keyboard).
   onEnter(fn) {
-    const go = (e) => { e.preventDefault(); this.button.removeEventListener('click', go); fn(e); };
-    this.button.addEventListener('click', go);
+    const go = (e) => { e.preventDefault(); this.root.removeEventListener('click', go); fn(e); };
+    this.root.addEventListener('click', go);
   }
 
   // Plays the transition; resolves when the live scene should be revealed.

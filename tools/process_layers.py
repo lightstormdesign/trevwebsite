@@ -237,6 +237,16 @@ def main():
     print(f"gap fill visible at rest: {changed.sum()} px ({round(100 * changed.mean(), 3)}%) "
           "- only where the foreground has see-through gaps")
 
+    # Portal portrait: transparent cutout that sits over the realistic photo.
+    pp = os.path.join(MASTERS, "00-portal-portrait.png")
+    if os.path.exists(pp):
+        a = defringe(remove_specks(solidify(load("00-portal-portrait.png")), SPECK_MAX_PX)[0])
+        im = Image.fromarray(a)
+        os.makedirs(os.path.join(ROOT, "assets", "portal"), exist_ok=True)
+        im.save(os.path.join(ROOT, "assets", "portal", "portrait.webp"), "WEBP", quality=90, alpha_quality=100, method=6)
+        im.save(os.path.join(ROOT, "assets", "portal", "portrait.avif"), "AVIF", quality=72)
+        print(f"portal portrait        {im.width}x{im.height}  after {stats(a)}")
+
     # Portal placeholder until the realistic Sedona photo arrives: a muted, desaturated
     # version of the scene so the flow is testable. Replace with assets/portal/sedona-photo.webp.
     portal_dir = os.path.join(ROOT, "assets", "portal")

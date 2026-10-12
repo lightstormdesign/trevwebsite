@@ -96,6 +96,17 @@ body.is-entered #track { height: var(--track-h, 260vh); }
   object-fit: cover; display: block;
 }
 #portal-video { opacity: 0; }
+
+#portal-portrait-wrap {
+  position: absolute; bottom: 0; left: 50%;
+  height: 100%;
+  aspect-ratio: 9 / 16;
+  transform: translateX(-54%); /* subject sits at ~54% of the canvas */
+  pointer-events: none;
+}
+#portal-portrait { display: block; width: 100%; height: 100%; }
+/* While the video plays it carries the portrait itself. */
+#portal.is-playing #portal-portrait-wrap { opacity: 0; }
 #portal.is-playing #portal-video { opacity: 1; }
 
 /* Placeholder transition (until the AI video exists): the photo warms into gold light. */
@@ -111,10 +122,18 @@ body.is-entered #track { height: var(--track-h, 260vh); }
   filter: saturate(1.6) brightness(1.25) sepia(0.25);
   transform: scale(1.04);
 }
+/* Trev's portrait sits over the photo and dissolves into the light. */
+#portal.is-blooming #portal-portrait {
+  transition: opacity 1.2s ease-in 0.2s, filter 1.2s ease-in;
+  opacity: 0;
+  filter: brightness(1.6) blur(2px);
+}
 #portal.is-blooming #portal-bloom { transition: opacity 1.4s ease-in; opacity: 1; }
 
+#portal { cursor: pointer; }
+
 #enter {
-  position: absolute; left: 50%; bottom: max(14vh, 96px);
+  position: absolute; left: 50%; top: max(12vh, 72px); /* in the empty sky, clear of the portrait */
   transform: translateX(-50%);
   padding: 0.9em 2.2em;
   font: inherit; font-size: clamp(1.1rem, 2.4vw, 1.5rem); letter-spacing: 0.24em;
@@ -161,5 +180,6 @@ body.is-entered #track { height: var(--track-h, 260vh); }
 
 @media (prefers-reduced-motion: reduce) {
   .layer.bison .breath, .layer.bison .glow, #enter { animation: none; }
-  #portal.is-blooming #portal-photo, #portal.is-blooming #portal-bloom { transition: none; }
+  #portal.is-blooming #portal-photo, #portal.is-blooming #portal-bloom,
+  #portal.is-blooming #portal-portrait { transition: none; }
 }
