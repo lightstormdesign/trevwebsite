@@ -20,6 +20,7 @@ python3 -m http.server 8000   # then open http://localhost:8000
 
 | file (masters → `assets/masters/`) | role |
 |---|---|
+| `00-portal-photo.png` | realistic Sedona photo (portal) → `assets/portal/sedona-photo.webp/.avif` |
 | `01-sky.png` | opaque sky, sun, clouds |
 | `02-clouds.png` | ornamental clouds (drift slowly) |
 | `03-mesas.png` | mesas + valley forest |
@@ -71,7 +72,6 @@ Tunables (depths, push-in, entry framing, star positions, bison breathing pivot)
 
 ## Still to come
 
-- `assets/portal/sedona-photo.webp`: realistic portal photo (a desaturated placeholder is used now)
 - `assets/video/transition.mp4`: AI transition; its last frame = illustrated scene + bison
 - `assets/bison/bison.webp`: bison cut from that last frame, full canvas; then set `BISON.feet`
 - the 16:9 desktop plate
