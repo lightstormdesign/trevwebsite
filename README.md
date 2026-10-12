@@ -9,7 +9,7 @@ python3 -m http.server 8000   # then open http://localhost:8000
 ## Flow
 
 1. **Portal**: the realistic Sedona photo with Trev's portrait over it. Tap anywhere to enter. Sound stays off until the tap.
-2. **Transition video** (`assets/video/transition-1080.mp4` / `-720.mp4`, made in Higgsfield from
+2. **Transition video** (rule: Trev is never in it; see `CLAUDE.md`) (`assets/video/transition-1080.mp4` / `-720.mp4`, made in Higgsfield from
    `start-frame-plate` to `end-frame-illustrated`; master in `assets/masters/`): buffered while the
    portal is up, plays on tap. Trev's portrait dissolves into light as it starts. The last frame
    matches the live scene, so it crossfades (0.3s) straight into it. If the video can't play, the
