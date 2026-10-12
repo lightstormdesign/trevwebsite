@@ -109,7 +109,13 @@ body.is-entered #track { height: var(--track-h, 260vh); }
 #portal.is-playing #portal-portrait-wrap { opacity: 0; }
 #portal.is-playing #portal-video { opacity: 1; }
 
-/* Placeholder transition (until the AI video exists): the photo warms into gold light. */
+/* Code transformation: the canvas takes over, the DOM portal steps aside. */
+#portal.is-transforming { background: transparent; }
+#portal.is-transforming #portal-box,
+#portal.is-transforming #portal-portrait-wrap { visibility: hidden; }
+#portal-fx { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Fallback transition (no WebGL) (until the AI video exists): the photo warms into gold light. */
 #portal-bloom {
   position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background:

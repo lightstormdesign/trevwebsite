@@ -3,6 +3,7 @@
 // (~0.3s) to the live layered scene, which is framed identically.
 // Until the video exists, a placeholder "golden bloom" stands in for it.
 import { PORTAL } from './config.js';
+import { fractalTransition } from './transition.js';
 
 function firstLoadable(urls) {
   return new Promise((resolve) => {
@@ -48,17 +49,26 @@ export class Portal {
   }
 
   // Plays the transition; resolves when the live scene should be revealed.
-  async transition(sceneReady) {
+  // `origin` = tap point (viewport px); the fractal transformation spreads from there.
+  async transition(sceneReady, origin, { mobile } = {}) {
     this.root.classList.add('is-leaving');
     if (this.reduced) { await sceneReady; return this.reveal(); }
 
-    const played = await this.playVideo();
-    if (!played) {
-      // PLACEHOLDER for the AI transition video.
-      this.root.classList.add('is-blooming');
-      await Promise.all([wait(1500), sceneReady]);
-    } else {
+    if (PORTAL.video && await this.playVideo()) {
       await sceneReady;
+      return this.reveal();
+    }
+    // The live scene must be rendered underneath before the photo dissolves.
+    await sceneReady;
+    await this.photoReady;
+    const ok = await fractalTransition(this.root, origin, { mobile }).catch((e) => {
+      console.warn('transition failed', e);
+      return false;
+    });
+    if (!ok) {
+      // No WebGL: simple golden bloom.
+      this.root.classList.add('is-blooming');
+      await wait(1500);
     }
     return this.reveal();
   }

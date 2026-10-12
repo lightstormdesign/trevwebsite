@@ -83,10 +83,16 @@ async function boot() {
   }
 
   // ---------- enter ----------
-  portal.onEnter(async () => {
+  portal.onEnter(async (e) => {
     sound.start();     // sound stays off until this tap
     enableTilt();
-    await portal.transition(Promise.all([scene.ready, strip.ready]));
+    // Keyboard activation has no pointer position: start from the button.
+    let origin = { x: e.clientX, y: e.clientY };
+    if (!e.detail) {
+      const r = document.getElementById('enter').getBoundingClientRect();
+      origin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+    await portal.transition(Promise.all([scene.ready, strip.ready]), origin, { mobile });
     entered = true;
     document.body.classList.remove('is-portal');
     document.body.classList.add('is-entered');

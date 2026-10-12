@@ -50,12 +50,13 @@ export const ENTRY_TOP = 0.2;
 // the sun sits on the left edge of the art and must never be cut off.
 export const KEEP_LEFT = true;
 
-// Portal (realistic photo) and transition video. The video is optional: until it
-// exists a placeholder transition plays.
+// Portal (realistic photo + portrait). The transformation is code (js/transition.js):
+// swirling fractals spread from the tap point. Set `video` to a file path to play a
+// pre-rendered transition instead.
 export const PORTAL = {
   photo: 'assets/portal/sedona-photo',   // .webp/.avif; placeholder is used if missing
   placeholder: 'assets/portal/portal-placeholder.webp',
-  video: 'assets/video/transition.mp4',
+  video: null, // e.g. 'assets/video/transition.mp4'
   crossfadeMs: 300,
 };
 

@@ -8,12 +8,14 @@ python3 -m http.server 8000   # then open http://localhost:8000
 
 ## Flow
 
-1. **Portal**: the realistic Sedona photo, with a *Tap to enter* button. Sound stays off until the tap.
-2. **Transition**: plays `assets/video/transition.mp4` if it exists. Until then a placeholder
-   "golden bloom" runs (~1.5s).
-3. **Crossfade (0.3s)** to the live layered scene. It is framed exactly like the portal, so the
-   video's last frame and the live scene line up.
-4. **Scroll** drives the parallax camera: it pans down, and near layers travel and push in more
+1. **Portal**: the realistic Sedona photo with Trev's portrait over it. Tap anywhere to enter. Sound stays off until the tap.
+2. **Transformation (code, `js/transition.js`)**: from the exact tap point, swirling 6-fold
+   fractals (a Kali-set fractal folded like the flower of life, spiralling outward) spread across the screen. The wavefront traces the
+   photo's edges in gold, twists the photo into the swirl and dissolves it along the fractal
+   filaments. That reveals the live illustrated scene, already rendered underneath. The light lingers and fades (~3.4s total).
+   Without WebGL it falls back to a golden bloom; with reduced motion it's a plain 0.3s crossfade.
+   To use a pre-rendered video instead, set `PORTAL.video` in `js/config.js`.
+3. **Scroll** drives the parallax camera: it pans down, and near layers travel and push in more
    than far ones.
 
 ## Layers
@@ -73,8 +75,7 @@ Tunables (depths, push-in, entry framing, star positions, bison breathing pivot)
 
 ## Still to come
 
-- `assets/video/transition.mp4`: AI transition; its last frame = illustrated scene + bison
-- `assets/bison/bison.webp`: bison cut from that last frame, full canvas; then set `BISON.feet`
+- `assets/bison/bison.webp`: bison on the full canvas; then set `BISON.feet`
 - the 16:9 desktop plate
 
 ## Deploy (Vercel)
