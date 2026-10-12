@@ -9,12 +9,12 @@ python3 -m http.server 8000   # then open http://localhost:8000
 ## Flow
 
 1. **Portal**: the realistic Sedona photo with Trev's portrait over it. Tap anywhere to enter. Sound stays off until the tap.
-2. **Transformation (code, `js/transition.js`)**: from the exact tap point, swirling 6-fold
-   fractals (a Kali-set fractal folded like the flower of life, spiralling outward) spread across the screen. The wavefront traces the
-   photo's edges in gold, twists the photo into the swirl and dissolves it along the fractal
-   filaments. That reveals the live illustrated scene, already rendered underneath. The light lingers and fades (~3.4s total).
-   Without WebGL it falls back to a golden bloom; with reduced motion it's a plain 0.3s crossfade.
-   To use a pre-rendered video instead, set `PORTAL.video` in `js/config.js`.
+2. **Transition video** (`assets/video/transition-1080.mp4` / `-720.mp4`, made in Higgsfield from
+   `start-frame-plate` to `end-frame-illustrated`; master in `assets/masters/`): buffered while the
+   portal is up, plays on tap. Trev's portrait dissolves into light as it starts. The last frame
+   matches the live scene, so it crossfades (0.3s) straight into it. If the video can't play, the
+   code transformation runs instead (`js/transition.js`: swirling fractals from the tap point). With
+   reduced motion it's a plain crossfade.
 3. **Scroll** drives the parallax camera: it pans down, and near layers travel and push in more
    than far ones.
 

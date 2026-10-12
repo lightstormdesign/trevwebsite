@@ -50,11 +50,11 @@ export const ENTRY_TOP = 0.2;
 // the sun sits on the left edge of the art and must never be cut off.
 export const KEEP_LEFT = true;
 
-// Portal (realistic photo + portrait). The transformation is code (js/transition.js):
-// swirling fractals spread from the tap point. Set `video` to a file path to play a
-// pre-rendered transition instead.
+// Portal (realistic plate + portrait). On tap the transition video plays (plate ->
+// illustrated scene; its last frame matches the live scene). If it can't play, the code
+// transformation (js/transition.js) runs instead. Set `video` to null to always use code.
 export const PORTAL = {
-  video: null, // e.g. 'assets/video/transition.mp4'
+  video: { large: 'assets/video/transition-1080.mp4', small: 'assets/video/transition-720.mp4' },
   crossfadeMs: 300,
 };
 

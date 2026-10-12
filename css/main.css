@@ -106,7 +106,9 @@ body.is-entered #track { height: var(--track-h, 260vh); }
 }
 #portal-portrait { display: block; width: 100%; height: 100%; }
 /* While the video plays it carries the portrait itself. */
-#portal.is-playing #portal-portrait-wrap { opacity: 0; }
+/* The video starts on the bare plate: the portrait dissolves into light as it plays. */
+#portal-portrait-wrap { transition: opacity 1.4s ease-in, filter 1.4s ease-in; }
+#portal.is-playing #portal-portrait-wrap { opacity: 0; filter: brightness(1.6) blur(3px); }
 #portal.is-playing #portal-video { opacity: 1; }
 
 /* Code transformation: the canvas takes over, the DOM portal steps aside. */
@@ -138,29 +140,45 @@ body.is-entered #track { height: var(--track-h, 260vh); }
 
 #portal { cursor: pointer; }
 
+/* Enter prompt: small Cinzel caps in gold, a slow light sweep across the letters,
+   hairlines either side. Sits in the empty sky above the portrait. */
 #enter {
-  position: absolute; left: 50%; top: max(12vh, 72px); /* in the empty sky, clear of the portrait */
+  position: absolute; left: 50%; top: max(15vh, 88px);
   transform: translateX(-50%);
-  padding: 0.9em 2.2em;
-  font: inherit; font-size: clamp(1.1rem, 2.4vw, 1.5rem); letter-spacing: 0.24em;
+  display: flex; align-items: center; gap: 0.9em;
+  padding: 0.9em 1.2em;
+  font-family: "Cinzel", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(0.68rem, 1.4vw, 0.8rem);
+  letter-spacing: 0.38em;
   text-transform: uppercase;
-  color: var(--ink);
-  background: rgba(30, 14, 4, 0.28);
-  border: 1px solid rgba(245, 199, 106, 0.7);
-  border-radius: 999px;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  cursor: pointer;
-  text-shadow: 0 0 12px rgba(255, 200, 110, 0.6);
   white-space: nowrap;
-  animation: invite 3.2s ease-in-out infinite;
+  color: #e9c77b;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+#enter::before, #enter::after {
+  content: ""; width: clamp(18px, 3vw, 34px); height: 1px;
+  background: linear-gradient(90deg, rgba(233, 199, 123, 0), rgba(233, 199, 123, 0.85));
+}
+#enter::after { transform: scaleX(-1); }
+.enter-label {
+  margin-right: -0.38em; /* cancel trailing letter-spacing so it centres */
+  background: linear-gradient(100deg, #a8782a 0%, #e9c77b 32%, #fff4d6 46%, #e9c77b 58%, #a8782a 100%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 7px rgba(255, 196, 100, 0.32)) drop-shadow(0 1px 1px rgba(40, 18, 4, 0.45));
+  animation: shine 5s ease-in-out infinite;
+}
+@keyframes shine {
+  0% { background-position: 100% 0; }
+  45%, 100% { background-position: 0% 0; }
 }
 #enter:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
 #portal.is-leaving #enter { opacity: 0; transition: opacity 0.4s; pointer-events: none; }
-@keyframes invite {
-  0%, 100% { box-shadow: 0 0 0 rgba(245, 199, 106, 0); }
-  50% { box-shadow: 0 0 28px rgba(245, 199, 106, 0.45); }
-}
 
 /* ---------- Cursor + particles ---------- */
 
@@ -185,7 +203,8 @@ body.is-entered #track { height: var(--track-h, 260vh); }
 /* ---------- Reduced motion: still versions ---------- */
 
 @media (prefers-reduced-motion: reduce) {
-  .layer.bison .breath, .layer.bison .glow, #enter { animation: none; }
+  .layer.bison .breath, .layer.bison .glow, .enter-label { animation: none; }
+  .enter-label { background-position: 50% 0; }
   #portal.is-blooming #portal-photo, #portal.is-blooming #portal-bloom,
   #portal.is-blooming #portal-portrait { transition: none; }
 }

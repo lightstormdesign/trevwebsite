@@ -1,6 +1,7 @@
 // Portal: the realistic Sedona plate + portrait, layered over the live illustrated scene
 // (framed identically). Tap anywhere: the fractal transformation (js/transition.js)
-// dissolves the plate from the tap point to reveal the scene underneath.
+// Tap anywhere: the transition video plays over the plate, then crossfades (~0.3s) to the
+// live scene. Fallback: the fractal transformation (js/transition.js) from the tap point.
 import { PORTAL } from './config.js';
 import { fractalTransition } from './transition.js';
 
@@ -16,6 +17,13 @@ export class Portal {
     this.button = root.querySelector('#enter');
     document.documentElement.style.setProperty('--fade', `${PORTAL.crossfadeMs}ms`);
     this.photoReady = this.photo.decode ? this.photo.decode().catch(() => {}) : Promise.resolve();
+
+    // Buffer the transition once the plate is up, so the tap starts it instantly.
+    if (PORTAL.video && !reducedMotion) {
+      const small = Math.max(window.innerWidth, window.innerHeight) * (window.devicePixelRatio || 1) < 1500;
+      this.video.src = small ? PORTAL.video.small : PORTAL.video.large;
+      this.photoReady.then(() => { this.video.preload = 'auto'; this.video.load(); });
+    }
   }
 
   // Frame the portal exactly like the scene's entry frame so the hand-off lines up.
@@ -70,9 +78,8 @@ export class Portal {
       };
       v.addEventListener('error', fail, { once: true });
       v.addEventListener('ended', () => resolve(true), { once: true });
+      if (v.error) return fail();
       setTimeout(fail, 2500); // no video / too slow: use the code transformation
-      v.src = PORTAL.video;
-      v.preload = 'auto';
       v.play().then(() => {
         if (gaveUp) return v.pause();
         started = true;
