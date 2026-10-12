@@ -1,0 +1,4 @@
+# Not served: PNG masters and the asset pipeline stay in git only
+assets/masters/
+tools/
+README.md

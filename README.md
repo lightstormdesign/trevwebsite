@@ -75,3 +75,10 @@ Tunables (depths, push-in, entry framing, star positions, bison breathing pivot)
 - `assets/video/transition.mp4`: AI transition; its last frame = illustrated scene + bison
 - `assets/bison/bison.webp`: bison cut from that last frame, full canvas; then set `BISON.feet`
 - the 16:9 desktop plate
+
+## Deploy (Vercel)
+
+Plain static site, no build. `vercel.json` sets caching; `.vercelignore` keeps the PNG masters and
+tools out of the deploy. In Vercel: **Add New → Project → import `lightstormdesign/trevwebsite`**,
+framework preset **Other**, leave build settings empty, **Deploy**. Every push to a branch gets a
+preview URL; pushes to the production branch (`main` by default) update the live site.
