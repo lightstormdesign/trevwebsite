@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14161B">
+  <title>TREV · Kingdom</title>
+  <meta name="description" content="TREV. The kingdom is within you.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/poster.jpg">
+  <link rel="preload" as="image" href="assets/hero-end.jpg">
+  <link rel="preload" as="image" href="assets/trev-logo.png">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Returning visitors skip the intro before first paint (?intro forces it, for testing).
+    try {
+      if (localStorage.getItem('trev_entered') === '1' && !/[?&]intro\b/.test(location.search)) {
+        document.documentElement.classList.add('skip-intro');
+      }
+    } catch (e) {}
+  </script>
+</head>
+<body>
+
+  <!-- ============ ENTRY ============ -->
+  <section id="intro" class="intro" aria-label="Enter">
+    <div class="stage" id="stage">
+      <div class="drift" id="drift">
+        <!-- 16:9 frame: sized to cover the screen, positioned so the real sun sits at screen centre -->
+        <div class="frame" id="introFrame">
+          <video id="ai" class="layer" src="assets/transition.mp4" muted playsinline preload="auto"></video>
+          <video id="hero" class="layer" src="assets/hero.mp4" poster="assets/poster.jpg" muted playsinline preload="auto"></video>
+          <img class="logo" id="introLogo" src="assets/trev-logo.png" alt="" aria-hidden="true">
+        </div>
+      </div>
+      <div class="vignette"></div>
+    </div>
+
+    <button class="enter" id="hold" type="button" aria-label="Press and hold to enter">
+      <span class="enter-label">Hold to Enter</span>
+      <span class="enter-bar"><span class="enter-fill" id="enterFill"></span></span>
+    </button>
+
+    <a href="#site" class="skip" id="skip">Skip</a>
+
+    <!-- iOS 18+ haptic tick: toggling a native switch from a touch handler fires the system tick -->
+    <label class="haptic" id="haptic" aria-hidden="true"><input type="checkbox" switch tabindex="-1"></label>
+  </section>
+
+  <audio id="song" src="assets/kingdom.m4a" preload="auto"></audio>
+
+  <!-- ============ SITE ============ -->
+  <div id="site" class="site">
+    <header class="nav" id="nav">
+      <a href="#top" class="wordmark">TREV</a>
+      <nav>
+        <a href="#music">Music</a>
+        <a href="#story">Story</a>
+        <a href="#visuals">Visuals</a>
+        <a href="#live">Live</a>
+        <a href="#join" class="nav-cta">Join</a>
+      </nav>
+      <button class="sound" id="sound" type="button" aria-label="Mute">
+        <span class="bars"><i></i><i></i><i></i></span>
+      </button>
+    </header>
+
+    <section class="feature" id="top">
+      <div class="feature-bg" id="featureBg">
+        <div class="frame" id="siteFrame">
+          <div class="frame-img" style="background-image:url(assets/hero-end.jpg)"></div>
+          <img class="logo" src="assets/trev-logo.png" alt="TREV">
+        </div>
+      </div>
+      <div class="vignette"></div>
+      <div class="feature-copy">
+        <p class="eyebrow">New single</p>
+        <h1 class="title">Kingdom</h1>
+        <div class="actions">
+          <a class="btn btn-solid" href="#" data-todo="YouTube URL">Watch</a>
+          <a class="btn" href="#" data-todo="Spotify URL">Spotify</a>
+          <a class="btn" href="#" data-todo="Apple Music URL">Apple Music</a>
+        </div>
+      </div>
+      <p class="tilt-hint" id="tiltHint">Tap, then tilt to look around</p>
+    </section>
+
+    <section class="block" id="music">
+      <h2 class="h2">Music</h2>
+      <div class="releases">
+        <article class="release">
+          <img src="assets/poster.jpg" alt="Kingdom cover still" loading="lazy">
+          <h3>Kingdom</h3><p>Single</p>
+        </article>
+        <article class="release placeholder"><div></div><h3>Release title</h3><p>DistroKid catalog</p></article>
+        <article class="release placeholder"><div></div><h3>Release title</h3><p>DistroKid catalog</p></article>
+      </div>
+    </section>
+
+    <section class="block story" id="story">
+      <h2 class="h2">Story</h2>
+      <p class="manifesto">Your manifesto goes here. Honest, first person, a few short paragraphs.</p>
+    </section>
+
+    <section class="block" id="visuals">
+      <h2 class="h2">Visuals</h2>
+      <div class="grid">
+        <img src="assets/landscape.jpg" alt="" loading="lazy">
+        <img src="assets/rock.jpg" alt="" loading="lazy">
+        <img src="assets/poster.jpg" alt="" loading="lazy">
+      </div>
+    </section>
+
+    <section class="block" id="live">
+      <h2 class="h2">Live &amp; gatherings</h2>
+      <p class="muted">Bandsintown widget goes here.</p>
+    </section>
+
+    <section class="join" id="join">
+      <div class="join-bg" style="background-image:url(assets/rock.jpg)"></div>
+      <div class="join-copy">
+        <h2 class="title title-sm">Enter the Kingdom</h2>
+        <p class="sub">The kingdom is within you.</p>
+        <form class="join-form" id="joinForm">
+          <input type="tel" inputmode="tel" autocomplete="tel" placeholder="Your phone number" aria-label="Phone number" required>
+          <button class="btn btn-solid" type="submit">Join</button>
+        </form>
+        <p class="muted small" id="joinNote">or text <a href="sms:+18588779751?&amp;body=KINGDOM">KINGDOM to 858-877-9751</a></p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>© TREV</span>
+      <span>built by LightStorm</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
