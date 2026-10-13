@@ -3,13 +3,13 @@
 // same spot, so tapping "My Story" feels like the logo stays put while the world changes around it.
 
 export const SUN = { x: 0.482, y: 0.304 }; // the real sun in the 16:9 hero frame
-export const LOGO_ANCHOR = { x: 0.5063, y: 0.4194 }; // the logo's sun window, as a fraction of the logo
-export const LOGO_ASPECT = 788 / 484;
+export const LOGO_ANCHOR = { x: 0.5015, y: 0.4418 }; // the logo's bright sun core, as a fraction of the logo
+export const LOGO_ASPECT = 1280 / 667;
 
 const isPortrait = (W, H) => W / H <= 4 / 5;
 
-// Logo width — mirrors .kd-logo: 74vw on phones, clamp(240px, 30vw, 540px) otherwise.
-export const logoWidth = (W, H) => (isPortrait(W, H) ? 0.74 * W : Math.min(540, Math.max(240, 0.3 * W)));
+// Logo width — mirrors .kd-logo: 82vw on phones, clamp(265px, 33vw, 600px) otherwise.
+export const logoWidth = (W, H) => (isPortrait(W, H) ? 0.82 * W : Math.min(600, Math.max(265, 0.33 * W)));
 
 // Screen position of the logo's sun window on the homepage hero (pan = 0, no tilt), and its width.
 export function heroLogoPlacement(W, H) {

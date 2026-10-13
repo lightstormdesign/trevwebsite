@@ -1,5 +1,5 @@
-"""Fill the TREV logo's hollow sun with pure white light, traced to the ray tips so it sits exactly in the
-window (drawn under the logo so the rays overlap it). Usage: python3 logo_sun_fill.py trev-logo-hollow.png out.png"""
+"""(Retired: the v2 logo has its own sun.) Filled the old TREV logo's hollow sun with pure white light, traced to
+the ray tips. Usage: python3 logo_sun_fill.py trev-logo-hollow.png out.png"""
 import math, sys
 from PIL import Image
 src, dst = sys.argv[1:3]

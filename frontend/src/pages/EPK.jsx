@@ -19,8 +19,19 @@ import {
   SOCIALS,
 } from "@/data/site";
 
-// EPK gallery — stills from the "Kingdom" music video (never mid-verse) until real press photos arrive.
-const EPK_GALLERY = ["01", "02", "03", "05", "07", "08", "09", "10", "11", "12"].map((n) => `/trev-epk-${n}.jpg`);
+// EPK gallery — a mix of live, travel, studio and Sedona shots (natural aspect, masonry columns).
+// The "Kingdom" video stills are limited to a few strong ones, never mid-verse.
+const EPK_GALLERY = [
+  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show" },
+  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona" },
+  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica" },
+  { src: "/trev-epk-sign.jpg", alt: "TREV holding a sign: The Kingdom Is Within You" },
+  { src: "/trev-epk-beach.jpg", alt: "TREV on the beach" },
+  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio" },
+  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona" },
+  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona" },
+  { src: "/trev-epk-11.jpg", alt: "TREV at sunset" },
+];
 
 // Live performance highlight reel, front and centre. public/trev-epk-reel.mp4 (web-compressed from
 // TREV's highlight reel); the block hides itself until that file exists.
@@ -202,10 +213,10 @@ export default function EPK() {
           }}
         />
         <Reveal className="order-2 lg:order-1" delay={0.2}>
-          <div data-testid="epk-gallery" className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
-            {EPK_GALLERY.map((src) => (
-              <div key={src} className="overflow-hidden rounded-lg border border-white/10 bg-black/40">
-                <img src={src} alt={`${ARTIST_NAME} — Kingdom`} className="aspect-video w-full object-cover" loading="lazy" />
+          <div data-testid="epk-gallery" className="columns-2 gap-2 sm:columns-3 lg:columns-2">
+            {EPK_GALLERY.map((g) => (
+              <div key={g.src} className="mb-2 break-inside-avoid overflow-hidden rounded-lg border border-white/10 bg-black/40">
+                <img src={g.src} alt={g.alt} className="block h-auto w-full" loading="lazy" />
               </div>
             ))}
           </div>

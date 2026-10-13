@@ -28,20 +28,20 @@
 }
 .kd-hidden { visibility: hidden; }
 
-/* TREV logo: its sun window is pinned to the real sun (48.2%, 30.4% of the frame) */
+/* TREV logo: its bright sun core is pinned to the real sun (48.2%, 30.4% of the frame) */
 .kd-logo {
   position: absolute; left: 48.2%; top: 30.4%;
-  width: clamp(240px, 30vw, 540px); height: auto; max-width: none;
-  transform-origin: 50.63% 41.94%;
-  transform: translate(-50.63%, -41.94%);
+  width: clamp(265px, 33vw, 600px); height: auto; max-width: none;
+  transform-origin: 50.15% 44.18%;
+  transform: translate(-50.15%, -44.18%);
   pointer-events: none;
 }
 /* reveal with opacity + scale only (no filter animation over the playing video) */
 .kd-intro .kd-logo {
-  opacity: 0; transform: translate(-50.63%, -41.94%) scale(.965);
+  opacity: 0; transform: translate(-50.15%, -44.18%) scale(.965);
   transition: opacity 1.6s cubic-bezier(.4,0,.2,1), transform 2.2s cubic-bezier(.2,.7,.2,1);
 }
-.kd-intro .kd-logo.kd-show { opacity: 1; transform: translate(-50.63%, -41.94%) scale(1); }
+.kd-intro .kd-logo.kd-show { opacity: 1; transform: translate(-50.15%, -44.18%) scale(1); }
 
 /* cinematic vignette — identical on the entry and the hero so the hand-off is seamless */
 .kd-vignette {
@@ -136,7 +136,7 @@
 .kd-tilt-hint.kd-show { opacity: .7; }
 
 @media (max-aspect-ratio: 4/5) {
-  .kd-logo { width: 74vw; }
+  .kd-logo { width: 82vw; }
   .kd-root { touch-action: pan-y; }
   .kd-bio { font-size: 15px; max-width: 22rem; }
 }
