@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { HERO_BIO, HERO_CTA, SITE_TAGLINE } from "@/data/site";
+import { HERO_BIO, HERO_CTA, HOME_TAGLINE_LINES } from "@/data/site";
+import { heroLogoPlacement, LOGO_ANCHOR, LOGO_ASPECT } from "@/utils/kingdomLogo";
+import { GoldFlourish } from "./GoldFlourish";
 import "./kingdom.css";
 
 // Home: "Hold to Enter" entry -> real Kingdom footage (1:59.27–2:02.10) -> TREV dissolves into
@@ -19,17 +21,13 @@ const SUN = { x: 0.482, y: 0.304 };
 const LAST_FRAME_T = 73 / 30;
 const GRACE = 0.15; // let go in the last ~4 frames and it still enters
 const PAN_USE = 0.85;
-const STORAGE_KEY = "trev_entered";
+// The entry plays on every fresh page load (including a refresh). It's skipped only when you come
+// back to Home within the same visit (e.g. via the nav), since this flag lives in memory.
+let enteredThisLoad = false;
 
 export const KingdomHome = () => {
   const rootRef = useRef(null);
-  const [skipIntro] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEY) === "1" && !/[?&]intro\b/.test(window.location.search);
-    } catch (e) {
-      return false;
-    }
-  });
+  const [skipIntro] = useState(() => enteredThisLoad);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -120,6 +118,19 @@ export const KingdomHome = () => {
       if (canVibrate) { try { navigator.vibrate(ms); } catch (e) {} return; }
       haptic.click(); // iOS 18+: toggling a native <input switch> from a touch handler fires the system tick
     }
+
+    /* ---------- hero copy: nestled right under the logo (its sun is pinned to the real sun) ---------- */
+    const copy = q(".kd-copy");
+    function placeCopy() {
+      const W = root.offsetWidth, H = root.offsetHeight;
+      const p = heroLogoPlacement(W, H);
+      const logoBottom = p.y + (p.width / LOGO_ASPECT) * (1 - LOGO_ANCHOR.y);
+      const top = Math.max(0, Math.min(logoBottom - 2, H - copy.offsetHeight - 16)); // never off the bottom
+      copy.style.top = `${top.toFixed(1)}px`;
+    }
+    placeCopy();
+    on(window, "resize", placeCopy);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => alive && placeCopy());
 
     /* ---------- hero (homepage) parallax / tilt ---------- */
     let heroStarted = false;
@@ -308,7 +319,7 @@ export const KingdomHome = () => {
       hold.classList.remove("kd-pressed");
       if (canVibrate) tick(14);
       intro.classList.add("kd-committed");
-      try { localStorage.setItem(STORAGE_KEY, "1"); } catch (e) {}
+      enteredThisLoad = true;
       settleDrift(3.6);
       // Swap on the exact frame: hero is parked on its last frame; the transition's first frame is
       // that same image. Start the transition underneath; hide the hero once it presents a frame.
@@ -372,7 +383,7 @@ export const KingdomHome = () => {
     later(() => { if (state === "idle") skip.classList.add("kd-show"); }, 5000);
     on(skip, "click", (e) => {
       e.preventDefault();
-      try { localStorage.setItem(STORAGE_KEY, "1"); } catch (err) {}
+      enteredThisLoad = true;
       state = "committed";
       hero.pause();
       if (!song.paused) fadeOutAndPause(0.4);
@@ -406,11 +417,15 @@ export const KingdomHome = () => {
         </div>
       </div>
       <div className="kd-vignette" />
-      {/* Sierra-template hero: logo (pinned to the sun, above), tagline, short bio, "My Story" */}
+      {/* Hero copy, nestled under the logo (pinned to the sun, above): an ornate gold rule under TREV,
+          the two-line tagline, short bio, "My Story" */}
       <div className="kd-copy">
-        <h1 className="kd-tagline">{SITE_TAGLINE}</h1>
+        <GoldFlourish width={300} className="kd-flourish" />
+        <h1 className="kd-tagline">
+          {HOME_TAGLINE_LINES.map((line) => <span key={line}>{line}</span>)}
+        </h1>
         <p className="kd-bio">{HERO_BIO}</p>
-        <Link className="kd-btn kd-btn-solid kd-story-btn" to={HERO_CTA.to} data-testid="home-my-story">{HERO_CTA.label}</Link>
+        <Link className="kd-btn kd-btn-gold kd-story-btn" to={HERO_CTA.to} data-testid="home-my-story">{HERO_CTA.label}</Link>
       </div>
       <p className="kd-tilt-hint">Tap, then tilt to look around</p>
 

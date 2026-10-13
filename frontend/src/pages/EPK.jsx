@@ -19,10 +19,33 @@ import {
   SOCIALS,
 } from "@/data/site";
 
-// EPK gallery — temporary 16:9 stills from the "Kingdom" music video
-// (/trev-epk-01.jpg … /trev-epk-12.jpg) until real press photos arrive.
-// Swap the files in /public (same names) to update without touching code.
-const EPK_GALLERY = Array.from({ length: 12 }, (_, i) => `/trev-epk-${String(i + 1).padStart(2, "0")}.jpg`);
+// EPK gallery — stills from the "Kingdom" music video (never mid-verse) until real press photos arrive.
+const EPK_GALLERY = ["01", "02", "03", "05", "07", "08", "09", "10", "11", "12"].map((n) => `/trev-epk-${n}.jpg`);
+
+// Live performance highlight reel, front and centre. public/trev-epk-reel.mp4 (web-compressed from
+// TREV's highlight reel); the block hides itself until that file exists.
+const EPK_REEL = { src: "/trev-epk-reel.mp4", poster: "/trev-epk-reel.jpg" };
+
+const PerformanceReel = () => {
+  const [missing, setMissing] = useState(false);
+  if (missing) return null;
+  return (
+    <div data-testid="epk-reel" className="mx-auto mt-10 max-w-4xl">
+      <span className="overline">Live Performance</span>
+      <div className="mt-4 overflow-hidden rounded-xl border border-[var(--sm-gold)]/25 bg-black shadow-[0_0_60px_rgba(227,163,92,0.12)]">
+        <video
+          className="aspect-video w-full bg-black object-contain"
+          src={EPK_REEL.src}
+          poster={EPK_REEL.poster}
+          controls
+          playsInline
+          preload="metadata"
+          onError={() => setMissing(true)}
+        />
+      </div>
+    </div>
+  );
+};
 
 const inputClass =
   "rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 font-body text-sm text-white placeholder:text-white/40 focus:border-[var(--sm-gold)]/60 focus:outline-none";
@@ -116,6 +139,10 @@ export default function EPK() {
           <h1 className="font-display mt-5 text-5xl font-normal text-[var(--sm-text)] sm:text-6xl">{ARTIST_NAME}</h1>
           <p className="font-accent mt-4 text-sm uppercase tracking-[0.2em] text-white/60">{SITE_GENRE_TAGS}</p>
           <p className="font-accent mt-2 text-base italic text-white/50">{SITE_LOCATION}</p>
+        </Reveal>
+
+        <Reveal delay={0.05}>
+          <PerformanceReel />
         </Reveal>
 
         <Reveal delay={0.1}>

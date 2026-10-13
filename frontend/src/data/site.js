@@ -22,6 +22,8 @@ export const LABEL_NAME = "SovereignTree Records";
 export const SOVEREIGNTREE_URL = "https://sovereigntree.org";
 
 export const SITE_TAGLINE = "Music for the Kingdom Within";
+export const HOME_TAGLINE_LINES = ["Music for the", "Kingdom Within"]; // homepage hero, under the logo
+export const MUSIC_TAGLINE_LINES = ["Music for the", "Inner Kingdom"]; // Music page title
 export const SITE_GENRE_TAGS = "CONSCIOUS HIP-HOP | SPOKEN WORD | PRAYERFORMANCE";
 export const KINGDOM_LINE = "The Kingdom is Within You.";
 
@@ -122,12 +124,20 @@ export const MUSIC_PLATFORM_LINKS = [
   { label: "Bandcamp", href: "https://trevworld.bandcamp.com" },
 ];
 
-// Featured release: "Kingdom". PLACEHOLDER: the YouTube video ID for the
-// official music video isn't on the live site — set it here when known and the
-// Music page embeds it; until then it links to the channel.
-export const KINGDOM_YOUTUBE_ID = null;
+// Featured release: "Kingdom". The Music page plays a 20-second preview of the official video, then
+// asks people to "Get the full video" via the Laylo list (LAYLO_URL), which gates the full video.
+// File: public/trev-kingdom-preview.mp4 (TREV's "Kingdom official preview"), poster: trev-kingdom-preview.jpg.
+export const KINGDOM_PREVIEW = {
+  src: "/trev-kingdom-preview.mp4",
+  poster: "/trev-entry-hero-end.jpg",
+  seconds: 20,
+};
 
 export const TRACKING_PIXEL_IDS = {
   metaPixelId: null,
   googleAnalyticsId: null,
 };
+
+// About page opening emblem. null = the TREV wordmark. Set to the lion symbol (e.g. "/trev-lion.png")
+// once it's in public/, so the wordmark isn't repeated between the homepage and About.
+export const ABOUT_EMBLEM = null;

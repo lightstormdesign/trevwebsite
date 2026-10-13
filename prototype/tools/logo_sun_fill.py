@@ -1,30 +1,37 @@
-"""Fill the TREV logo's hollow sun half-disc with white light (white core, warm gold rim),
-under the logo so the rays still overlap it. Usage: python3 logo_sun_fill.py <in.png> <out.png>"""
-import math
-import subprocess
-import sys
-
+"""Fill the TREV logo's hollow sun with pure white light, traced to the ray tips so it sits exactly in the
+window (drawn under the logo so the rays overlap it). Usage: python3 logo_sun_fill.py trev-logo-hollow.png out.png"""
+import math, sys
+from PIL import Image
 src, dst = sys.argv[1:3]
-W, H = 788, 484
-CX, CY, R = 399.5, 203.0, 27.5  # sun disc centre on the horizon line, radius (cropped-logo px)
-raw = bytearray(subprocess.run(["ffmpeg", "-v", "error", "-i", src, "-f", "rawvideo", "-pix_fmt", "rgba", "-"],
-                               capture_output=True, check=True).stdout)
-for y in range(int(CY - R - 2), int(CY + 3)):
-    for x in range(int(CX - R - 2), int(CX + R + 3)):
-        d = math.hypot(x - CX, y - CY)
-        a_disc = max(0.0, min(1.0, (R - d) / 1.6)) * max(0.0, min(1.0, (CY + 2 - y) / 1.5))
-        if a_disc <= 0:
-            continue
-        t = min(1.0, d / R)
-        dr, dg, db = 255, 255 - 28 * t, 255 - 90 * t  # white core -> warm gold rim
-        i = (y * W + x) * 4
-        r, g, b, a = raw[i:i + 4]
-        fa = a / 255.0  # logo over disc
-        oa = fa + a_disc * (1 - fa)
-        if oa <= 0:
-            continue
-        mix = lambda c_logo, c_disc: round((c_logo * fa + c_disc * a_disc * (1 - fa)) / oa)
-        raw[i:i + 4] = bytes([mix(r, dr), mix(g, dg), mix(b, db), round(oa * 255)])
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgba", "-s", f"{W}x{H}", "-i", "-",
-                "-frames:v", "1", dst], input=bytes(raw), check=True)
-print("wrote", dst)
+im = Image.open(src).convert('RGBA'); px = im.load(); W, H = im.size
+CX, CY = 399.5, 205.5  # bottom-centre of the hollow (horizon line bottom)
+def tip(th):
+    r = 0.0
+    while r < 80:
+        x = CX + r*math.cos(th); y = CY - r*math.sin(th)
+        if y < 206 and px[int(x), int(y)][3] >= 110: return r
+        r += 0.25
+    return 80
+angs = [math.radians(a/4) for a in range(0, 721)]
+raw = [tip(a) for a in angs]
+win = 36  # +-9 degrees
+env = [min(raw[max(0,i-win):i+win+1]) for i in range(len(raw))]
+print('env min/max', min(env), max(env))
+def rfill(th):
+    i = max(0, min(720, round(math.degrees(th)*4)))
+    return env[i] + 2.2  # tuck under the ray tips
+out = Image.new('RGBA', im.size, (0,0,0,0)); op = out.load()
+for y in range(150, 207):
+    for x in range(340, 460):
+        # supersample 4x4 for an antialiased edge
+        cov = 0
+        for sy in range(4):
+            for sx in range(4):
+                fx = x + (sx+.5)/4; fy = y + (sy+.5)/4
+                if fy > CY + 0.5: continue
+                dx, dy = fx-CX, CY-fy
+                th = math.atan2(max(dy,0), dx); d = math.hypot(dx, dy)
+                if d <= rfill(th): cov += 1
+        if cov: op[x, y] = (255,255,255, round(255*cov/16))
+out.alpha_composite(im)  # logo over the white disc
+out.save(dst)

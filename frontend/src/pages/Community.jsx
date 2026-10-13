@@ -23,14 +23,13 @@ export default function Community() {
     // so the Footer always lands at the true bottom. Mobile gets an explicit
     // dark background since the photo is a bounded block there.
     <div className={`relative flex min-h-screen flex-col ${isMobile ? "bg-[var(--sm-black)]" : ""}`}>
-      {/* Background: TREV sitting on the rock over Sedona (temporary still
-          from the Kingdom video). Mobile: bounded block pinned to the top;
-          desktop: full-page fixed cover. */}
+      {/* Background: TREV with the crowd at a house show (on tour). Mobile: bounded block pinned to
+          the top; desktop: full-page fixed cover. */}
       <div
         className={isMobile ? "fixed inset-x-0 top-0 z-0 overflow-hidden" : "fixed inset-0 z-0 overflow-hidden"}
         style={isMobile ? { height: "58vh" } : undefined}
       >
-        <img src="/trev-about-04-now.jpg" alt="" aria-hidden className="animate-kenburns h-full w-full object-cover" />
+        <img src="/trev-community-crowd.jpg" alt="" aria-hidden className="animate-kenburns h-full w-full object-cover object-[50%_25%]" />
         <div aria-hidden className="haze-drift" />
         <div className="absolute inset-0 bg-black/65" />
       </div>

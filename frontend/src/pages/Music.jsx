@@ -1,17 +1,17 @@
-import { Apple, Youtube, ArrowUpRight, Music2, Disc3, Play } from "lucide-react";
+import { Apple, Youtube, ArrowUpRight, Music2, Disc3 } from "lucide-react";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
+import { KingdomPreview } from "@/components/site/KingdomPreview";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   SOCIALS,
   SPOTIFY_ARTIST_ID,
   SPOTIFY_ARTIST_URL,
   MUSIC_PLATFORM_LINKS,
-  KINGDOM_YOUTUBE_ID,
   LAYLO_URL,
   LAYLO_CTA,
-  SITE_TAGLINE,
+  MUSIC_TAGLINE_LINES,
   SITE_GENRE_TAGS,
 } from "@/data/site";
 
@@ -20,12 +20,6 @@ import {
 const spotifyEmbedSrc = SPOTIFY_ARTIST_ID
   ? `https://open.spotify.com/embed/artist/${SPOTIFY_ARTIST_ID}?theme=0`
   : null;
-
-// YouTube channel — used for the "Kingdom" feature until the official video's
-// ID is set in site.js (KINGDOM_YOUTUBE_ID), at which point it embeds instead.
-const YOUTUBE_CHANNEL_URL =
-  MUSIC_PLATFORM_LINKS.find((l) => l.label === "YouTube")?.href ||
-  SOCIALS.find((s) => s.label === "YouTube")?.href;
 
 const PLATFORM_ICONS = {
   Spotify: Music2,
@@ -38,15 +32,22 @@ export default function Music() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="starfield relative min-h-screen">
-      {/* Ambient tint cycles slowly through the site palette; this page starts
-          at its own phase of the loop. */}
-      <div className="ambient-tint-cycle fixed inset-0 z-0" style={{ animationDelay: "-4s" }} />
+    <div className="relative min-h-screen bg-[var(--sm-black)]">
+      {/* Background: TREV sitting on the rock over Sedona (moved here from Community). */}
+      <div className="fixed inset-0 z-0 overflow-hidden" aria-hidden>
+        <img src="/trev-about-04-now.jpg" alt="" className="animate-kenburns h-full w-full object-cover" />
+        <div className="haze-drift" />
+        <div className="absolute inset-0 bg-black/70" />
+      </div>
       <Navbar />
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-32 pt-40 text-center">
         <Reveal>
           <span className="overline">Music</span>
-          <h1 className="font-display mt-5 text-5xl font-normal text-[var(--sm-text)] sm:text-6xl">{SITE_TAGLINE}</h1>
+          <h1 className="font-display mt-5 flex flex-col items-center font-normal leading-[1.12] text-[var(--sm-text)] text-legible" style={{ fontSize: "clamp(2rem, 6.4vw, 3.75rem)" }}>
+            {MUSIC_TAGLINE_LINES.map((line) => (
+              <span key={line} className="whitespace-nowrap">{line}</span>
+            ))}
+          </h1>
           <p className="font-accent mx-auto mt-5 max-w-2xl text-xs uppercase tracking-[0.2em] text-white/60">
             {SITE_GENRE_TAGS}
           </p>
@@ -116,57 +117,13 @@ export default function Music() {
                 New Release
               </span>
 
-              {/* "Kingdom" — official music video. Embeds automatically once
-                  KINGDOM_YOUTUBE_ID is set in site.js; until then a still
-                  from the video links out to the YouTube channel. */}
+              {/* "Kingdom" — official video preview: 20 seconds, then "Get the full video" -> Laylo. */}
               <div className="mt-5" data-testid="music-kingdom-feature">
                 <h3 className="font-display text-2xl text-white">Kingdom</h3>
-                <p className="font-body mt-1 text-xs font-light italic text-white/55">Official music video</p>
-                <div className="relative mt-3 overflow-hidden rounded-xl border border-white/10">
-                  {KINGDOM_YOUTUBE_ID ? (
-                    <iframe
-                      data-testid="music-kingdom-embed"
-                      className="aspect-video w-full"
-                      src={`https://www.youtube.com/embed/${KINGDOM_YOUTUBE_ID}`}
-                      title="TREV — Kingdom (Official Music Video)"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  ) : (
-                    <a
-                      href={YOUTUBE_CHANNEL_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-testid="music-kingdom-youtube-link"
-                      className="group relative block"
-                      aria-label="Watch Kingdom on YouTube"
-                    >
-                      <img
-                        src="/trev-entry-hero-end.jpg"
-                        alt="Still from the Kingdom music video"
-                        className="aspect-video w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-black/35 transition-colors duration-300 group-hover:bg-black/20" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="flex h-16 w-16 items-center justify-center rounded-full border border-white/40 bg-black/40 backdrop-blur-sm transition-colors group-hover:border-[var(--sm-gold)]">
-                          <Play size={24} className="ml-1 text-white" />
-                        </span>
-                      </div>
-                    </a>
-                  )}
+                <p className="font-body mt-1 text-xs font-light italic text-white/55">Official music video · preview</p>
+                <div className="mt-3">
+                  <KingdomPreview />
                 </div>
-                <a
-                  href={YOUTUBE_CHANNEL_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid="music-kingdom-watch-link"
-                  className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-2.5 font-accent text-xs uppercase tracking-[0.18em] text-white/80 transition-all duration-300 hover:border-[var(--sm-gold)]/60 hover:text-[var(--sm-gold-light)]"
-                >
-                  <Youtube size={15} /> Watch on YouTube
-                </a>
               </div>
 
               {/* Laylo list — "Unlock the Kingdom". */}

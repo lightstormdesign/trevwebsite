@@ -8,19 +8,27 @@ Artist site for TREV, built by LightStorm from the Sierra Marin template (`~/sie
 - `vercel.json` — builds from `frontend/` (same setup as the Burnell site).
 
 Dev server: `npm --prefix frontend start` (launch config `trev-frontend`, port 3008).
-Home's entry: append `?intro` to replay it (returning visitors skip it).
+Home's entry plays on every fresh load/refresh; it's skipped only when returning to Home via the nav in the same visit.
 
 ## Content source
 Bio, stats, highlights, festivals, booking copy, and links were pulled from the live
 trevworld.com (Home, Press, Contact) on 2026-10-13.
 
 ## Pending
-- About story photos: `frontend/public/trev-story-01..10` (TREV's own photos; 09 is a beach video loop). Only `trev-story-03-second-dream.jpg` is still a Kingdom-video still — no photo sent for that beat.
-- EPK gallery `trev-epk-01..12`, Community background, Music "Kingdom" still: same, temporary stills.
+- Files from TREV's "site files new" folder (not yet in the repo), each with a slot already wired:
+  - `frontend/public/trev-kingdom-preview.mp4` — the 27 s "Kingdom official preview". Music plays 20 s, then
+    "Get the full video" → Laylo. Until it exists the Laylo card shows over the poster.
+  - `frontend/public/trev-epk-reel.mp4` (+ optional `trev-epk-reel.jpg` poster) — the live highlight reel
+    ("copy", ~117 MB): compress to ~1080p H.264 ≤ 25 MB, e.g.
+    `ffmpeg -i copy.mov -vf scale=-2:1080 -c:v libx264 -crf 26 -preset slow -c:a aac -b:a 128k -movflags +faststart trev-epk-reel.mp4`.
+    The EPK block hides itself until it exists.
+  - Lion symbol → `frontend/public/trev-lion.png`, then set `ABOUT_EMBLEM` in `site.js`.
+  - Community background: the crowd photo with TREV on the ground (currently the house-show crowd shot,
+    `trev-community-crowd.jpg`).
+  - Album covers for a discography section; better photos for About beats.
 - About "world": TREV's illustrated layers are in (`trev-world-*`, `trev-border-sedona.png`;
   originals in `prototype/source/world/`). The layers are ~9 MB together — worth compressing
   (WebP/AVIF) before launch.
-- `KINGDOM_YOUTUBE_ID` in `site.js` (Music page embeds the video once set).
 - Tour dates / Bandsintown link (`TOUR_DATES`, `TOUR_TICKETS_URL`).
 - Favicons and the share image (og:image needs an absolute URL once the domain is live).
 - iPhone tilt needs https — test on a Vercel preview.

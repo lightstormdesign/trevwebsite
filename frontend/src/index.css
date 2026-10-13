@@ -97,6 +97,15 @@ body {
   filter: drop-shadow(0 1px 1.5px rgba(43, 31, 20, 0.55));
 }
 
+/* Gold in the TREV logo's metal: pale highlight on top, rich gold body, burnished base */
+.text-logo-gold {
+  background: linear-gradient(180deg, #fff6d2 0%, #f7d47c 32%, #e0a443 58%, #a8691f 82%, #e9b95c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 2px rgba(30, 16, 4, 0.7)) drop-shadow(0 0 18px rgba(0, 0, 0, 0.55));
+}
+
 .gold-glow {
   filter: drop-shadow(0 0 22px rgba(214, 179, 101, 0.35));
 }

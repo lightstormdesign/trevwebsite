@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { viewport } from "@/utils/viewport";
 
 // The About page's "world of TREV": TREV's illustrated Sedona layers, fixed behind the whole page.
 // Scrolling the opening (`hookRef` section) moves a camera through the world: it starts zoomed in on
@@ -26,6 +27,9 @@ const LAYERS = [
 const ZOOM_START = 1.5; // close in for the pan and the descent…
 const DARKEN = 0.7; // how dark the world sits behind the story
 const CLOUDS_START_X = 0.24; // clouds begin this far right (fraction of screen width), drifting in
+// how much of the sideways pan to keep: the camera starts only part-way toward the sun, so the first
+// scroll reads as a descent with a gentle drift, not a sudden slide to the side
+const PAN_AMOUNT = 0.35;
 
 const smooth = (t) => t * t * (3 - 2 * t);
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
@@ -66,17 +70,21 @@ export const SedonaWorld = ({ hookRef }) => {
       const dt = Math.min(0.05, (t - last) / 1000);
       last = t;
       const target = window.scrollY;
-      ys += (target - ys) * (1 - Math.exp(-dt * 6)); // ~170 ms glide, frame-rate independent
+      ys += (target - ys) * (1 - Math.exp(-dt * 4)); // ~250 ms glide, frame-rate independent
       if (Math.abs(target - ys) < 0.3) ys = target;
 
-      const W = window.innerWidth, H = window.innerHeight;
+      // Heights that don't change when the phone's address bar collapses: the scroll progress uses the
+      // small viewport (matches the svh-sized sections), the scene is sized to the large one so it
+      // always covers. Using innerHeight here made the whole world lurch on the first scroll.
+      const vp = viewport();
+      const W = window.innerWidth, H = vp.large;
       const hook = hookRef.current;
-      const hookEnd = hook ? hook.offsetTop + hook.offsetHeight - H : H * 2;
+      const hookEnd = hook ? hook.offsetTop + hook.offsetHeight - vp.small : vp.small * 2;
       // past the opening the world is landed and still: no more parallax
       const p = clamp01(ys / Math.max(1, hookEnd));
       // three beats: pan right off the sun · descend to the red-rock horizon · pull back to the full world
-      const pan = smooth(clamp01(p / 0.3));
-      const down = clamp01((p - 0.12) / 0.5);
+      const pan = smooth(clamp01(p / 0.6));
+      const down = clamp01((p - 0.04) / 0.56);
       const back = clamp01((p - 0.55) / 0.45);
 
       // camera: close in for the pan and the descent, then an exact cover fit on landing (phones: the
@@ -87,9 +95,10 @@ export const SedonaWorld = ({ hookRef }) => {
       const spare = sceneH - H;
       const yDown = Math.max(0, Math.min(spare, ROCKS_TOP * sceneH - 0.25 * H)); // rock horizon near the top
       const yLand = Math.max(0, Math.min(spare, ROCKS_TOP * sceneH - 0.42 * H));
-      const x = ((W - sceneW) / 2) * pan; // start on the sun (left edge of the art), pan right to centre
+      // start a little toward the sun (left of the art), drift to centre while descending
+      const x = ((W - sceneW) / 2) * (1 - PAN_AMOUNT * (1 - pan));
 
-      const key = `${W}|${H}|${ys.toFixed(1)}`;
+      const key = `${W}|${H}|${hookEnd}|${ys.toFixed(1)}`;
       if (key !== lastKey) {
         lastKey = key;
         LAYERS.forEach((L, i) => {
