@@ -21,8 +21,11 @@ import {
 
 // EPK gallery — a mix of live, travel, studio and Sedona shots (natural aspect, masonry columns).
 // The "Kingdom" video stills are limited to a few strong ones, never mid-verse.
-const EPK_GALLERY = [
+// Every crowd/live photo goes here (shown first, full width). Add more as they come in.
+const EPK_CROWD = [
   { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show" },
+];
+const EPK_GALLERY = [
   { src: "/trev-epk-01.jpg", alt: "TREV in Sedona" },
   { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica" },
   { src: "/trev-epk-sign.jpg", alt: "TREV holding a sign: The Kingdom Is Within You" },
@@ -213,6 +216,12 @@ export default function EPK() {
           }}
         />
         <Reveal className="order-2 lg:order-1" delay={0.2}>
+          {/* Crowd shots lead, full width: the live room is what bookers want to see */}
+          {EPK_CROWD.map((g) => (
+            <div key={g.src} className="mb-2 overflow-hidden rounded-lg border border-[rgba(227,163,92,0.3)] bg-black/40" data-testid="epk-crowd">
+              <img src={g.src} alt={g.alt} className="block h-auto w-full" loading="lazy" />
+            </div>
+          ))}
           <div data-testid="epk-gallery" className="columns-2 gap-2 sm:columns-3 lg:columns-2">
             {EPK_GALLERY.map((g) => (
               <div key={g.src} className="mb-2 break-inside-avoid overflow-hidden rounded-lg border border-white/10 bg-black/40">

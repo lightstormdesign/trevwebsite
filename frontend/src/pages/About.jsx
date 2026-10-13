@@ -30,7 +30,7 @@ const SLIDES = [
   {
     id: "first-dream", title: "The First Dream", media: "/trev-story-02-first-dream.jpg",
     body: [
-      "Basketball was my religion and Michael Jordan was God. Then I didn't make the high school team. In Utah, the coach was the bishop, and every kid he picked was from his church.",
+      "Basketball was my religion and Michael Jordan was God. Then I didn't make the high school team. The coach was the bishop, and every kid he picked was from his church.",
       "My first lesson on the “Kingdom of Heaven”: it was an exclusive club, and I wasn't chosen.",
     ],
   },
@@ -44,7 +44,7 @@ const SLIDES = [
   {
     id: "the-leap", title: "The Leap", media: "/trev-story-04-the-leap.jpg",
     body: [
-      "Years later, a few videos took off: over a million views, huge stages, opening for artists I idolized. Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
+      "Years later, a few videos took off: over a million views, opening for artists I idolized. Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
       "The net was a mirage. And maybe I was too.",
     ],
   },
@@ -53,13 +53,14 @@ const SLIDES = [
     body: [
       "I gave up on music and ended up in my mom's basement, working night shifts at the post office. My dream was dead for a second time.",
       "In that basement I finally understood: no label, no manager, no miracle was coming. I was the one I'd been waiting for.",
+      "So I wrote my way out.",
     ],
   },
   {
-    id: "every-hat", title: "Every Hat", media: "/trev-story-06-the-crowd.jpg",
+    id: "making-it", title: "Making It", media: "/trev-story-06-the-crowd.jpg",
     body: [
-      "So I started to build. I saved post office checks for my first tour and learned every hat: recording engineer, designer, video editor, booking agent.",
-      "After that first tour, I wasn't trying to “make it” anymore. I WAS making it.",
+      "I started to build. I saved post office checks for my first tour and did every job myself.",
+      "After that tour, I wasn't trying to “make it” anymore. I WAS making it.",
     ],
   },
   {
@@ -71,7 +72,7 @@ const SLIDES = [
   {
     id: "the-reward", title: "My Own Kingdom", video: "/trev-story-09-the-reward.mp4", media: "/trev-story-09-the-reward.jpg",
     body: [
-      "I stopped seeking a kingdom and started building my own. I met the love of my life, started touring internationally, and began making a living from my music.",
+      "I stopped seeking a kingdom and started building my own. Now I tour internationally and live from my music.",
     ],
   },
   {
