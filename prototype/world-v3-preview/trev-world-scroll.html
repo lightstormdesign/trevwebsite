@@ -121,27 +121,6 @@ function layout(p) {
     sctx.clearRect(0, 0, 941, 1672);
     if (sk > 0) {
       sctx.fillStyle = `rgba(10,12,22,${(0.06 * sk).toFixed(3)})`; sctx.fillRect(0, 0, 941, 1672); // the light drops everywhere
-      // The castle's shadow, thrown toward you: the ridge's outline flipped downward, starting small
-      // and far away at the foot of the castle and growing big and close until it covers the valley.
-      // Soft-edged, like a real shadow under a sunset sky.
-      const base = RIDGE_LOW + mDy;                 // the foot of the ridge
-      const grow = sk * sk;                         // slow start, then rushes toward you
-      const sx = 0.35 + 3.2 * grow;                 // width, about the castle's centre
-      const sy = 0.25 + 9 * grow;                   // length toward the camera
-      const drop = 30 + 900 * grow;                 // how far forward it reaches
-      sctx.fillStyle = `rgba(12,14,30,${SHADOW})`;
-      sctx.filter = `blur(${(10 + 22 * grow).toFixed(0)}px)`;
-      sctx.beginPath();
-      sctx.moveTo(-60, base - 30);
-      for (let i = 0; i < RIDGE.length; i++) sctx.lineTo(Math.min(941, i * 4), RIDGE[i] + mDy + 6);
-      sctx.lineTo(1000, base - 30);
-      for (let X = 1000; X >= -60; X -= 8) {
-        const src = 471 + (X - 471) / sx;           // sample the outline scaled up around the centre
-        const j = Math.max(0, Math.min(RIDGE.length - 1, Math.round(src / 4)));
-        sctx.lineTo(X, base + drop * 0.25 + (RIDGE_LOW - RIDGE[j]) * sy);
-      }
-      sctx.closePath(); sctx.fill();
-      sctx.filter = "none";
     }
   }
   rimEl.style.transform = `translate3d(${RIM.x}px, ${(RIM.y + mDy).toFixed(1)}px, 0)`;
