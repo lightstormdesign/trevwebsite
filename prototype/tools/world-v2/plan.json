@@ -1,4 +1,1 @@
-{"D":900,"Dspan":[0,0.85],
- "mult":{"sky":0,"cliffs":1.0,"groves":1.18,"pool":1.32,"bison":1.32,"stream":1.5,"fgleft":1.85,"fgright":1.85},
- "trees":{"from":260,"span":[0.0,0.45]},
- "mist":{"span":[0.0,0.4],"y0":430,"h":300}}
+{"D": 900, "Dspan": [0, 0.9], "mult": {"sky": 0, "cliffs": 1.0, "groves": 1.04, "pool": 1.07, "bison": 1.07, "stream": 1.1, "fgleft": 1.14, "fgright": 1.14}, "trees": {"from": 300, "span": [0.55, 0.92]}, "mist": {"span": [0.0, 0.4], "y0": 430, "h": 300}}

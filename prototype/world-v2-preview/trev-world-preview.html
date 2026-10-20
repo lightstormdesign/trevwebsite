@@ -39,19 +39,20 @@
 <script>
 // TREV world, scroll test. The 941x1672 painting is cover-fit to the screen (a centred column on
 // wide screens). Landing: sky + mandala with the cliff tops rising out of a low cloud bank.
-// Scrolling is one descent D (900 -> 0 canvas px) that every ground layer follows at its own
-// multiple, so nearer layers rise faster (parallax) and land together on the full world.
+// Scrolling is one descent D (900 -> 0 canvas px) that the whole ground follows, each layer at a
+// slightly different multiple (nearer = a little faster) so it reads as depth, but never far enough
+// apart to show a layer's edge. The trees slide in from the sides near the end.
 const CANVAS = { w: 941, h: 1672 };
 const SUN = { x: 487, y: 313 };                        // the sun in the painting
 const LOGO = { src: "trev-logo.webp", aspect: 1280 / 667, ax: 0.5015, ay: 0.4418 }; // logo's sun core
-const D0 = 900, DSPAN = [0, 0.85];
+const D0 = 900, DSPAN = [0, 0.9];
 const LAYERS = [
-  ["sky", 0], ["cliffs", 1.0], ["MIST"], ["groves", 1.18], ["pool", 1.32], ["bison", 1.32],
-  ["stream", 1.5], ["aspens", "L"], ["juniper", "R"], ["fgleft", 1.85], ["fgright", 1.85],
+  ["sky", 0], ["cliffs", 1.0], ["MIST"], ["groves", 1.04], ["pool", 1.07], ["bison", 1.07],
+  ["stream", 1.1], ["aspens", "L"], ["juniper", "R"], ["fgleft", 1.14], ["fgright", 1.14],
 ];
 const FILES = { sky: "01-sky", cliffs: "02-cliffs", groves: "03-groves", pool: "04-pool", bison: "05-bison",
   stream: "06-stream", aspens: "07-aspens", juniper: "08-juniper", fgleft: "09-fgleft", fgright: "10-fgright" };
-const TREES = { from: 260, span: [0, 0.45] };
+const TREES = { from: 300, span: [0.55, 0.92] };
 const MIST = { y0: 430, span: [0, 0.4] };
 
 const world = document.getElementById("world");

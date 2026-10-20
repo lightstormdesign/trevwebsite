@@ -9,8 +9,8 @@ own=np.load('/tmp/claude-0/s/owner.npy')
 order=['sky','cliffs','groves','pool','bison','stream','aspens','juniper','fgleft','fgright']
 src={'sky':['01-sky'],'cliffs':['02-spires','03-canyon-walls'],'groves':['04-canyon-floor'],'pool':['05-pool'],'bison':[],
      'stream':['10-stream','07-boulders'],'aspens':['08-aspens'],'juniper':['09-juniper'],'fgleft':['11-fg-left'],'fgright':['12-fg-right']}
-MARGIN={'sky':10**6,'cliffs':120,'groves':170,'pool':130,'bison':0,'stream':200,'aspens':60,'juniper':60,'fgleft':40,'fgright':40}
-FEATHER={'cliffs':110,'groves':70,'pool':60,'bison':0,'stream':70,'aspens':0,'juniper':0,'fgleft':0,'fgright':0}
+MARGIN={'sky':10**6,'cliffs':120,'groves':170,'pool':130,'bison':0,'stream':200,'aspens':220,'juniper':220,'fgleft':40,'fgright':40}
+FEATHER={'cliffs':110,'groves':70,'pool':60,'bison':0,'stream':70,'aspens':140,'juniper':140,'fgleft':0,'fgright':0}
 def warp(n):
     L=cv2.imread(D+n+'.png',cv2.IMREAD_UNCHANGED)
     if L.shape[2]==3: L=cv2.cvtColor(L,cv2.COLOR_BGR2BGRA)
