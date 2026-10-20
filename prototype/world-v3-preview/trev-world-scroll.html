@@ -1,0 +1,96 @@
+<title>TREV World Scroll</title>
+<style>
+  :root { --bg: #0b0c0f; --fg: #efe6d6; --gold: #f1cf97; color-scheme: dark; }
+  html, body { background: var(--bg); color: var(--fg); margin: 0; }
+  body { font-family: "Cinzel", Georgia, serif; }
+  #track { height: 560svh; }
+  #stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
+  #side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
+  #world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
+  #world img { position: absolute; left: 0; top: 0; max-width: none; will-change: transform; user-select: none; pointer-events: none; }
+  #logo { position: absolute; left: 0; top: 0; max-width: none; pointer-events: none; filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)); }
+  #hint { position: absolute; left: 0; right: 0; bottom: calc(5svh + env(safe-area-inset-bottom, 0px)); text-align: center;
+          font-size: 11px; letter-spacing: .42em; text-transform: uppercase; color: var(--fg); text-shadow: 0 1px 12px rgba(0,0,0,.6); }
+  #bar { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--gold); width: 0; opacity: .8; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
+
+<div id="track"></div>
+<div id="stage">
+  <div id="side"></div>
+  <div id="world"></div>
+  <img id="logo" src="trev-logo.webp" alt="TREV">
+  <div id="hint">Scroll to enter</div>
+  <div id="bar"></div>
+</div>
+
+<script>
+// TREV's world, built like Burnell's: every layer is a complete painting that runs to the bottom of
+// the canvas, so each can move on its own without ever showing an edge. Landing = the sky with the
+// castle peaks rising; scrolling brings each layer up (or in from the side) to its place.
+// rest: x, y, width in canvas px (941x1672). from: offset at landing. span: slice of the scroll it moves in.
+const CANVAS = { w: 941, h: 1672 };
+const SUN = { x: 471, y: 301 };
+const LOGO = { aspect: 1280 / 667, ax: 0.5015, ay: 0.4418 };
+const LAYERS = [
+  { key: "sky",        w: 941,   x: 0,     y: -150,  from: [0, 0],     span: [0, 1] },
+  { key: "mountains",  w: 941,   x: 0,     y: 5,     from: [0, 520],   span: [0, 1] },
+  { key: "falls",      w: 941,   x: 0,     y: 160,   from: [0, 900],   span: [0, 1] },
+  { key: "forest",     w: 941,   x: 0,     y: 105,   from: [0, 1150],  span: [0.05, 1] },
+  { key: "river",      w: 941,   x: 0,     y: 425,   from: [0, 1350],  span: [0.1, 1] },
+  { key: "bison",      w: 127,   x: 406.9, y: 900.8, from: [0, 1350],  span: [0.1, 1] },
+  { key: "foreground", w: 941,   x: 0,     y: 200,   from: [0, 1500],  span: [0.25, 1] },
+  { key: "aspens",     w: 941,   x: -80,   y: 0,     from: [-420, 0],  span: [0, 1] },
+  { key: "juniper",    w: 799.9, x: 210,   y: 251,   from: [470, 0],   span: [0, 1] },
+];
+const world = document.getElementById("world");
+for (const L of LAYERS) {
+  const el = document.createElement("img");
+  el.src = `w3-${L.key}.webp`; el.alt = ""; el.decoding = "async"; el.style.width = L.w + "px";
+  world.appendChild(el); L.el = el;
+}
+document.getElementById("side").style.backgroundImage = "url(w3-sky.webp)";
+const ease = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
+
+let VW = 0, VH = 0;
+function measure() { // address-bar safe: only re-measure height growth unless the width changes
+  if (window.innerWidth !== VW) { VW = window.innerWidth; VH = window.innerHeight; }
+  else VH = Math.max(VH, window.innerHeight);
+}
+function layout(p) {
+  measure();
+  const narrow = VW / VH <= 0.8;
+  const colW = narrow ? VW : Math.min(VW, VH * CANVAS.w / CANVAS.h);
+  const k = Math.max(colW / CANVAS.w, VH / CANVAS.h);
+  const ox = (VW - CANVAS.w * k) / 2, oy = (VH - CANVAS.h * k) / 2;
+  document.getElementById("side").style.display = narrow ? "none" : "block";
+  world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
+  world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
+  for (const L of LAYERS) {
+    const t = 1 - ease((p - L.span[0]) / (L.span[1] - L.span[0]));
+    L.el.style.transform = `translate3d(${(L.x + L.from[0] * t).toFixed(1)}px, ${(L.y + L.from[1] * t).toFixed(1)}px, 0)`;
+  }
+  const logo = document.getElementById("logo");
+  const lw = narrow ? colW * 0.82 : Math.min(600, Math.max(265, colW * 0.62));
+  logo.style.width = lw + "px";
+  logo.style.transform = `translate(${(ox + SUN.x * k - lw * LOGO.ax).toFixed(1)}px, ${(oy + SUN.y * k - (lw / LOGO.aspect) * LOGO.ay).toFixed(1)}px)`;
+  const lo = 1 - ease(p / 0.14);
+  logo.style.opacity = lo.toFixed(3);
+  document.getElementById("hint").style.opacity = lo.toFixed(3);
+  document.getElementById("bar").style.width = (p * 100).toFixed(1) + "%";
+}
+let target = 0, cur = 0, raf = 0, last = performance.now();
+const progress = () => Math.max(0, Math.min(1, window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight)));
+function frame(now) {
+  raf = 0;
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  target = progress();
+  cur += (target - cur) * (1 - Math.exp(-dt * 5));
+  if (Math.abs(target - cur) < 0.0003) cur = target;
+  layout(cur);
+  if (cur !== target) raf = requestAnimationFrame(frame);
+}
+addEventListener("scroll", () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); } }, { passive: true });
+addEventListener("resize", () => layout(cur));
+layout(0);
+</script>
