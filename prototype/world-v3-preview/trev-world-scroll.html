@@ -35,7 +35,7 @@
 // rest: x, y, width in canvas px (941x1672). from: offset at landing. span: slice of the scroll it moves in.
 const CANVAS = { w: 941, h: 1672 };
 const SUN = { x: 471, y: 301 };
-const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357, LAND_Y = 400, SHADOW = 0.17; // sun in the sky image; castle peak above the sun in the mountains image
+const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357, LAND_Y = 400, SHADOW = 0.26; // sun in the sky image; castle peak above the sun in the mountains image
 const LOGO = { aspect: 1280 / 667, ax: 0.5015, ay: 0.4418 };
 // Same choreography as Burnell's world (WorldHome.jsx): descent over 236svh of scroll, eased toward
 // the finger at 5/s, nearer layers starting later and travelling further, the side trees already
@@ -65,11 +65,18 @@ const CLOUDS = [
   { src: "burnell-world-cloud-large.webp",  after: "foreground", depth: 1,    w: 680, x0: 620, y0: 1120, dir: 1,  op: 0.95 },
 ];
 const world = document.getElementById("world");
-const sunsetEl = document.createElement("div"); sunsetEl.id = "sunset";
+const sunsetEl = document.createElement("canvas"); sunsetEl.id = "sunset"; sunsetEl.width = 941; sunsetEl.height = 1672;
+const sctx = sunsetEl.getContext("2d");
+// top edge of the castle ridge (mountains layer), every 4 canvas px: the shadow takes this shape
+const RIDGE = [503, 504, 504, 505, 507, 510, 512, 514, 516, 516, 515, 514, 514, 515, 516, 517, 516, 516, 515, 513, 511, 509, 507, 505, 503, 501, 498, 496, 497, 499, 501, 502, 505, 507, 508, 510, 512, 512, 513, 513, 510, 504, 502, 503, 504, 504, 497, 485, 480, 473, 467, 462, 455, 451, 453, 458, 465, 470, 475, 476, 482, 493, 499, 501, 500, 501, 502, 503, 500, 495, 491, 491, 493, 496, 498, 499, 500, 502, 503, 502, 498, 484, 467, 461, 456, 452, 453, 455, 459, 463, 469, 479, 482, 483, 485, 485, 483, 473, 459, 450, 428, 411, 408, 406, 406, 400, 392, 391, 386, 381, 382, 381, 373, 367, 362, 357, 355, 355, 359, 366, 373, 374, 375, 380, 385, 386, 386, 391, 400, 403, 402, 402, 407, 414, 425, 443, 454, 457, 457, 459, 463, 465, 464, 465, 468, 472, 473, 466, 452, 445, 443, 443, 448, 455, 480, 499, 499, 498, 504, 513, 514, 513, 514, 514, 513, 512, 513, 514, 515, 517, 520, 522, 524, 525, 526, 526, 525, 525, 525, 523, 519, 516, 515, 512, 510, 510, 509, 507, 503, 497, 493, 495, 499, 504, 508, 509, 513, 516, 519, 522, 526, 529, 530, 532, 532, 532, 531, 529, 529, 530, 530, 530, 530, 530, 530, 528, 527, 523, 520, 523, 524, 523, 519, 513, 509, 504, 503, 507, 513, 518, 522, 523, 523, 523, 524, 526, 526];
+const RIDGE_LOW = Math.max(...RIDGE);
+const rimEl = document.createElement("img"); rimEl.src = "w3-rim.webp"; rimEl.alt = "";
+rimEl.style.cssText = "width:747px;mix-blend-mode:screen;opacity:0"; const RIM = { x: 92, y: 329 };
 for (const L of LAYERS) {
   const el = document.createElement("img");
   el.src = L.src || `w3-${L.key}.webp`; el.alt = ""; el.decoding = "async"; el.style.width = L.w + "px";
   world.appendChild(el); L.el = el;
+  if (L.key === "mountains") world.appendChild(rimEl);
   for (const c of CLOUDS) if (c.after === L.key) {
     const ce = document.createElement("img");
     ce.src = c.src; ce.alt = ""; ce.style.width = c.w + "px"; ce.style.opacity = c.op;
@@ -106,8 +113,29 @@ function layout(p) {
   const landY = LAND_Y + ty(LAYERS[2]); // the shadow falls on the land below the open sky, never across it
   const hid = Math.min(1, Math.max(0, (sunY + SUN_R - ridgeY) / (2 * SUN_R)));
   const edge = landY + (CANVAS.h + 40 - landY) * ease(hid);
-  sunsetEl.style.background = hid <= 0 ? "none" :
-    `linear-gradient(to bottom, rgba(10,12,22,${(0.05 * hid).toFixed(3)}) 0px, rgba(10,12,22,${(0.05 * hid).toFixed(3)}) ${(landY - 60).toFixed(0)}px, rgba(10,12,22,${SHADOW}) ${landY.toFixed(0)}px, rgba(10,12,22,${SHADOW}) ${(edge - 6).toFixed(0)}px, rgba(10,12,22,${(0.05 * hid).toFixed(3)}) ${(edge + 6).toFixed(0)}px)`;
+  // the castle's shadow: the ridge's own outline, stretched toward you across the land
+  // the sweep runs from the moment the sun touches the ridge to the end of the scroll
+  const sk = ease(Math.min(1, Math.max(0, (sunY + SUN_R - ridgeY) / (SUN_R + 64)))), mDy = ty(mtL);
+  if (sunsetEl._k !== sk.toFixed(4) + "|" + landY.toFixed(1)) {
+    sunsetEl._k = sk.toFixed(4) + "|" + landY.toFixed(1);
+    sctx.clearRect(0, 0, 941, 1672);
+    if (sk > 0) {
+      sctx.fillStyle = `rgba(10,12,22,${(0.06 * sk).toFixed(3)})`; sctx.fillRect(0, 0, 941, 1672); // the light drops everywhere
+      // The shade's top is the rock's own silhouette (the sky is never shaded); its leading edge is
+      // the same silhouette thrown forward and stretched toward you, the peaks reaching furthest.
+      const reach = (CANVAS.h + 260 - (RIDGE_LOW + mDy)) * sk, stretch = 4.5 * sk;
+      sctx.fillStyle = `rgba(12,14,30,${SHADOW})`;
+      sctx.filter = "blur(1.5px)";
+      sctx.beginPath();
+      for (let i = 0; i < RIDGE.length; i++) sctx.lineTo(Math.min(941, i * 4), RIDGE[i] + mDy);
+      for (let i = RIDGE.length - 1; i >= 0; i--)
+        sctx.lineTo(Math.min(941, i * 4), RIDGE[i] + mDy + reach + (RIDGE_LOW - RIDGE[i]) * stretch);
+      sctx.closePath(); sctx.fill();
+      sctx.filter = "none";
+    }
+  }
+  rimEl.style.transform = `translate3d(${RIM.x}px, ${(RIM.y + mDy).toFixed(1)}px, 0)`;
+  rimEl.style.opacity = Math.min(1, Math.max(0, (hid - 0.05) / 0.5)).toFixed(3);
   // parting clouds (centred on x0,y0)
   const e = ease(p / PART_RANGE), now = performance.now() / 1000;
   CLOUDS.forEach((c, i) => {
