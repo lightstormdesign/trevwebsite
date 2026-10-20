@@ -33,7 +33,7 @@
 // castle peaks rising; scrolling brings each layer up (or in from the side) to its place.
 // rest: x, y, width in canvas px (941x1672). from: offset at landing. span: slice of the scroll it moves in.
 const CANVAS = { w: 941, h: 1672 };
-const SUN = { x: 471, y: 301 };
+const SUN = { x: 473, y: 429 }; // centre of the mandala in Burnell's sky
 const LOGO = { aspect: 1280 / 667, ax: 0.5015, ay: 0.4418 };
 // Same choreography as Burnell's world (WorldHome.jsx): descent over 236svh of scroll, eased toward
 // the finger at 5/s, nearer layers starting later and travelling further, the side trees already
@@ -41,13 +41,13 @@ const LOGO = { aspect: 1280 / 667, ax: 0.5015, ay: 0.4418 };
 // and clearing over the first 30%, and clouds that part to the sides as you go down.
 const DESCENT_SVH = 236, SCROLL_EASE = 5, PART_RANGE = 0.9;
 const LAYERS = [
-  { key: "sky",        w: 941,   x: 0,     y: -150,  from: [0, 0],     span: [0, 1] },
-  { key: "mountains",  w: 941,   x: 0,     y: 5,     from: [0, 520],   span: [0, 1] },
-  { key: "falls",      w: 941,   x: 0,     y: 160,   from: [0, 900],   span: [0, 1] },
-  { key: "forest",     w: 941,   x: 0,     y: 105,   from: [0, 1150],  span: [0.05, 1] },
-  { key: "river",      w: 941,   x: 0,     y: 425,   from: [0, 1400],  span: [0.1, 1] },
-  { key: "bison",      w: 127,   x: 406.9, y: 900.8, from: [0, 1400],  span: [0.1, 1] },
-  { key: "foreground", w: 941,   x: 0,     y: 200,   from: [0, 900],   span: [0.25, 1] },
+  { key: "sky", src: "burnell-world-sky.webp", w: 941, x: 0, y: 0,  from: [0, 0],     span: [0, 1] },
+  { key: "mountains",  w: 941,   x: 0,     y: 145,     from: [0, 520],   span: [0, 1] },
+  { key: "falls",      w: 941,   x: 0,     y: 300,   from: [0, 900],   span: [0, 1] },
+  { key: "forest",     w: 941,   x: 0,     y: 245,   from: [0, 1150],  span: [0.05, 1] },
+  { key: "river",      w: 941,   x: 0,     y: 565,   from: [0, 1400],  span: [0.1, 1] },
+  { key: "bison",      w: 127,   x: 406.9, y: 1040.8, from: [0, 1400],  span: [0.1, 1] },
+  { key: "foreground", w: 941,   x: 0,     y: 340,   from: [0, 900],   span: [0.25, 1] },
   { key: "aspens",     w: 941,   x: -80,   y: 0,     from: [-190, 0],  span: [0, 1] },
   { key: "juniper",    w: 799.9, x: 210,   y: 251,   from: [190, 0],   span: [0, 1] },
 ];
@@ -65,7 +65,7 @@ const CLOUDS = [
 const world = document.getElementById("world");
 for (const L of LAYERS) {
   const el = document.createElement("img");
-  el.src = `w3-${L.key}.webp`; el.alt = ""; el.decoding = "async"; el.style.width = L.w + "px";
+  el.src = L.src || `w3-${L.key}.webp`; el.alt = ""; el.decoding = "async"; el.style.width = L.w + "px";
   world.appendChild(el); L.el = el;
   for (const c of CLOUDS) if (c.after === L.key) {
     const ce = document.createElement("img");
@@ -73,7 +73,7 @@ for (const L of LAYERS) {
     world.appendChild(ce); c.el = ce;
   }
 }
-document.getElementById("side").style.backgroundImage = "url(w3-sky.webp)";
+document.getElementById("side").style.backgroundImage = "url(burnell-world-sky.webp)";
 const ease = (t) => { t = Math.min(1, Math.max(0, t)); return t * t * (3 - 2 * t); };
 
 let VW = 0, VH = 0;
