@@ -31,6 +31,10 @@ for l in range(1,len(order)+1):
 for _ in range(60):
     if not (ws==0).any(): break
     dl=cv2.dilate(ws.astype(np.float32),np.ones((3,3))).astype(np.int32); ws[ws==0]=dl[ws==0]
+ii={k:i+1 for i,k in enumerate(order)}
+yy=np.arange(H)[:,None]
+ws[(ws==ii['aspens'])&(yy>830)]=ii['fgleft']
+ws[(ws==ii['juniper'])&(yy>1060)]=ii['fgright']
 np.save('/tmp/claude-0/s/owner.npy',ws)
 pal=np.array([[0,0,0],[255,160,60],[60,60,230],[60,200,60],[230,200,40],[255,255,255],[40,230,230],[230,60,230],[30,120,255],[160,90,40],[120,255,180]],np.uint8)
 vis=(pal[ws]*0.55+M*0.45).astype(np.uint8)

@@ -58,19 +58,32 @@ for i,k in enumerate(order):
     if k=='sky':
         region=np.ones_like(O)
     else:
-        reach=cv2.dilate(O.astype(np.uint8),cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(2*MARGIN[k]+1,)*2))>0 if MARGIN[k] else O
+        if MARGIN[k]:
+            # extend only downward (what a nearer layer rising from below uncovers), plus a thin side band
+            m=MARGIN[k]*3 if k=='cliffs' else MARGIN[k]
+            kern=np.zeros((2*m+1,1),np.uint8); kern[:m+1]=1   # anchor at center, ones above -> grows downward
+            down=cv2.dilate(O.astype(np.uint8),kern)>0
+            side=cv2.dilate(O.astype(np.uint8),np.ones((1,9)))>0
+            reach=down|side
+            if k=='cliffs': reach&=(np.arange(H)[:,None]>220)  # sides only below the peaks
+        else: reach=O
         region=O|(reach&front)
     # base: master pixels for owned (+3px)
     rgb=np.zeros((H,W,3),np.float32); have=np.zeros((H,W),bool)
     own3=cv2.dilate(O.astype(np.uint8),np.ones((5,5)))>0
     rgb[own3]=Mf[own3]; have|=(O if k=='sky' else own3)
     # fill hidden from AI layers
-    for n in (src[k] if k=='sky' else []):
-        w=warp(n); a=w[...,3]>200
-        if a.sum()<100: continue
-        aiC=stat_ct(w[...,:3].astype(np.float32),a&O if (a&O).sum()>2000 else a,Mf,O)
-        f=(~have)&region&a
-        rgb[f]=aiC[f]; have|=f
+    if k=='sky':
+        O_s=cv2.erode(O.astype(np.uint8),np.ones((7,7)))>0
+        L=cv2.imread(D+'01-sky.png'); 
+        fill=cv2.warpAffine(L,np.float32([[1,0,15],[0,1,-272]]),(W,H),borderMode=cv2.BORDER_REFLECT).astype(np.float32)
+        fill=stat_ct(fill,np.ones((H,W),bool),Mf,O_s)
+        near=Mf.copy(); hv=O_s.copy(); hole=~O_s
+        near=mirror_fill(near,hv,hole)  # one pass: real texture right next to the sky edge
+        dist=ndimage.distance_transform_edt(~O_s)
+        wgt=np.clip((dist-4)/36,0,1)[...,None]
+        rgb=np.where(O_s[...,None],Mf,near*(1-wgt)+fill*wgt)
+        have=np.ones((H,W),bool)
     # inpaint the rest of region
     hole=(region&~have)
     if hole.any():
@@ -79,7 +92,8 @@ for i,k in enumerate(order):
             if not hole.any(): break
             rgb=mirror_fill(rgb,have,hole); 
             have=have|hole; hole=region&~have
-    rgb[own3]=Mf[own3]
+    keep=own3 if k!='sky' else (cv2.erode(O.astype(np.uint8),np.ones((7,7)))>0)
+    rgb[keep]=Mf[keep]
     # alpha: owned region feathered at its outer edge; hidden extension fully opaque (it's behind front layers at rest)
     if k=='sky': alpha=np.full((H,W),255,np.uint8)
     else:
