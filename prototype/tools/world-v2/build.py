@@ -9,7 +9,8 @@ own=np.load('/tmp/claude-0/s/owner.npy')
 order=['sky','cliffs','groves','pool','bison','stream','aspens','juniper','fgleft','fgright']
 src={'sky':['01-sky'],'cliffs':['02-spires','03-canyon-walls'],'groves':['04-canyon-floor'],'pool':['05-pool'],'bison':[],
      'stream':['10-stream','07-boulders'],'aspens':['08-aspens'],'juniper':['09-juniper'],'fgleft':['11-fg-left'],'fgright':['12-fg-right']}
-MARGIN={'sky':10**6,'cliffs':120,'groves':110,'pool':90,'bison':0,'stream':80,'aspens':60,'juniper':60,'fgleft':40,'fgright':40}
+MARGIN={'sky':10**6,'cliffs':120,'groves':170,'pool':130,'bison':0,'stream':200,'aspens':60,'juniper':60,'fgleft':40,'fgright':40}
+FEATHER={'cliffs':110,'groves':70,'pool':60,'bison':0,'stream':70,'aspens':0,'juniper':0,'fgleft':0,'fgright':0}
 def warp(n):
     L=cv2.imread(D+n+'.png',cv2.IMREAD_UNCHANGED)
     if L.shape[2]==3: L=cv2.cvtColor(L,cv2.COLOR_BGR2BGRA)
@@ -63,7 +64,8 @@ for i,k in enumerate(order):
             m=MARGIN[k]*3 if k=='cliffs' else MARGIN[k]
             kern=np.zeros((2*m+1,1),np.uint8); kern[:m+1]=1   # anchor at center, ones above -> grows downward
             down=cv2.dilate(O.astype(np.uint8),kern)>0
-            side=cv2.dilate(O.astype(np.uint8),np.ones((1,9)))>0
+            sw=2*FEATHER.get(k,4)+9
+            side=cv2.dilate(O.astype(np.uint8),np.ones((1,sw)))>0
             reach=down|side
             if k=='cliffs': reach&=(np.arange(H)[:,None]>220)  # sides only below the peaks
         else: reach=O
@@ -100,6 +102,17 @@ for i,k in enumerate(order):
         solid=region.astype(np.uint8)*255
         alpha=cv2.GaussianBlur(solid,(5,5),1.2)
         alpha[cv2.erode(region.astype(np.uint8),np.ones((5,5)))>0]=255
+        F=FEATHER.get(k,0)
+        if F:
+            # edges that sit behind a nearer layer at rest fade out softly, so if layers drift apart
+            # mid-scroll you see a soft dissolve, never a hard cut. True silhouettes (against things
+            # behind, like the sky) stay crisp.
+            ring=(cv2.dilate(region.astype(np.uint8),np.ones((3,3)))>0)&~region
+            seeds=ring&front
+            dist=ndimage.distance_transform_edt(~seeds)
+            soft=np.clip(dist/F,0,1); soft=soft*soft*(3-2*soft)
+            sa=(soft*255).astype(np.uint8); sa[O]=255
+            alpha=np.minimum(alpha,sa)
     rgba=np.dstack([np.clip(rgb,0,255).astype(np.uint8),alpha])
     rgba[alpha==0,:3]=0
     cv2.imwrite(OUT+f'trev-world-{i+1:02d}-{k}.png',rgba)
