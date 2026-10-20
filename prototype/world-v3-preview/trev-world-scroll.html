@@ -41,7 +41,7 @@ const LOGO = { aspect: 1280 / 667, ax: 0.5015, ay: 0.4418 };
 // and clearing over the first 30%, and clouds that part to the sides as you go down.
 const DESCENT_SVH = 236, SCROLL_EASE = 5, PART_RANGE = 0.9;
 const LAYERS = [
-  { key: "sky",        w: 941,   x: 0,     y: -150,  from: [0, 0],     span: [0, 1] },
+  { key: "sky",        w: 941,   x: 0,     y: -290,  from: [0, -120],  span: [0, 1] }, // sinks 120px so the sun ends up behind the castle
   { key: "mountains",  w: 941,   x: 0,     y: 5,     from: [0, 520],   span: [0, 1] },
   { key: "falls",      w: 941,   x: 0,     y: 160,   from: [0, 900],   span: [0, 1] },
   { key: "forest",     w: 941,   x: 0,     y: 45,   from: [0, 1150],  span: [0.05, 1] },
