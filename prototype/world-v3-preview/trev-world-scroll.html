@@ -71,7 +71,7 @@ const sctx = sunsetEl.getContext("2d");
 const RIDGE = [503, 504, 504, 505, 507, 510, 512, 514, 516, 516, 515, 514, 514, 515, 516, 517, 516, 516, 515, 513, 511, 509, 507, 505, 503, 501, 498, 496, 497, 499, 501, 502, 505, 507, 508, 510, 512, 512, 513, 513, 510, 504, 502, 503, 504, 504, 497, 485, 480, 473, 467, 462, 455, 451, 453, 458, 465, 470, 475, 476, 482, 493, 499, 501, 500, 501, 502, 503, 500, 495, 491, 491, 493, 496, 498, 499, 500, 502, 503, 502, 498, 484, 467, 461, 456, 452, 453, 455, 459, 463, 469, 479, 482, 483, 485, 485, 483, 473, 459, 450, 428, 411, 408, 406, 406, 400, 392, 391, 386, 381, 382, 381, 373, 367, 362, 357, 355, 355, 359, 366, 373, 374, 375, 380, 385, 386, 386, 391, 400, 403, 402, 402, 407, 414, 425, 443, 454, 457, 457, 459, 463, 465, 464, 465, 468, 472, 473, 466, 452, 445, 443, 443, 448, 455, 480, 499, 499, 498, 504, 513, 514, 513, 514, 514, 513, 512, 513, 514, 515, 517, 520, 522, 524, 525, 526, 526, 525, 525, 525, 523, 519, 516, 515, 512, 510, 510, 509, 507, 503, 497, 493, 495, 499, 504, 508, 509, 513, 516, 519, 522, 526, 529, 530, 532, 532, 532, 531, 529, 529, 530, 530, 530, 530, 530, 530, 528, 527, 523, 520, 523, 524, 523, 519, 513, 509, 504, 503, 507, 513, 518, 522, 523, 523, 523, 524, 526, 526];
 const RIDGE_LOW = Math.max(...RIDGE);
 const rimEl = document.createElement("img"); rimEl.src = "w3-rim.webp"; rimEl.alt = "";
-rimEl.style.cssText = "width:747px;mix-blend-mode:screen;opacity:0"; const RIM = { x: 92, y: 329 };
+rimEl.style.cssText = "width:447px;mix-blend-mode:screen;opacity:0"; const RIM = { x: 194, y: 302 };
 for (const L of LAYERS) {
   const el = document.createElement("img");
   el.src = L.src || `w3-${L.key}.webp`; el.alt = ""; el.decoding = "async"; el.style.width = L.w + "px";
@@ -121,15 +121,25 @@ function layout(p) {
     sctx.clearRect(0, 0, 941, 1672);
     if (sk > 0) {
       sctx.fillStyle = `rgba(10,12,22,${(0.06 * sk).toFixed(3)})`; sctx.fillRect(0, 0, 941, 1672); // the light drops everywhere
-      // The shade's top is the rock's own silhouette (the sky is never shaded); its leading edge is
-      // the same silhouette thrown forward and stretched toward you, the peaks reaching furthest.
-      const reach = (CANVAS.h + 260 - (RIDGE_LOW + mDy)) * sk, stretch = 4.5 * sk;
+      // The castle's shadow, thrown toward you: the ridge's outline flipped downward, starting small
+      // and far away at the foot of the castle and growing big and close until it covers the valley.
+      // Soft-edged, like a real shadow under a sunset sky.
+      const base = RIDGE_LOW + mDy;                 // the foot of the ridge
+      const grow = sk * sk;                         // slow start, then rushes toward you
+      const sx = 0.35 + 3.2 * grow;                 // width, about the castle's centre
+      const sy = 0.25 + 9 * grow;                   // length toward the camera
+      const drop = 30 + 900 * grow;                 // how far forward it reaches
       sctx.fillStyle = `rgba(12,14,30,${SHADOW})`;
-      sctx.filter = "blur(1.5px)";
+      sctx.filter = `blur(${(10 + 22 * grow).toFixed(0)}px)`;
       sctx.beginPath();
-      for (let i = 0; i < RIDGE.length; i++) sctx.lineTo(Math.min(941, i * 4), RIDGE[i] + mDy);
-      for (let i = RIDGE.length - 1; i >= 0; i--)
-        sctx.lineTo(Math.min(941, i * 4), RIDGE[i] + mDy + reach + (RIDGE_LOW - RIDGE[i]) * stretch);
+      sctx.moveTo(-60, base - 30);
+      for (let i = 0; i < RIDGE.length; i++) sctx.lineTo(Math.min(941, i * 4), RIDGE[i] + mDy + 6);
+      sctx.lineTo(1000, base - 30);
+      for (let X = 1000; X >= -60; X -= 8) {
+        const src = 471 + (X - 471) / sx;           // sample the outline scaled up around the centre
+        const j = Math.max(0, Math.min(RIDGE.length - 1, Math.round(src / 4)));
+        sctx.lineTo(X, base + drop * 0.25 + (RIDGE_LOW - RIDGE[j]) * sy);
+      }
       sctx.closePath(); sctx.fill();
       sctx.filter = "none";
     }
