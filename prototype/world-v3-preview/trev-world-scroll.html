@@ -57,22 +57,22 @@ const LAYERS = [
 // in the canvas; they part to `dir` and rise, nearer ones bigger and faster. `after` = drawn in
 // front of that layer.
 const CLOUDS = [ // ~60% of the sky above the rock covered, castle clear
-  { src: "burnell-world-cloud-medium.webp", after: "sky", depth: 0.25, w: 1061, x0: 182, y0: 336, dir: -1, op: 0.97, reveal: 0.07 },
-  { src: "burnell-world-cloud-large.webp", after: "sky", depth: 0.5, w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true, reveal: 0.09 },
-  { src: "trev-cloud-c.webp", ar: 0.295, after: "mountains", depth: 0.35, w: 300, x0: 830, y0: 205, dir: 1, op: 0.93, flip: true },
-  { src: "burnell-world-cloud-large.webp", after: "mountains", depth: 0.35, w: 285, x0: 704, y0: 249, dir: 1, op: 0.91, flip: true },
-  { src: "trev-cloud-d.webp", ar: 0.413, after: "mountains", depth: 0.35, w: 470, x0: 330, y0: 560, dir: -1, op: 0.97 },
-  { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", depth: 0.35, w: 520, x0: 860, y0: 585, dir: 1, op: 0.9 },
-  { src: "burnell-world-cloud-small.webp", after: "mountains", depth: 0.35, w: 416, x0: 134, y0: 864, dir: -1, op: 0.91, flip: true },
-  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 412, x0: 564, y0: 624, dir: 1, op: 0.95, flip: true },
-  { src: "trev-cloud-c.webp", ar: 0.295, after: "falls", depth: 0.65, w: 560, x0: 170, y0: 700, dir: -1, op: 0.9 },
-  { src: "burnell-world-cloud-large.webp", after: "falls", depth: 0.65, w: 352, x0: 826, y0: 828, dir: 1, op: 0.89 },
-  { src: "trev-cloud-e.webp", ar: 1.018, after: "falls", depth: 0.65, w: 330, x0: 880, y0: 760, dir: 1, op: 0.9 },
-  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 428, x0: 152, y0: 871, dir: -1, op: 0.86 },
-  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 407, x0: 350, y0: 519, dir: -1, op: 0.84 },
-  { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", depth: 1.0, w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true },
-  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 590, x0: 389, y0: 830, dir: -1, op: 0.93, flip: true },
-  { src: "burnell-world-cloud-small.webp", after: "foreground", depth: 1.0, w: 509, x0: 230, y0: 890, dir: -1, op: 0.86 },
+  { src: "burnell-world-cloud-medium.webp", after: "sky", depth: 0.25, w: 1061, x0: 150, y0: 336, dir: -1, op: 0.97, spd: 0.15 },
+  { src: "burnell-world-cloud-large.webp", after: "sky", depth: 0.5, w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true, spd: 0.55 },
+  { src: "trev-cloud-c.webp", ar: 0.295, after: "mountains", depth: 0.35, w: 300, x0: 830, y0: 205, dir: 1, op: 0.93, flip: true, spd: 0.3 },
+  { src: "burnell-world-cloud-large.webp", after: "mountains", depth: 0.35, w: 285, x0: 704, y0: 249, dir: 1, op: 0.91, flip: true, spd: 0.8 },
+  { src: "trev-cloud-d.webp", ar: 0.413, after: "mountains", depth: 0.35, w: 470, x0: 330, y0: 560, dir: -1, op: 0.97, spd: 0.45 },
+  { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", depth: 0.35, w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.95 },
+  { src: "burnell-world-cloud-small.webp", after: "mountains", depth: 0.35, w: 416, x0: 134, y0: 864, dir: -1, op: 0.91, flip: true, spd: 0.2 },
+  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 412, x0: 564, y0: 624, dir: 1, op: 0.95, flip: true, spd: 0.7 },
+  { src: "trev-cloud-c.webp", ar: 0.295, after: "falls", depth: 0.65, w: 560, x0: 170, y0: 700, dir: -1, op: 0.9, spd: 0.35 },
+  { src: "burnell-world-cloud-large.webp", after: "falls", depth: 0.65, w: 352, x0: 826, y0: 828, dir: 1, op: 0.89, spd: 1.0 },
+  { src: "trev-cloud-e.webp", ar: 1.018, after: "falls", depth: 0.65, w: 330, x0: 880, y0: 760, dir: 1, op: 0.9, spd: 0.6 },
+  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 428, x0: 152, y0: 871, dir: -1, op: 0.86, spd: 0.1 },
+  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 407, x0: 350, y0: 519, dir: -1, op: 0.84, spd: 0.85 },
+  { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", depth: 1.0, w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.4 },
+  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 590, x0: 389, y0: 830, dir: -1, op: 0.93, flip: true, spd: 0.75 },
+  { src: "burnell-world-cloud-small.webp", after: "foreground", depth: 1.0, w: 509, x0: 230, y0: 890, dir: -1, op: 0.86, spd: 0.25 },
 ];
 const world = document.getElementById("world");
 const sunsetEl = document.createElement("canvas"); sunsetEl.id = "sunset"; sunsetEl.width = 941; sunsetEl.height = 1672;
@@ -138,10 +138,12 @@ function layout(p) {
   // parting clouds (centred on x0,y0)
   const now = performance.now() / 1000;
   CLOUDS.forEach((c, i) => {
-    // `reveal`: the clouds over the sun clear out within the first moment of scrolling
-    const e = ease(p / (c.reveal || PART_RANGE)), push = c.reveal ? 900 : 300 + 650 * c.depth;
-    const x = c.x0 - c.w / 2 + c.dir * push * e + 8 * Math.sin(now * 0.3 + i);
-    const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * (250 + 650 * c.depth);
+    // every cloud parts at nearly the same pace (speeds within 17% of each other); the parting
+    // starts the moment you scroll (ease-out), so a cloud edge sitting on the sun clears it quickly
+    const t = Math.min(1, p / PART_RANGE), e = 1 - (1 - t) * (1 - t);
+    const k = 1 + 0.17 * c.spd;
+    const x = c.x0 - c.w / 2 + c.dir * 640 * k * e + 8 * Math.sin(now * 0.3 + i);
+    const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * k;
     c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
   });
   // landing: blurred + dimmed, clearing over the first 30% of the descent
