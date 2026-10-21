@@ -59,14 +59,10 @@ const LAYERS = [
 const CLOUDS = [ // ~60% of the sky above the rock covered, castle clear
   { src: "burnell-world-cloud-medium.webp", after: "sky", depth: 0.25, w: 1061, x0: 200, y0: 300, dir: -1, op: 0.97, spd: 0.32 },
   { src: "burnell-world-cloud-large.webp", after: "sky", depth: 0.5, w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true, spd: 0.15 },
-  { src: "trev-cloud-c.webp", ar: 0.295, after: "mountains", depth: 0.35, w: 300, x0: 830, y0: 205, dir: 1, op: 0.93, flip: true, spd: 0.65 },
   { src: "trev-cloud-d.webp", ar: 0.413, after: "mountains", depth: 0.35, w: 470, x0: 330, y0: 560, dir: -1, op: 0.97, spd: 0.54 },
   { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", depth: 0.35, w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.37 },
-  { src: "burnell-world-cloud-small.webp", after: "mountains", depth: 0.35, w: 416, x0: 134, y0: 864, dir: -1, op: 0.91, flip: true, spd: 0.06 },
   { src: "trev-cloud-c.webp", ar: 0.295, after: "falls", depth: 0.65, w: 560, x0: 170, y0: 700, dir: 1, op: 0.9, spd: 0.04 },
-  { src: "trev-cloud-e.webp", ar: 1.018, after: "falls", depth: 0.65, w: 330, x0: 880, y0: 760, dir: 1, op: 0.9, spd: 0.07 },
   { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", depth: 1.0, w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83 },
-  { src: "burnell-world-cloud-small.webp", after: "foreground", depth: 1.0, w: 509, x0: 230, y0: 890, dir: -1, op: 0.86, spd: 0.22 },
 ];
 const world = document.getElementById("world");
 const sunsetEl = document.createElement("canvas"); sunsetEl.id = "sunset"; sunsetEl.width = 941; sunsetEl.height = 1672;
