@@ -56,16 +56,23 @@ const LAYERS = [
 // Parting clouds (placeholders: Burnell's cloud art until TREV's are made). x0,y0 = landing spot
 // in the canvas; they part to `dir` and rise, nearer ones bigger and faster. `after` = drawn in
 // front of that layer.
-const CLOUDS = [ // randomized (seeded search): ~40% of the sky above the rock covered, castle peak left clear
+const CLOUDS = [ // ~60% of the sky above the rock covered, castle clear
   { src: "burnell-world-cloud-medium.webp", after: "sky", depth: 0.25, w: 1061, x0: 182, y0: 336, dir: -1, op: 0.97 },
   { src: "burnell-world-cloud-large.webp", after: "sky", depth: 0.5, w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true },
   { src: "burnell-world-cloud-medium.webp", after: "mountains", depth: 0.35, w: 226, x0: 839, y0: 198, dir: 1, op: 0.93, flip: true },
   { src: "burnell-world-cloud-large.webp", after: "mountains", depth: 0.35, w: 285, x0: 704, y0: 249, dir: 1, op: 0.91, flip: true },
-  { src: "burnell-world-cloud-medium.webp", after: "mountains", depth: 0.35, w: 326, x0: 285, y0: 895, dir: -1, op: 0.88, flip: true },
-  { src: "burnell-world-cloud-large.webp", after: "mountains", depth: 0.35, w: 344, x0: 100, y0: 900, dir: -1, op: 0.83 },
-  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 571, x0: 246, y0: 991, dir: -1, op: 0.91 },
-  { src: "burnell-world-cloud-medium.webp", after: "falls", depth: 0.65, w: 602, x0: 858, y0: 1026, dir: 1, op: 0.91 },
-  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 597, x0: 902, y0: 1122, dir: 1, op: 0.81 },
+  { src: "burnell-world-cloud-large.webp", after: "mountains", depth: 0.35, w: 503, x0: 352, y0: 542, dir: -1, op: 0.97 },
+  { src: "burnell-world-cloud-medium.webp", after: "mountains", depth: 0.35, w: 582, x0: 871, y0: 569, dir: 1, op: 0.85, flip: true },
+  { src: "burnell-world-cloud-small.webp", after: "mountains", depth: 0.35, w: 416, x0: 134, y0: 864, dir: -1, op: 0.91, flip: true },
+  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 412, x0: 564, y0: 624, dir: 1, op: 0.95, flip: true },
+  { src: "burnell-world-cloud-large.webp", after: "falls", depth: 0.65, w: 458, x0: 161, y0: 678, dir: -1, op: 0.89, flip: true },
+  { src: "burnell-world-cloud-large.webp", after: "falls", depth: 0.65, w: 352, x0: 826, y0: 828, dir: 1, op: 0.89 },
+  { src: "burnell-world-cloud-large.webp", after: "falls", depth: 0.65, w: 630, x0: 831, y0: 839, dir: 1, op: 0.85, flip: true },
+  { src: "burnell-world-cloud-small.webp", after: "falls", depth: 0.65, w: 428, x0: 152, y0: 871, dir: -1, op: 0.86 },
+  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 407, x0: 350, y0: 519, dir: -1, op: 0.84 },
+  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 450, x0: 532, y0: 673, dir: 1, op: 0.97 },
+  { src: "burnell-world-cloud-medium.webp", after: "foreground", depth: 1.0, w: 590, x0: 389, y0: 830, dir: -1, op: 0.93, flip: true },
+  { src: "burnell-world-cloud-small.webp", after: "foreground", depth: 1.0, w: 509, x0: 230, y0: 890, dir: -1, op: 0.86 },
 ];
 const world = document.getElementById("world");
 const sunsetEl = document.createElement("canvas"); sunsetEl.id = "sunset"; sunsetEl.width = 941; sunsetEl.height = 1672;
