@@ -10,6 +10,10 @@
   transition prompt describes the environment only (light, sky, water, land, camera).
 - The video continues the portal shot itself (same place, same light, same camera),
   not a jump to a new environment.
+- Exception (TREV, by his decision): his real photo may be the video's first frame if the
+  camera whips away instantly (he is out of frame within ~0.5-0.7 s, under motion blur).
+  The site covers those first frames with his real photo in code, so an AI version of him
+  is never visible.
 
 ## Transition videos: two clips, no more
 
