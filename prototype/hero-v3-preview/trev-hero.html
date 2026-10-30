@@ -1,6 +1,6 @@
 <title>TREV Hero Loop</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Outfit:wght@300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Outfit:wght@300;400&display=swap">
 <style>
   /* Full-bleed hero: animated plate (locked after the opening settle) + TREV's real cutout, warped in WebGL */
   :root {
@@ -39,9 +39,9 @@
                width: 44px; height: 44px; background: none; border: 0; color: var(--bone); font: 300 30px/1 var(--body); cursor: pointer; }
   /* "Tap to enter": gold-gradient words floating above his head, no button chrome */
   #enter { position: absolute; left: 0; top: 0; z-index: 1; background: none; border: 0; padding: 10px 6px; cursor: pointer;
-           opacity: 0; pointer-events: none; transition: opacity 1.2s ease; filter: drop-shadow(0 0 1px rgba(40,24,6,.55)) drop-shadow(0 1px 14px rgba(0,0,0,.6)); }
-  #enter span { font: 600 clamp(20px, 1.7vw, 24px)/1 var(--display); letter-spacing: .3em; text-transform: uppercase; white-space: nowrap;
-                background: linear-gradient(180deg, #f8e0a2 0%, #e2b45c 42%, #b98530 72%, #e9c47c 100%);
+           opacity: 0; pointer-events: none; transition: opacity 1.2s ease; filter: drop-shadow(0 1px 9px rgba(0,0,0,.32)); }
+  #enter span { font: 400 clamp(18px, 1.53vw, 21.5px)/1 var(--display); letter-spacing: .3em; text-transform: uppercase; white-space: nowrap;
+                background: linear-gradient(90deg, #ecd39b, #ecd39b);   /* replaced at runtime by tintEnter() */
                 -webkit-background-clip: text; background-clip: text; color: transparent; }
   #enter.show { opacity: 1; pointer-events: auto; }
   #note { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(7svh + env(safe-area-inset-bottom, 0px));
@@ -84,7 +84,8 @@ const INTRO_SHIFT = 22;     // screen px the background still follows the pointe
 const HEAD_PX = 13;         // screen px TREV's head travels at full tilt (his base stays pinned)
 const TILT_DEG = 9;         // phone tilt (degrees from where it's held) that gives full travel
 const MARGIN = 70;          // canvas room around the cutout for the head to move into (loop px)
-const ENTER_GAP = 30;       // screen px between the top of his hair and "Tap to enter"
+// "Tap to enter" gold: pale over the dark trees, deeper over the bright sky, chosen letter by letter
+const GOLD_ON_DARK = [242, 222, 172], GOLD_ON_LIGHT = [138, 92, 24];
 
 const box = document.getElementById("box"), plate = document.getElementById("plate");
 const canvas = document.getElementById("me"), meImg = document.getElementById("meImg");
@@ -178,10 +179,44 @@ function layout() {
     ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
     oy: Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k)) };
   box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
-  // "Tap to enter" sits centred over his head, just above his hair
-  const hx = fit.ox + set.headX * k, hy = fit.oy + set.cut.y * k - ENTER_GAP;
-  const half = enter.offsetWidth / 2, x = Math.min(W - 16 - half, Math.max(16 + half, hx));
-  enter.style.transform = `translate(${(x - half).toFixed(1)}px, ${(hy - enter.offsetHeight).toFixed(1)}px)`;
+  // "Tap to enter" sits over his head, halfway between the header and the top of his hair
+  const nameR = document.getElementById("name").getBoundingClientRect();
+  const headTop = fit.oy + set.cut.y * k, mid = (nameR.bottom + headTop) / 2;
+  const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
+  const x = Math.min(W - 16 - half, Math.max(16 + half, hx));
+  enter.style.transform = `translate(${(x - half).toFixed(1)}px, ${(mid - enter.offsetHeight / 2).toFixed(1)}px)`;
+  tintEnter();
+}
+
+// read the still frame under the words and blend the gold toward the background behind each letter
+const posterCache = {};
+function tintEnter() {
+  const key = set.poster, word = enter.firstElementChild;
+  if (!posterCache[key]) {
+    posterCache[key] = "loading";
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement("canvas"); c.width = Math.round(set.w / 4); c.height = Math.round(set.h / 4);
+      const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(im, 0, 0, c.width, c.height);
+      posterCache[key] = x; tintEnter();
+    };
+    im.src = key; return;
+  }
+  const ctx = posterCache[key]; if (ctx === "loading") return;
+  const r = word.getBoundingClientRect(), { k, ox, oy } = fit, N = 14, stops = [];
+  const toPx = (sx, sy) => [Math.round((sx - ox) / k / 4), Math.round((sy - oy) / k / 4)];
+  for (let i = 0; i <= N; i++) {
+    const sx = r.left + (r.width * i) / N;
+    const [x0, y0] = toPx(sx - 8, r.top - 6), [x1, y1] = toPx(sx + 8, r.bottom + 6);
+    const d = ctx.getImageData(Math.max(0, x0), Math.max(0, y0), Math.max(1, x1 - x0), Math.max(1, y1 - y0)).data;
+    let lum = 0; for (let j = 0; j < d.length; j += 4) lum += 0.2126 * d[j] + 0.7152 * d[j + 1] + 0.0722 * d[j + 2];
+    lum /= d.length / 4;
+    const t = Math.min(1, Math.max(0, (lum - 70) / 110)), e = t * t * (3 - 2 * t);
+    const c = GOLD_ON_DARK.map((v, n) => Math.round(v + (GOLD_ON_LIGHT[n] - v) * e));
+    stops.push(`rgb(${c.join(",")}) ${((100 * i) / N).toFixed(1)}%`);
+  }
+  // a faint top-lit sheen over the per-letter colour keeps it metallic without a heavy stroke
+  word.style.backgroundImage = `linear-gradient(180deg, rgba(255,250,235,.22) 0%, rgba(255,250,235,0) 48%, rgba(60,36,8,.14) 100%), linear-gradient(90deg, ${stops.join(", ")})`;
 }
 
 // ---------- input: mouse on desktop, tilt on phones, a slow drift underneath both ----------
