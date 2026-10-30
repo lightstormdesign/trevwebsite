@@ -69,15 +69,14 @@
 .tj-hidden { opacity: 0 !important; }
 .tj-slide .media-v { position: relative; overflow: hidden; }
 .tj-slide .media-v img, .tj-slide .media-v video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.tj-me, .tj-meImg { transition: opacity .6s ease; }
+.tj-me, .tj-meImg { transition: none; }
 .tj-gone { opacity: 0 !important; }
-/* once the video's first frame is up: the plate goes, TREV's real photo stays over the playing video
-   and fades out over 2s */
+/* once the video's first frame is up the plate goes; TREV's real photo stays over the playing video
+   while it fades (journeyEngine.js fadeMe) */
 .tj-hero.thru { background: transparent; }
 .tj-hero.thru .tj-plate, .tj-hero.thru .tj-grade { visibility: hidden; }
-.tj-fade2 { opacity: 0 !important; transition: opacity 2s ease-in-out !important; }
 .tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
-  background: linear-gradient(to bottom, rgba(6,5,4,.46) 0%, rgba(6,5,4,.30) 26%, rgba(6,5,4,.10) 44%, rgba(6,5,4,0) 58%); }
+  background: linear-gradient(to bottom, rgba(6,5,4,.22) 0%, rgba(6,5,4,.14) 26%, rgba(6,5,4,.05) 44%, rgba(6,5,4,0) 58%); }
 .tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .tj-enter { position: absolute; left: 0; top: 0; z-index: 1; display: grid; place-items: center; isolation: isolate;
   transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
@@ -115,7 +114,7 @@
 /* Soleil's cinematic vignette, deepened, on screen the whole way: over the hero, the transition, the
    world and the story (under the landing copy). Measured from the visible screen (svh), so its dark
    bottom isn't lost under Safari's toolbar; below that it stays at its darkest. */
-.tj-vignette { position: fixed; left: 0; right: 0; top: 0; z-index: 31; pointer-events: none; }
+.tj-vignette { position: fixed; left: 0; right: 0; top: 0; z-index: 31; pointer-events: none; will-change: opacity; }
 .tj-vignette .top { position: absolute; left: 0; right: 0; top: 0; height: 46svh;
   background: linear-gradient(to bottom, rgba(10,4,4,0.82) 0%, rgba(10,4,4,0.46) 42%, transparent 100%); }
 .tj-vignette .bottom { position: absolute; left: 0; right: 0; bottom: 0; height: calc(40svh + max(100lvh, 100vh) - 100svh);
