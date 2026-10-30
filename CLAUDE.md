@@ -20,5 +20,6 @@
 - A transition is made of exactly two AI clips, never more. Don't propose splitting a clip
   into extra clips to work around a problem; solve it inside the two clips (prompting,
   frames, or trimming/covering frames in code).
-- TREV's transition: clip 1 = graded Sedona photo -> eagle close-up; clip 2 = eagle close-up
-  -> the world's landing frame.
+- TREV's transition: clip 1 = the hero plate (TREV already dissolved in code) -> camera tilts down
+  to a rain puddle with the painted world muffled in its reflection; clip 2 = the puddle -> into the
+  world's landing frame.
