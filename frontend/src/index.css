@@ -584,7 +584,11 @@ body {
   60% { transform: translate3d(-19px, -27px, 0); }
   80% { transform: translate3d(43px, 31px, 0); }
 }
-.film-grain { position: fixed; inset: -64px; z-index: 9000; pointer-events: none;
+.film-grain-frame { position: fixed; inset: 0; z-index: 9000; pointer-events: none; overflow: hidden; }
+html.tj-face-grain .film-grain-frame {
+  -webkit-mask-image: radial-gradient(ellipse var(--tj-face, 0 0 at -100px -100px), rgba(0,0,0,.5) 60%, #000 100%);
+  mask-image: radial-gradient(ellipse var(--tj-face, 0 0 at -100px -100px), rgba(0,0,0,.5) 60%, #000 100%); }
+.film-grain { position: absolute; inset: -64px; pointer-events: none;
   background-size: 128px 128px; /* the tile (trev-grain.webp) is set inline in FilmGrain.jsx */
   opacity: 0.25;
   animation: grain-jitter 0.9s steps(5) infinite;

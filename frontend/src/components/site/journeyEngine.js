@@ -38,15 +38,17 @@ const A = "/journey/";
 
 const HERO_SETS = {
   desktop: { w: 1920, h: 1740, video: "trev-hero-desktop.mp4", poster: "trev-hero-desktop-poster.jpg",
-             cut: { src: "trev-hero-cutout-desktop.webp", x: 580, y: 927, w: 923, h: 813 }, headX: 966, fx: 0.5, fy: 0.8 },
+             cut: { src: "trev-hero-cutout-desktop.webp", x: 580, y: 927, w: 923, h: 813 }, headX: 966, fx: 0.5, fy: 0.8,
+             face: [930, 1255, 190, 280] },   // his face (with beard): centre and radii, in the frame's pixels
   mobile:  { w: 1080, h: 1920, video: "trev-hero-mobile.mp4", poster: "trev-hero-mobile-poster.jpg",
-             cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, headX: 516, fx: 0.48, fy: 0.55 },
+             cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, headX: 516, fx: 0.48, fy: 0.55,
+             face: [470, 1380, 215, 320] },
 };
 const INTRO_S = 3;          // "Tap to enter" shows a little into this
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
-const FADE_ME_MS = 1000;    // TREV's real photo fades out over the playing transition
+const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 const MOTION_WAIT_MS = 12000; // longest the journey waits on iPhone's motion prompt before carrying on
 const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
@@ -80,7 +82,7 @@ const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing
 const RIM = { x: 194, y: 302, w: 447 };
 const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
 
-// Alive (as on Burnell's world): Burnell's two flocks of swallows and a raven high in the sky;
+// Alive (as on Burnell's world): Burnell's two flocks of swallows, then TREV's doves;
 // a bluebird still on the juniper's lower limb until it's tapped (then it flies off, and is back a
 // while later); a sacred owl on its upper branch (tap: it turns its head to you, opens its eyes, and its
 // aura grows, 65% as much as the bison's); a hummingbird feeding at the white lily, a lizard
@@ -120,8 +122,6 @@ function hummingbird(t) {
 }
 const GLINTS = [[300, 865], [380, 895], [450, 875], [520, 910], [600, 865], [360, 840], [560, 835], [420, 1035], [640, 1055]];
 const CREATURES = [
-  { kind: "raven", layer: "mountains", w: 84, pose: (t) => { const u = ((t + 9) % 46) / 30; if (u > 1) return null;
-    return { x: -120 + u * 1180, y: 150 + 40 * Math.sin(u * Math.PI * 1.5), rot: 7 * Math.sin(t * 0.6) }; } },
   ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", layer: "mountains", w: 44, flap: 0.3 + i * 0.035,
     pose: (t) => { const u = (t / 34 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
   ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", flip: true, layer: "forest", w: 84, flap: 0.26 + i * 0.04,
@@ -137,7 +137,7 @@ const CREATURES = [
   ...[[455, 565, 170, 0], [535, 805, 210, 2.2], [335, 748, 90, 4.1]].map(([x, y, w, d]) =>
     ({ kind: "mist", layer: "falls", w, delay: d, pose: () => ({ x, y }) })),
   ...GLINTS.map(([x, y], i) => ({ kind: "glint", layer: "river", w: 16 + (i % 3) * 5, delay: (i * 0.77) % 3.4, pose: () => ({ x, y }) })),
-  ...[[200, 1200, 0, 115, 1.6], [760, 1060, 2.1, 46, 1]].map(([cx, cy, ph, w, roam]) => ({ kind: "butterfly", layer: "foreground", w,
+  ...[[345, 1125, 0, 115, 1.2], [760, 1060, 2.1, 46, 1]].map(([cx, cy, ph, w, roam]) => ({ kind: "butterfly", layer: "foreground", w,
     pose: (t) => ({ x: cx + roam * (60 * Math.sin(t * 0.55 + ph) + 18 * Math.sin(t * 1.7 + ph)), y: cy + roam * 32 * Math.sin(t * 0.85 + ph * 2), rot: 10 * Math.cos(t * 0.55 + ph) }) })),
   ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-bleaf-${n}.webp`, after, depth, w,
     pose: (t, p) => ({
@@ -159,7 +159,7 @@ const CREATURES = [
   // the owl (rig, tap and art all kept) is off for now:
   // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: () => ({ x: 225, y: 1266 }) },
-  { kind: "bird", bird: "hummingbird", layer: "foreground", w: 62, flap: 0.07, pose: hummingbird },
+  { kind: "bird", bird: "hummingbird", layer: "foreground", w: 124, flap: 0.07, pose: hummingbird },
   ...Array.from({ length: 9 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
@@ -262,7 +262,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
       <div class="tj-grade"></div>
     </div>` : ""}
-    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div><div class="bottom"></div></div>
+    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
@@ -440,7 +440,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       + (c.bird === "swallow"   // Burnell's two frames, each centred
         ? `<img class="up mid" src="${A}trev-world-swallow-up.webp" alt=""><img class="down mid" src="${A}trev-world-swallow-down.webp" alt=""></div>`
         : `<img class="up" src="${A}trev-world-${c.bird}-a.webp" alt=""><img class="down" src="${A}trev-world-${c.bird}-b.webp" alt=""></div>`);
-    else if (c.kind === "raven") body.innerHTML = `<img src="${A}trev-world-raven.webp" alt="">`;
     else if (c.kind === "perch") {
       body.innerHTML = `<img class="sit" src="${A}trev-world-bluebird-perched.webp" alt="">`
         + `<div class="frames"><img class="up" src="${A}trev-world-bluebird-a.webp" alt=""><img class="down" src="${A}trev-world-bluebird-b.webp" alt=""></div>`;
@@ -613,6 +612,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const tv = $(".tj-tv");
     const transUrl = A + (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
+    docEl.classList.add("tj-face-grain");
+    off.push(() => { docEl.classList.remove("tj-face-grain"); docEl.style.removeProperty("--tj-face"); });
     let warm = false, blobUrl = null, fetchAbort = null, recovered = null, landingShown = false, playing = false, started = false;
 
     function initGL() {
@@ -695,6 +696,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k)) };
       box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
+      // where his face is on screen: the film grain is at half strength there (FilmGrain.jsx)
+      const [fx, fy, rx, ry] = set.face;
+      docEl.style.setProperty("--tj-face", `${(rx * k).toFixed(0)}px ${(ry * k).toFixed(0)}px at ${(fit.ox + fx * k).toFixed(0)}px ${(fit.oy + fy * k).toFixed(0)}px`);
       const nameR = $(".tj-name").getBoundingClientRect();
       const headTop = fit.oy + set.cut.y * k, mid = (nameR.bottom + headTop) / 2;
       const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
@@ -787,6 +791,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function fallbackToWorld() {                      // the video can't play: cross-fade straight into the world
       if (phase === "world") return;
       stopWatch(); buildWorld(); openWorld(); showLanding(); landingShown = true; later(beckon, 2400);
+      docEl.classList.remove("tj-face-grain");
       heroEl.classList.add("out"); enterLayer.hidden = true; trans.hidden = true;
       later(() => { heroEl.hidden = true; plate.pause(); }, 800);
     }
@@ -890,6 +895,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (!fadeFrom || faded) return;
       const o = Math.max(0, 1 - (now - fadeFrom) / FADE_ME_MS);
       canvas.style.opacity = meImg.style.opacity = o.toFixed(3);
+      if (o < 0.5) docEl.classList.remove("tj-face-grain");
       if (o === 0 && playing) { faded = true; heroEl.hidden = true; }
     }
     return {
