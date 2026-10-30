@@ -62,6 +62,16 @@ const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing
   { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83 },
 ];
 const RIM = { x: 194, y: 302, w: 447 };
+const BISON_TAP_S = 4;      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
+// Flower of Life centres: a hexagonal lattice of circles out to three rings (as on Burnell's deer)
+const FLOWER = (() => {
+  const pts = [];
+  for (let q = -3; q <= 3; q++) for (let r = -3; r <= 3; r++) {
+    if (Math.abs(q + r) > 3) continue;
+    pts.push([10 * (q + r / 2), 10 * r * Math.sin(Math.PI / 3)]);
+  }
+  return pts;
+})();
 
 // TREV's story (the About copy, his own words). It opens on him pulling the sword from the stone and
 // closes on him in Sedona, hand on heart.
@@ -169,9 +179,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <button class="tj-enter" type="button" aria-label="${mouse ? "Click" : "Tap"} to enter"><span class="halo"></span><span class="glow" aria-hidden="true">${mouse ? "Click" : "Tap"} to enter</span><span class="word tj-gold" aria-hidden="true">${mouse ? "Click" : "Tap"} to enter</span></button>
     </div>` : ""}
     <header class="tj-header">
-      <a class="tj-name" href="/"><img src="${A}trev-logo-new.webp" alt="TREV"></a>
+      <div class="tj-headLeft">
+        <button class="tj-sound" type="button" aria-label="Play the song" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H3v6h3l5 4z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="wave" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="slash" d="M3 3l18 18"/>
+          </svg>
+        </button>
+        <a class="tj-name" href="/"><img src="${A}trev-logo-letters.webp" alt="TREV"></a>
+      </div>
       <button class="tj-menuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
     </header>
+    <audio class="tj-song" src="${A}trev-kingdom.m4a" preload="auto"></audio>
     <nav class="tj-menu" hidden>
       <button class="tj-menuClose" type="button" aria-label="Close menu">&times;</button>
       ${NAV.map(([l, h]) => `<a href="${h}">${l}</a>`).join("")}
@@ -185,6 +203,36 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   on($(".tj-menuClose"), "click", () => { menu.hidden = true; });
   on(menu, "click", (e) => { const a = e.target.closest("a"); if (a) go(e, a.getAttribute("href")); });
   on($(".tj-name"), "click", (e) => go(e, "/"));
+
+  // ---------- the song: "Kingdom", 70% volume baked into the file (iPhone ignores .volume) ----------
+  // Off until they choose: tapping Enter starts it from 0.0, and so does the speaker if they press it
+  // first. After that the speaker pauses / resumes it.
+  const song = $(".tj-song"), soundBtn = $(".tj-sound");
+  let songStarted = false, userMuted = false;
+  const setIcon = () => {
+    const playing = !song.paused;
+    soundBtn.classList.toggle("on", playing);
+    soundBtn.setAttribute("aria-pressed", String(playing));
+    soundBtn.setAttribute("aria-label", playing ? "Mute the song" : "Play the song");
+    if (playing) soundBtn.classList.remove("beckon");
+  };
+  const startSong = () => {
+    songStarted = true;
+    try { song.currentTime = 0; } catch (e) { /* not loaded yet: it starts at 0 anyway */ }
+    song.play().then(setIcon).catch(() => { songStarted = false; setIcon(); });
+  };
+  on(soundBtn, "click", () => {
+    if (!songStarted) { userMuted = false; startSong(); }
+    else if (song.paused) { userMuted = false; song.play().then(setIcon).catch(setIcon); }
+    else { userMuted = true; song.pause(); }
+    setIcon();
+  });
+  on(song, "play", setIcon); on(song, "pause", setIcon);
+  on(song, "ended", () => { songStarted = false; setIcon(); });
+  // once the landing is fully in, a soft golden aura on the speaker invites a press
+  const beckon = () => { if (song.paused) soundBtn.classList.add("beckon"); };
+  off.push(() => { try { song.pause(); } catch (e) { /* gone */ } });
+  off.push(() => document.documentElement.classList.remove("tj-bison-hover"));
 
   // no page scroll until the world; in the world no rubber-band past the ends
   const docEl = document.documentElement;
@@ -209,6 +257,52 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const slides = [];
 
   function onLayer() { if (++layersLoaded >= layersWanted) layersReady = true; }
+  // The white bison, with Burnell's deer treatment in gold and white: a slow golden glow and a faint
+  // open Flower of Life turning behind it, a fine gold outline and a soft shadow just behind its
+  // silhouette (masked copies, not filters, so scrolling stays smooth), and its outline pulsing out
+  // into the world. Hover (or a tap, for BISON_TAP_S) brightens it all and widens the aura.
+  let bison = null;
+  function bisonRig(L) {
+    const src = `${A}w3-bison.webp`;
+    const rig = document.createElement("div");
+    rig.className = "tj-bison"; rig.style.width = L.w + "px"; rig.style.setProperty("--sil", `url("${src}")`);
+    rig.innerHTML = `
+      <div class="aura" aria-hidden="true"><div class="glow"></div>
+        <svg class="geo" viewBox="-60 -60 120 120" preserveAspectRatio="xMidYMid meet"><g fill="none" stroke="rgba(255,236,190,1)" stroke-width="0.3">
+          ${FLOWER.map(([x, y]) => `<circle r="10" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}"/>`).join("")}</g></svg></div>
+      <div class="pulse" aria-hidden="true"></div><div class="pulse" aria-hidden="true" style="animation-delay:2s"></div>
+      <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
+      <img class="body" alt="The white bison" decoding="async">`;
+    const body = rig.querySelector(".body");
+    body.addEventListener("load", onLayer, { once: true }); body.addEventListener("error", onLayer, { once: true });
+    body.src = src;
+    bison = rig;
+    return rig;
+  }
+  // The story sits above the world, so the page listens and checks the bison's box (with a margin:
+  // it's small on a phone). Touch and pointer both, as iPhone doesn't always send pointer events.
+  let bisonTapAt = -1e9, bisonHover = false, bisonOnTimer = 0;
+  const overBison = (x, y, margin) => {
+    if (!bison || phase !== "world") return false;
+    const r = bison.getBoundingClientRect(); if (!r.width) return false;
+    const pad = Math.max(margin, r.width * 0.25);
+    return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
+  };
+  const lightBison = () => {
+    const now = performance.now();
+    if (now - bisonTapAt < BISON_TAP_S * 1000) return;
+    bisonTapAt = now; bison.classList.add("is-on");
+    clearTimeout(bisonOnTimer);
+    bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
+  };
+  on(window, "pointerdown", (e) => { if (overBison(e.clientX, e.clientY, 30)) lightBison(); }, { passive: true, capture: true });
+  on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overBison(t.clientX, t.clientY, 30)) lightBison(); }, { passive: true, capture: true });
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
+    const h = overBison(e.clientX, e.clientY, 10);
+    if (h === bisonHover) return;
+    bisonHover = h; bison.classList.toggle("is-on", h || performance.now() - bisonTapAt < BISON_TAP_S * 1000);
+    docEl.classList.toggle("tj-bison-hover", h);
+  }, { passive: true });
   function buildWorld() {
     if (worldBuilt) return; worldBuilt = true;
     const img = (src, w) => {
@@ -221,7 +315,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     rimEl.addEventListener("load", onLayer, { once: true }); rimEl.addEventListener("error", onLayer, { once: true });
     rimEl.src = A + "w3-rim.webp";
     for (const L of LAYERS) {
-      L.el = img(`${A}w3-${L.key}.webp`, L.w); world.appendChild(L.el);
+      L.el = L.key === "bison" ? bisonRig(L) : img(`${A}w3-${L.key}.webp`, L.w); world.appendChild(L.el);
       if (L.key === "mountains") world.appendChild(rimEl);
       for (const c of CLOUDS) if (c.after === L.key) {
         c.el = img(A + c.src, c.w); c.el.style.opacity = c.op; world.appendChild(c.el);
@@ -321,7 +415,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ======================================================================================
   let hero = null;
   if (phase === "hero") { setScroll(false); hero = initHero(); }
-  else { buildWorld(); openWorld(); showLanding(); }
+  else { buildWorld(); openWorld(); showLanding(); later(beckon, 2400); }
 
   function initHero() {
     const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $(".tj-plate");
@@ -506,6 +600,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const v = recovered || tv;
       if (!landingShown) beginLanding(v);
       openWorld();
+      later(beckon, 400);                                // the landing is fully in at the video's end
       keep.hidden = true;
       heroEl.hidden = true; plate.pause();
       // the video holds its last frame (= the veiled landing) until the layers are in, then fades out
@@ -516,7 +611,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     function fallbackToWorld() {                      // the video can't play: cross-fade straight into the world
       if (phase === "world") return;
-      stopWatch(); buildWorld(); openWorld(); showLanding(); landingShown = true;
+      stopWatch(); buildWorld(); openWorld(); showLanding(); landingShown = true; later(beckon, 2400);
       heroEl.classList.add("out"); trans.hidden = true;
       later(() => { heroEl.hidden = true; plate.pause(); }, 800);
     }
@@ -592,6 +687,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     function onEnter() {
       if (leaving) return; leaving = true;
+      if (!songStarted && !userMuted) startSong();
       enter.classList.add("leave"); grade.style.opacity = 0;
       canvas.classList.add("tj-gone"); meImg.classList.add("tj-gone");     // TREV leaves first
       if (!warm) warmUp();
