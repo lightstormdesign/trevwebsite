@@ -269,11 +269,11 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-cr-bird .frames img.mid { top: 50%; transform: translateY(-50%); }
 .tj-cr-lizard .frames { aspect-ratio: 360 / 218; }
 /* the lizard does its push-ups now and then */
-/* one full push-up every 10s: up, held a moment, back down (only ever one lizard showing) */
-.tj-cr-lizard .up { opacity: 0; animation: tj-pushup 10s steps(1, end) infinite; }
-.tj-cr-lizard .rest { animation: tj-pushupRest 10s steps(1, end) infinite; }
-@keyframes tj-pushupRest { 0%, 80% { opacity: 1; } 81%, 93% { opacity: 0; } 94%, 100% { opacity: 1; } }
-@keyframes tj-pushup { 0%, 80% { opacity: 0; } 81%, 93% { opacity: 1; } 94%, 100% { opacity: 0; } }
+/* one full push-up every 15s, right after the hummingbird's dart (journeyEngine.js): only ever one
+   lizard showing */
+.tj-cr-lizard .up { opacity: 0; }
+.tj-cr-lizard.pushing .up { opacity: 1; }
+.tj-cr-lizard.pushing .rest { opacity: 0; }
 /* the perched bluebird: still on its branch until it's tapped, then it flies off (its flapping frames) */
 .tj-cr-perch .tj-crBody { aspect-ratio: 200 / 167; }
 .tj-cr-perch .sit, .tj-cr-perch .frames { position: absolute; left: 0; top: 0; width: 100%; }
@@ -346,7 +346,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @keyframes tj-mote { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tj-bison .glow, .tj-bison .geo, .tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow, .tj-cr-perch .geo, .tj-cr-perch .glow i, .tj-cr-perch .geo svg, .tj-cr-butterfly .glow, .tj-cr-butterfly .geo, .tj-cr-butterfly .glow i, .tj-cr-butterfly .geo svg, .tj-cr-butterfly.landed .wings, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-lizard .rest, .tj-cr-owl .geo { animation: none; }
+  .tj-bison .glow, .tj-bison .geo, .tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow, .tj-cr-perch .geo, .tj-cr-perch .glow i, .tj-cr-perch .geo svg, .tj-cr-butterfly .glow, .tj-cr-butterfly .geo, .tj-cr-butterfly .glow i, .tj-cr-butterfly .geo svg, .tj-cr-butterfly.landed .wings, .tj-bison .pulse, .tj-bison .tail, .tj-cr-owl .geo { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }

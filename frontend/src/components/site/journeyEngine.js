@@ -116,20 +116,25 @@ const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
 const BUTTERFLY_AT = [818, 1294], BUTTERFLY_FLY_S = 9;   // landed on the cactus flower (foreground coordinates)
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // the hummingbird feeds at the lily, darts out and back now and then (foreground coordinates)
-const HUM_AT = [250, 1052], HUM_CYCLE_S = 11;
-function hummingbird(t) {
-  const u = (t % HUM_CYCLE_S) / HUM_CYCLE_S;
+const HUM_AT = [250, 1052];
+// One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
+// flock crosses (every other beat), then the hummingbird darts out and back, then the lizard does
+// its push-up.
+const BEAT_S = 15, FLOCK_S = [0, 11], DART_S = [11.5, 15], PUSHUP_S = [1, 2.2];
+const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; return s >= a && s < b; };
+function hummingbird(t, p, c, T) {
   const hover = { x: HUM_AT[0] + 6 * Math.sin(t * 2.3), y: HUM_AT[1] + 5 * Math.sin(t * 3.1), face: 1 };
-  if (u < 0.62) return hover;
-  const d = (u - 0.62) / 0.38, out = Math.sin(Math.PI * d);       // out to the right and back
+  if (!inBeat(T, DART_S)) return hover;
+  const d = ((T % BEAT_S) - DART_S[0]) / (DART_S[1] - DART_S[0]), out = Math.sin(Math.PI * d);   // out to the right and back
   return { x: hover.x + 200 * out, y: hover.y - 110 * out + 30 * Math.sin(Math.PI * 2 * d), face: d < 0.5 ? -1 : 1 };
 }
-const GLINTS = [[300, 865], [380, 895], [450, 875], [520, 910], [600, 865], [360, 840], [560, 835], [420, 1035], [640, 1055]];
+const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
 const CREATURES = [
   ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", layer: "mountains", w: 44, flap: 0.3 + i * 0.035,
-    pose: (t) => { const u = (t / 42.5 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
+    pose: (t, p, c, T) => { const u = (T / 42.5 + 0.1) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
   ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", flip: true, layer: "forest", w: 84, flap: 0.26 + i * 0.04,
-    pose: (t) => { const u = ((t + 4) % 30) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
+    pose: (t, p, c, T) => { const u = ((T % (2 * BEAT_S)) - FLOCK_S[0]) / (FLOCK_S[1] - FLOCK_S[0]); if (u < 0 || u > 1) return null;
+      return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
   ...DOVE_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", layer: "mountains", w: 56, flap: 0.42 + i * 0.04,
     pose: (t, p, c) => {
       if (!c.t0) c.t0 = t;   // the world's own clock
@@ -169,9 +174,9 @@ const CREATURES = [
   } },
   // the owl (rig, tap and art all kept) is off for now:
   // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
-  { kind: "lizard", layer: "foreground", w: 104, pose: () => ({ x: 225, y: 1266 }) },
+  { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) }) },
   { kind: "bird", bird: "hummingbird", layer: "foreground", w: 124, flap: 0.07, pose: hummingbird },
-  ...Array.from({ length: 9 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
+  ...Array.from({ length: 5 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
 const BISON_TAP_S = 4;      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
@@ -599,7 +604,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
   function placeCreatures(t, p) {
     for (const c of CREATURES) {
-      const pose = c.pose(t, p, c), el = c.el;
+      const pose = c.pose(t, p, c, t - worldAt), el = c.el;
+      if (pose && pose.pushing !== undefined && pose.pushing !== c.pushing) { c.pushing = pose.pushing; el.classList.toggle("pushing", pose.pushing); }
       if (pose && pose.flying !== undefined && pose.flying !== c.flying) { c.flying = pose.flying; el.classList.toggle("flying", pose.flying); }
       if (!pose) { if (el.style.opacity !== "0") el.style.opacity = "0"; continue; }
       let x = pose.x, y = pose.y;
