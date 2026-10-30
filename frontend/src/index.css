@@ -555,3 +555,40 @@ body {
     display: contents !important;
   }
 }
+
+/* ---------- the speaker (SoundButton.jsx), on every page: slashed until "Kingdom" plays; once the
+   journey's landing is in, a muted speaker glows gold and rises a touch to invite a press ---------- */
+.tj-sound { position: relative; width: 40px; height: 40px; margin-left: -8px; display: grid; place-items: center; border: 0; border-radius: 50%;
+  background: none; color: #efe6d6; cursor: pointer; padding: 0; transform-origin: 50% 100%; flex: none;
+  transition: transform .9s cubic-bezier(.16,1,.3,1), color .6s ease; }
+.tj-sound svg { width: 22px; height: 22px; filter: drop-shadow(0 1px 6px rgba(0,0,0,.5)); }
+.tj-sound .wave { opacity: .9; }
+.tj-sound .slash { transition: opacity .3s ease; }
+.tj-sound.on .slash { opacity: 0; }
+.tj-sound::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; opacity: 0; transition: opacity .9s ease;
+  background: radial-gradient(closest-side, rgba(255,222,150,.42), rgba(231,190,110,.18) 55%, transparent 100%); }
+.tj-sound.beckon { transform: scale(1.07); color: #f6dfa6; }
+.tj-sound.beckon::before { opacity: 1; animation: tj-beckon 3.2s ease-in-out infinite; }
+@keyframes tj-beckon { 0%, 100% { opacity: .65; } 50% { opacity: 1; } }
+.tj-sound:focus-visible { outline: 1px solid #e7c98f; outline-offset: 2px; }
+/* on the journey pages it sits fixed over the header's slot, left of the TREV letters */
+.tj-sound.tj-soundFixed { position: fixed; z-index: 45; margin: 0;
+  top: calc(20px + env(safe-area-inset-top, 0px)); left: calc(max(22px, env(safe-area-inset-left, 0px)) - 8px); }
+
+/* ---------- film grain over the whole site (FilmGrain.jsx, Soleil's): one small tile, jittered a few
+   times a second, plain see-through pixels with no blend mode, so nothing under it is re-blended ---------- */
+@keyframes grain-jitter {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-37px, 23px, 0); }
+  40% { transform: translate3d(29px, -41px, 0); }
+  60% { transform: translate3d(-19px, -27px, 0); }
+  80% { transform: translate3d(43px, 31px, 0); }
+}
+.film-grain { position: fixed; inset: -64px; z-index: 9000; pointer-events: none;
+  background-size: 128px 128px; /* the tile (trev-grain.webp) is set inline in FilmGrain.jsx */
+  opacity: 0.15;
+  animation: grain-jitter 0.9s steps(5) infinite;
+  will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .film-grain, .tj-sound.beckon::before { animation: none; }
+}

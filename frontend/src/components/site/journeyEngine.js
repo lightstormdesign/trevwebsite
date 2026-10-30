@@ -1,12 +1,16 @@
 // TREV's journey, as plain DOM so it can run frame by frame without React re-rendering:
-//   hero  — the Sedona loop with TREV's real cutout on top (he leans toward the pointer / phone tilt)
-//   enter — TREV dissolves (the artist is never in the AI video), then the transition video plays:
-//           the camera tilts down to a rain puddle and dives into the painted world
+//   hero  — the Sedona loop (birds from the first second) with TREV's real cutout on top, leaning
+//           toward the pointer / phone tilt
+//   enter — the song starts (from 0.0 unless it's already playing), iPhone asks for motion access,
+//           TREV dissolves (the artist is never in the AI video), then the transition plays: the
+//           camera tilts down to a rain puddle and dives into the painted world
 //   world — the video ends exactly on the world's landing frame. From LANDING_AT (6s) into the 8s
 //           video it blurs and dims (to exactly the world's landing veil) while the sword, the
 //           headline and the bio rise in over it (Burnell's landing). Scrolling lifts the veil and
-//           descends through the world, and near the end TREV's story takes over.
+//           descends through the world, which leans with the phone's tilt (Burnell's), and near the
+//           end TREV's story takes over. After the song's drop, the sword and a soft light follow the bass.
 // mountJourney(root, { start: "hero" | "world", navigate }) builds it inside `root` and returns a cleanup.
+// The song and the speaker live outside it (utils/sound.js, SoundButton.jsx), so they carry across pages.
 //
 // iPhone lessons carried over from Burnell's site (WorldHome.jsx):
 // - the transition is downloaded whole into memory once the hero is up, and only load()ed, never
@@ -19,7 +23,16 @@
 //   the video it starved it of memory and froze it); the video holds its last frame, blurred and
 //   dimmed like the landing, until the layers are in, then fades out over the identical picture;
 // - stall + frozen-picture watchdogs: resume, kick once, swap in a fresh player, else go on to the
-//   world rather than sit on a frozen frame; and a failsafe timeout.
+//   world rather than sit on a frozen frame; and a failsafe timeout;
+// - the motion prompt is answered before the video starts (a system prompt over it could freeze it);
+// - the beat is a precomputed map (no Web Audio), and it only moves opacity/transform: no filters
+//   or blend modes change per frame.
+// And from Soleil's (SoleilWorld.jsx): the page itself never scrolls. The world scrolls inside its
+// own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
+// stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
+// height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
+import { sound, tilt, requestMotion, motionNeedsAsking } from "@/utils/sound";
+
 const A = "/journey/";
 
 const HERO_SETS = {
@@ -32,9 +45,9 @@ const INTRO_S = 3;          // the hero background settles over this long, then 
 const INTRO_ZOOM = 0.05;
 const INTRO_SHIFT = 22;
 const HEAD_PX = 13;         // screen px TREV's head travels at full tilt (his base stays pinned)
-const TILT_DEG = 9;
 const MARGIN = 70;
 const DISSOLVE_MS = 650;    // TREV fades out before the transition video starts
+const MOTION_WAIT_MS = 12000; // longest the journey waits on iPhone's motion prompt before carrying on
 const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
@@ -43,23 +56,26 @@ const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
 const CANVAS = { w: 941, h: 1672 };
 const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357;
 const DESCENT_SVH = 236, SCROLL_EASE = 5, PART_RANGE = 0.9;
+// Burnell's tilt (WorldHome.jsx): canvas px of shift at full tilt; far layers slide one way and
+// near ones the other, around the middle distance. The sword leans a little less than his emblem.
+const TILT_X = 95, TILT_Y = 62, TILT_EASE = 0.12, CLOUD_TILT = 0.6, SWORD_TILT = 0.7;
 const LAYERS = [
-  { key: "sky",        w: 941,   x: 0,     y: -290,  from: [0, -120],  span: [0, 1] },
-  { key: "mountains",  w: 941,   x: 0,     y: 5,     from: [0, 634],   span: [0, 1] },
-  { key: "falls",      w: 941,   x: 0,     y: 160,   from: [0, 1094],  span: [0, 1] },
-  { key: "forest",     w: 941,   x: 0,     y: 45,    from: [0, 1150],  span: [0.05, 1] },
-  { key: "river",      w: 941,   x: 0,     y: 425,   from: [0, 1400],  span: [0.1, 1] },
-  { key: "bison",      w: 127,   x: 406.9, y: 900.8, from: [0, 1400],  span: [0.1, 1] },
-  { key: "foreground", w: 941,   x: 0,     y: 200,   from: [0, 900],   span: [0.25, 1] },
-  { key: "aspens",     w: 941,   x: -80,   y: 0,     from: [-235, 0],  span: [0, 1] },
-  { key: "juniper",    w: 799.9, x: 210,   y: 251,   from: [355, 0],   span: [0, 1] },
+  { key: "sky",        w: 941,   x: 0,     y: -290,  from: [0, -120],  span: [0, 1],    depth: 0.04 },
+  { key: "mountains",  w: 941,   x: 0,     y: 5,     from: [0, 634],   span: [0, 1],    depth: 0.1 },
+  { key: "falls",      w: 941,   x: 0,     y: 160,   from: [0, 1094],  span: [0, 1],    depth: 0.18 },
+  { key: "forest",     w: 941,   x: 0,     y: 45,    from: [0, 1150],  span: [0.05, 1], depth: 0.28 },
+  { key: "river",      w: 941,   x: 0,     y: 425,   from: [0, 1400],  span: [0.1, 1],  depth: 0.4 },
+  { key: "bison",      w: 127,   x: 406.9, y: 900.8, from: [0, 1400],  span: [0.1, 1],  depth: 0.4 },
+  { key: "foreground", w: 941,   x: 0,     y: 200,   from: [0, 900],   span: [0.25, 1], depth: 0.7 },
+  { key: "aspens",     w: 941,   x: -80,   y: 0,     from: [-235, 0],  span: [0, 1],    depth: 0.7 },
+  { key: "juniper",    w: 799.9, x: 210,   y: 251,   from: [355, 0],   span: [0, 1],    depth: 0.7 },
 ];
 const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing competes with the sword
-  { src: "burnell-world-cloud-medium.webp", after: "sky", w: 1061, x0: 200, y0: 300, dir: -1, op: 0.97, spd: 0.32 },
-  { src: "burnell-world-cloud-large.webp", after: "sky", w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true, spd: 0.15 },
-  { src: "trev-cloud-d.webp", ar: 0.413, after: "mountains", w: 470, x0: 330, y0: 560, dir: -1, op: 0.97, spd: 0.54 },
-  { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.37 },
-  { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83 },
+  { src: "burnell-world-cloud-medium.webp", after: "sky", w: 1061, x0: 200, y0: 300, dir: -1, op: 0.97, spd: 0.32, depth: 0.25 },
+  { src: "burnell-world-cloud-large.webp", after: "sky", w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true, spd: 0.15, depth: 0.5 },
+  { src: "trev-cloud-d.webp", ar: 0.413, after: "mountains", w: 470, x0: 330, y0: 560, dir: -1, op: 0.97, spd: 0.54, depth: 0.35 },
+  { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.37, depth: 0.35 },
+  { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83, depth: 1 },
 ];
 const RIM = { x: 194, y: 302, w: 447 };
 const BISON_TAP_S = 4;      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
@@ -131,23 +147,40 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const mouse = matchMedia("(hover: hover)").matches;
   let raf = 0, phase = start === "world" ? "world" : "hero";
   const sword = `${A}trev-sword.webp`;
+  const enterLabel = `${mouse ? "Click" : "Tap"} to enter`;
 
   root.classList.add("tj");
   root.innerHTML = `
-    <div class="tj-track"></div>
+    <div class="tj-scroller"><div class="tj-track"></div></div>
+    <div class="tj-svh" aria-hidden="true"></div>
     <div class="tj-worldStage" ${phase === "hero" ? 'style="visibility:hidden"' : ""}>
       <div class="tj-side"></div>
       <div class="tj-world"></div>
       <div class="tj-shade"></div>
-      <div class="tj-story"><div class="tj-storyShade"></div></div>
+      <div class="tj-pulse" aria-hidden="true"></div>
     </div>
+    ${phase === "hero" ? `
+    <div class="tj-trans"><div class="tj-transSide"></div><video class="tj-tv" muted playsinline preload="none" tabindex="-1"></video><div class="tj-keep" hidden></div></div>
+    <div class="tj-hero">
+      <div class="tj-box">
+        <video class="tj-plate" muted loop playsinline autoplay preload="auto"></video>
+        <canvas class="tj-me"></canvas>
+        <img class="tj-meImg" alt="TREV" hidden>
+      </div>
+      <div class="tj-grade"></div>
+    </div>` : ""}
+    <div class="tj-vignette" aria-hidden="true"><div class="top"></div><div class="bottom"></div></div>
+    <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
         <div class="tj-emblem" style="--sword:url(${sword})">
           <span class="halo" aria-hidden="true"></span>
-          <img class="glow" src="${sword}" alt="" aria-hidden="true">
-          <img class="face" src="${sword}" alt="TREV">
-          <span class="glint" aria-hidden="true"></span>
+          <div class="tj-swordTilt">
+            <img class="glow" src="${sword}" alt="" aria-hidden="true">
+            <img class="beat" src="${sword}" alt="" aria-hidden="true">
+            <img class="face" src="${sword}" alt="TREV">
+            <span class="glint" aria-hidden="true"></span>
+          </div>
         </div>
         <div class="tj-landingText">
           <h1>Music for the<br><span class="tj-gold">Kingdom Within</span></h1>
@@ -167,29 +200,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         </div>
       </div>
     </div>
-    ${phase === "hero" ? `
-    <div class="tj-trans"><div class="tj-transSide"></div><video class="tj-tv" muted playsinline preload="none" tabindex="-1"></video><div class="tj-keep" hidden></div></div>
-    <div class="tj-hero">
-      <div class="tj-box">
-        <video class="tj-plate" muted loop playsinline autoplay preload="auto"></video>
-        <canvas class="tj-me"></canvas>
-        <img class="tj-meImg" alt="TREV" hidden>
-      </div>
-      <div class="tj-grade"></div>
-      <button class="tj-enter" type="button" aria-label="${mouse ? "Click" : "Tap"} to enter"><span class="halo"></span><span class="glow" aria-hidden="true">${mouse ? "Click" : "Tap"} to enter</span><span class="word tj-gold" aria-hidden="true">${mouse ? "Click" : "Tap"} to enter</span></button>
-    </div>` : ""}
+    ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <header class="tj-header">
       <div class="tj-headLeft">
-        <button class="tj-sound" type="button" aria-label="Play the song" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M11 5 6 9H3v6h3l5 4z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="wave" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="slash" d="M3 3l18 18"/>
-          </svg>
-        </button>
+        <span class="tj-soundSlot" aria-hidden="true"></span>
         <a class="tj-name" href="/"><img src="${A}trev-logo-letters.webp" alt="TREV"></a>
       </div>
       <button class="tj-menuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
     </header>
-    <audio class="tj-song" src="${A}trev-kingdom.m4a" preload="auto"></audio>
     <nav class="tj-menu" hidden>
       <button class="tj-menuClose" type="button" aria-label="Close menu">&times;</button>
       ${NAV.map(([l, h]) => `<a href="${h}">${l}</a>`).join("")}
@@ -204,53 +222,27 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   on(menu, "click", (e) => { const a = e.target.closest("a"); if (a) go(e, a.getAttribute("href")); });
   on($(".tj-name"), "click", (e) => go(e, "/"));
 
-  // ---------- the song: "Kingdom", 70% volume baked into the file (iPhone ignores .volume) ----------
-  // Off until they choose: tapping Enter starts it from 0.0, and so does the speaker if they press it
-  // first. After that the speaker pauses / resumes it.
-  const song = $(".tj-song"), soundBtn = $(".tj-sound");
-  let songStarted = false, userMuted = false;
-  const setIcon = () => {
-    const playing = !song.paused;
-    soundBtn.classList.toggle("on", playing);
-    soundBtn.setAttribute("aria-pressed", String(playing));
-    soundBtn.setAttribute("aria-label", playing ? "Mute the song" : "Play the song");
-    if (playing) soundBtn.classList.remove("beckon");
-  };
-  const startSong = () => {
-    songStarted = true;
-    try { song.currentTime = 0; } catch (e) { /* not loaded yet: it starts at 0 anyway */ }
-    song.play().then(setIcon).catch(() => { songStarted = false; setIcon(); });
-  };
-  on(soundBtn, "click", () => {
-    if (!songStarted) { userMuted = false; startSong(); }
-    else if (song.paused) { userMuted = false; song.play().then(setIcon).catch(setIcon); }
-    else { userMuted = true; song.pause(); }
-    setIcon();
-  });
-  on(song, "play", setIcon); on(song, "pause", setIcon);
-  on(song, "ended", () => { songStarted = false; setIcon(); });
-  // once the landing is fully in, a soft golden aura on the speaker invites a press
-  const beckon = () => { if (song.paused) soundBtn.classList.add("beckon"); };
-  off.push(() => { try { song.pause(); } catch (e) { /* gone */ } });
-  off.push(() => document.documentElement.classList.remove("tj-bison-hover"));
+  // once the landing is fully in, a muted speaker glows gold and rises a touch to invite a press
+  const beckon = () => sound.setBeckon(true);
+  off.push(() => sound.setBeckon(false));
 
-  // no page scroll until the world; in the world no rubber-band past the ends
+  // ---------- Soleil's: the page never scrolls, the world scrolls inside its own fixed frame ----------
   const docEl = document.documentElement;
-  const setScroll = (world) => {
-    docEl.style.overflow = world ? "" : "hidden";
-    docEl.style.overscrollBehaviorY = world ? "none" : "";
-    document.body.style.overscrollBehaviorY = world ? "none" : "";
-  };
+  const scroller = $(".tj-scroller"), track = $(".tj-track"), svhEl = $(".tj-svh");
+  docEl.style.overflow = "hidden"; docEl.style.overscrollBehaviorY = "none"; document.body.style.overscrollBehaviorY = "none";
   off.push(() => { docEl.style.overflow = ""; docEl.style.overscrollBehaviorY = ""; document.body.style.overscrollBehaviorY = ""; });
+  const Hs = () => svhEl.clientHeight || innerHeight;   // the visible screen with Safari's toolbars showing
+  off.push(() => docEl.classList.remove("tj-bison-hover"));
 
   // ======================================================================================
   // WORLD
   // ======================================================================================
-  const worldStage = $(".tj-worldStage"), world = $(".tj-world"), track = $(".tj-track");
-  const landing = $(".tj-landing"), shade = $(".tj-shade");
+  const worldStage = $(".tj-worldStage"), world = $(".tj-world");
+  const landing = $(".tj-landing"), shade = $(".tj-shade"), pulse = $(".tj-pulse");
+  const swordTilt = $(".tj-swordTilt"), swordBeat = $(".tj-emblem .beat");
+  const storyEl = $(".tj-story");
   let worldBuilt = false, layersLoaded = 0, layersReady = false;
   const layersWanted = LAYERS.length + CLOUDS.length + 1;
-  const layerListeners = [];
   const sunsetEl = document.createElement("canvas"); sunsetEl.width = 941; sunsetEl.height = 1672;
   const sctx = sunsetEl.getContext("2d");
   const rimEl = document.createElement("img");
@@ -279,8 +271,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bison = rig;
     return rig;
   }
-  // The story sits above the world, so the page listens and checks the bison's box (with a margin:
-  // it's small on a phone). Touch and pointer both, as iPhone doesn't always send pointer events.
+  // Everything visual sits above the scroller and lets touches through, so the page listens and
+  // checks the bison's box (with a margin: it's small on a phone). Touch and pointer both, as
+  // iPhone doesn't always send pointer events.
   let bisonTapAt = -1e9, bisonHover = false, bisonOnTimer = 0;
   const overBison = (x, y, margin) => {
     if (!bison || phase !== "world") return false;
@@ -323,7 +316,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     world.appendChild(sunsetEl);
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
-    const storyEl = $(".tj-story");
     for (const c of STORY) {
       const el = document.createElement("section"); el.className = "tj-slide" + (c.cover ? " cover" : "");
       const m = document.createElement(c.video ? "video" : "img"); m.className = "media";
@@ -339,31 +331,29 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       slides.push({ el, m, video: !!c.video });
     }
   }
-  off.push(() => layerListeners.forEach((f) => f()));
 
-  let VW = 0, VH = 0;
-  function measure() { // address-bar safe: only re-measure height growth unless the width changes
-    if (window.innerWidth !== VW) { VW = window.innerWidth; VH = window.innerHeight; }
-    else VH = Math.max(VH, window.innerHeight);
-  }
+  // Sized by the stage itself (max(100lvh, 100vh): it doesn't change as Safari's toolbars come and
+  // go), never by the live window height.
   function worldFit() {
-    measure();
-    const narrow = VW / VH <= 0.8;
-    const colW = narrow ? VW : Math.min(VW, VH * CANVAS.w / CANVAS.h);
-    const k = Math.max(colW / CANVAS.w, VH / CANVAS.h);
-    return { narrow, colW, k, ox: (VW - CANVAS.w * k) / 2, oy: (VH - CANVAS.h * k) / 2 };
+    const W = worldStage.clientWidth || innerWidth, H = worldStage.clientHeight || innerHeight;
+    const narrow = W / H <= 0.8;
+    const colW = narrow ? W : Math.min(W, H * CANVAS.w / CANVAS.h);
+    const k = Math.max(colW / CANVAS.w, H / CANVAS.h);
+    return { W, H, narrow, colW, k, ox: (W - CANVAS.w * k) / 2, oy: (H - CANVAS.h * k) / 2 };
   }
+  let tx = 0, ty = 0;   // the eased phone tilt (Burnell's: it glides rather than jitters)
   function worldLayout(p) {
     const { narrow, colW, k, ox, oy } = worldFit();
     $(".tj-side").style.display = narrow ? "none" : "block";
     world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
     world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
-    const ty = (L) => L.y + L.from[1] * (1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0])));
+    const ty0 = (L) => L.y + L.from[1] * (1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0])));
+    const gx = (L) => tx * (L.depth - 0.3) * TILT_X, gy = (L) => ty * Math.max(0, L.depth - 0.1) * TILT_Y;
     for (const L of LAYERS) {
       const t = 1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0]));
-      L.el.style.transform = `translate3d(${(L.x + L.from[0] * t).toFixed(1)}px, ${(L.y + L.from[1] * t).toFixed(1)}px, 0)`;
+      L.el.style.transform = `translate3d(${(L.x + L.from[0] * t + gx(L)).toFixed(1)}px, ${(L.y + L.from[1] * t + gy(L)).toFixed(1)}px, 0)`;
     }
-    const sunY = SUN_SKY_Y + ty(LAYERS[0]), ridgeY = RIDGE_Y + ty(LAYERS[1]);
+    const sunY = SUN_SKY_Y + ty0(LAYERS[0]), ridgeY = RIDGE_Y + ty0(LAYERS[1]);
     const hid = clamp01((sunY + SUN_R - ridgeY) / (2 * SUN_R));
     const sk = smooth((sunY + SUN_R - ridgeY) / (SUN_R + 64));
     if (sunsetEl._k !== sk.toFixed(4)) {
@@ -371,13 +361,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       sctx.clearRect(0, 0, 941, 1672);
       if (sk > 0) { sctx.fillStyle = `rgba(10,12,22,${(0.06 * sk).toFixed(3)})`; sctx.fillRect(0, 0, 941, 1672); }
     }
-    rimEl.style.transform = `translate3d(${RIM.x}px, ${(RIM.y + ty(LAYERS[1])).toFixed(1)}px, 0)`;
+    const mt = LAYERS[1];
+    rimEl.style.transform = `translate3d(${(RIM.x + gx(mt)).toFixed(1)}px, ${(RIM.y + ty0(mt) + gy(mt)).toFixed(1)}px, 0)`;
     rimEl.style.opacity = clamp01((hid - 0.05) / 0.5).toFixed(3);
     const now = performance.now() / 1000;
     CLOUDS.forEach((c, i) => {
       const t = Math.min(1, p / PART_RANGE), e = 1 - (1 - t) * (1 - t), kk = 1 + 0.3 * c.spd;
-      const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i);
-      const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk;
+      const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i) + tx * TILT_X * CLOUD_TILT * c.depth;
+      const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
       c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
     });
     // landing: blurred + dimmed under the copy (the video ends in exactly this state), clearing as you descend
@@ -385,7 +376,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     world.style.filter = veil > 0.02 ? `blur(${(6 * veil).toFixed(1)}px)` : "none";
     shade.style.opacity = (0.5 * veil).toFixed(3);
     // the landing copy dissolves on the very first bit of scroll
-    const o = 1 - Math.min(1, window.scrollY / (VH * 0.14));
+    const o = 1 - Math.min(1, scroller.scrollTop / (Hs() * 0.14));
     landing.style.opacity = o.toFixed(3);
     landing.style.filter = o < 0.999 ? `blur(${((1 - o) * 8).toFixed(1)}px)` : "none";
     landing.classList.toggle("is-gone", o < 0.05);
@@ -404,8 +395,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     phase = "world";
     worldStage.style.visibility = "visible";
     track.style.height = `${100 + DESCENT_SVH * STORY_AT + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
-    setScroll(true);
-    window.scrollTo(0, 0);
+    scroller.classList.add("live");
+    scroller.scrollTop = 0;
     worldLayout(0);
   }
   const showLanding = () => landing.classList.add("show");
@@ -414,17 +405,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // HERO + TRANSITION
   // ======================================================================================
   let hero = null;
-  if (phase === "hero") { setScroll(false); hero = initHero(); }
+  if (phase === "hero") hero = initHero();
   else { buildWorld(); openWorld(); showLanding(); later(beckon, 2400); }
 
   function initHero() {
     const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $(".tj-plate");
-    const canvas = $(".tj-me"), meImg = $(".tj-meImg"), enter = $(".tj-enter"), grade = $(".tj-grade");
+    const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
+    const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
     const trans = $(".tj-trans"), keep = $(".tj-keep");
-    let tv = $(".tj-tv");
+    const tv = $(".tj-tv");
     const transUrl = A + (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
-    let warm = false, blobUrl = null, fetchAbort = null, recovered = null, landingShown = false, playing = false;
+    let warm = false, blobUrl = null, fetchAbort = null, recovered = null, landingShown = false, playing = false, started = false;
 
     function initGL() {
       gl = canvas.getContext("webgl", { premultipliedAlpha: true, alpha: true, antialias: true });
@@ -477,8 +469,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawElements(gl.TRIANGLES, nIdx, gl.UNSIGNED_SHORT, 0);
     }
+    // the hero is the same height as the world's stage, so its first frame and the video's line up
+    const heroW = () => heroEl.clientWidth || innerWidth, heroH = () => heroEl.clientHeight || innerHeight;
     function pick() {
-      const next = innerWidth / innerHeight < 0.9 ? HERO_SETS.mobile : HERO_SETS.desktop;
+      const next = heroW() / heroH() < 0.9 ? HERO_SETS.mobile : HERO_SETS.desktop;
       if (next === set) return;
       set = next;
       box.classList.remove("ready");
@@ -501,7 +495,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     function layout() {
       pick();
-      const W = innerWidth, H = innerHeight, k = Math.max(W / set.w, H / set.h);
+      const W = heroW(), H = heroH(), k = Math.max(W / set.w, H / set.h);
       fit = { k,
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k)) };
@@ -511,7 +505,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
       enter.style.left = Math.min(W - 16 - half, Math.max(16 + half, hx)).toFixed(1) + "px";
       enter.style.top = mid.toFixed(1) + "px";
-      if (phase === "trans") placeVideo(tv);
+      if (phase === "trans") placeVideo(recovered || tv);
     }
 
     // Once the hero is up: download the transition whole into memory and load it (load only, never
@@ -524,35 +518,24 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       fetchAbort = typeof AbortController !== "undefined" ? new AbortController() : null;
       fetch(transUrl, fetchAbort ? { signal: fetchAbort.signal } : undefined)
         .then((r) => (r.ok ? r.blob() : Promise.reject()))
-        .then((b) => { if (phase !== "hero") return; blobUrl = URL.createObjectURL(b); tv.src = blobUrl; loadIt(); })
-        .catch(() => { if (phase === "hero" && !tv.src) { tv.src = transUrl; loadIt(); } });
+        .then((b) => { if (phase !== "hero" || started) return; blobUrl = URL.createObjectURL(b); tv.src = blobUrl; loadIt(); })
+        .catch(() => { if (phase === "hero" && !started && !tv.src) { tv.src = transUrl; loadIt(); } });
     }
     later(warmUp, WARM_FALLBACK_MS);
     off.push(() => { if (fetchAbort) fetchAbort.abort(); if (blobUrl) URL.revokeObjectURL(blobUrl); });
 
-    // input: mouse on desktop, tilt on phones, a slow drift underneath both
-    let inX = 0, inY = 0, haveTilt = false, base = null;
+    // input: mouse on desktop; on phones the shared tilt (asked for at the speaker or at Enter);
+    // a slow drift underneath both
+    let inX = 0, inY = 0;
     on(window, "pointermove", (e) => { if (e.pointerType === "mouse") { inX = e.clientX / innerWidth * 2 - 1; inY = e.clientY / innerHeight * 2 - 1; } });
-    on(window, "deviceorientation", (e) => {
-      if (e.beta == null || e.gamma == null) return;
-      haveTilt = true;
-      if (!base) base = { b: e.beta, g: e.gamma };
-      base.b += (e.beta - base.b) * 0.004; base.g += (e.gamma - base.g) * 0.004;
-      inX = Math.max(-1, Math.min(1, (e.gamma - base.g) / TILT_DEG)); inY = Math.max(-1, Math.min(1, (e.beta - base.b) / TILT_DEG));
-    });
-    const ask = () => {
-      window.removeEventListener("touchstart", ask);
-      const D = window.DeviceOrientationEvent;
-      if (D && typeof D.requestPermission === "function") D.requestPermission().catch(() => {});
-    };
-    on(window, "touchstart", ask, { passive: true });
 
     let px = 0, py = 0, vx = 0, vy = 0, t0 = null, last = 0, leaving = false;
     function heroFrame(now) {
       if (t0 === null) { t0 = now; last = now; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       const t = (now - t0) / 1000;
-      const drift = haveTilt ? 0.18 : 0.45;
+      if (tilt.live) { inX = tilt.x; inY = tilt.y; }
+      const drift = tilt.live ? 0.18 : 0.45;
       const dX = drift * (Math.sin(t * 0.53) * 0.6 + Math.sin(t * 0.21 + 1.3) * 0.4);
       const dY = drift * (Math.sin(t * 0.37 + 0.7) * 0.6 + Math.sin(t * 0.17 + 2.1) * 0.4);
       const gx = Math.max(-1, Math.min(1, inX + dX)), gy = Math.max(-1, Math.min(1, inY + dY));
@@ -571,7 +554,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // ---------- the transition ----------
     // its first frame is the hero plate exactly (same crop), its last frame the world's landing
     function placeVideo(v) {
-      const W = innerWidth, H = innerHeight, wf = worldFit();
+      const wf = worldFit(), W = wf.W, H = wf.H;
       const u = v.duration ? clamp01(v.currentTime / v.duration) : 0;
       v.style.width = TRANS.w + "px"; v.style.height = TRANS.h + "px";
       if (set === HERO_SETS.mobile) {               // full screen, gliding from the hero's crop to the world's
@@ -602,9 +585,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       openWorld();
       later(beckon, 400);                                // the landing is fully in at the video's end
       keep.hidden = true;
-      heroEl.hidden = true; plate.pause();
+      heroEl.hidden = true; enterLayer.hidden = true; plate.pause();
       // the video holds its last frame (= the veiled landing) until the layers are in, then fades out
-      const fade = () => { v.style.transition = "opacity .9s ease, filter 1.2s ease"; v.style.filter = "blur(6px) brightness(0.5)"; trans.style.opacity = "0";
+      let faded = false;
+      const fade = () => { if (faded) return; faded = true;
+        v.style.transition = "opacity .9s ease, filter 1.2s ease"; v.style.filter = "blur(6px) brightness(0.5)"; trans.style.opacity = "0";
         later(() => { trans.hidden = true; try { v.pause(); } catch (e) { /* gone */ } }, 1000); };
       const waitLayers = () => (layersReady ? fade() : later(waitLayers, 120));
       later(fade, 6000); waitLayers();
@@ -612,7 +597,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function fallbackToWorld() {                      // the video can't play: cross-fade straight into the world
       if (phase === "world") return;
       stopWatch(); buildWorld(); openWorld(); showLanding(); landingShown = true; later(beckon, 2400);
-      heroEl.classList.add("out"); trans.hidden = true;
+      heroEl.classList.add("out"); enterLayer.hidden = true; trans.hidden = true;
       later(() => { heroEl.hidden = true; plate.pause(); }, 800);
     }
     function wire(v) {
@@ -667,6 +652,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       clearTimeout(failsafe); failsafe = setTimeout(enterWorld, FAILSAFE_MS);
     }
     function playTransition() {
+      started = true;
       if (!tv.src) { tv.src = transUrl; tv.preload = "auto"; }
       placeVideo(tv);
       if (set === HERO_SETS.desktop) $(".tj-transSide").style.backgroundImage = `url(${A}w3-sky.webp)`;
@@ -677,21 +663,31 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         heroEl.classList.add(set === HERO_SETS.desktop ? "out" : "lift");   // hero lifts off the identical first frame
         plate.pause(); watchStall(); watchFreeze();
       }), { once: true });
-      const start = () => tv.play().catch(() => {
+      const begin = () => tv.play().catch(() => {
         if (!tv.src.startsWith("blob:")) return fallbackToWorld();
         tv.src = transUrl; tv.play().catch(fallbackToWorld);                 // in-memory copy won't play: the network copy, once
       });
       try { tv.currentTime = 0; } catch (e) { /* not loaded yet */ }
-      start();
+      begin();
       failsafe = setTimeout(() => { if (!playing) fallbackToWorld(); else enterWorld(); }, FAILSAFE_MS);
     }
     function onEnter() {
       if (leaving) return; leaving = true;
-      if (!songStarted && !userMuted) startSong();
+      sound.enter();                                  // the song starts (or keeps playing), inside the tap so phones allow it
+      // iPhone's motion prompt is asked here, and the journey waits for the answer so the system
+      // prompt never sits over the playing video
+      const asking = motionNeedsAsking();
+      const motion = requestMotion();
       enter.classList.add("leave"); grade.style.opacity = 0;
-      canvas.classList.add("tj-gone"); meImg.classList.add("tj-gone");     // TREV leaves first
       if (!warm) warmUp();
-      later(playTransition, DISSOLVE_MS);
+      let gone = false;
+      const dissolve = () => {
+        if (gone) return; gone = true;
+        canvas.classList.add("tj-gone"); meImg.classList.add("tj-gone");   // TREV leaves first
+        later(playTransition, DISSOLVE_MS);
+      };
+      if (asking) { motion.then(dissolve); later(dissolve, MOTION_WAIT_MS); }
+      else dissolve();
     }
     wire(tv);
     on(enter, "click", onEnter);
@@ -714,13 +710,27 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ======================================================================================
   // one loop drives everything
   // ======================================================================================
-  let target = 0, cur = 0, lastT = performance.now();
-  const scrolled = () => Math.max(0, window.scrollY / Math.max(1, VH || innerHeight) * 100);
+  let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1;
+  const scrolled = () => Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100);
   function loop(now) {
     raf = requestAnimationFrame(loop);
     if (hero) hero.frame(now);
-    if (phase !== "world" || !worldBuilt) { lastT = now; return; }
     const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    // the tilt, eased so it glides (Burnell's)
+    tx += (tilt.x - tx) * TILT_EASE; ty += (tilt.y - ty) * TILT_EASE;
+    // The bass, from the drop on: the sword's glow and a soft warm light over the world. Opacity and
+    // transform only, on two small layers: no page-wide filter or blend has to be redrawn per beat.
+    beatSm = Math.max(sound.beat(), beatSm * Math.exp(-dt * 7));
+    if (Math.abs(beatSm - beatShown) > 0.004) {
+      beatShown = beatSm < 0.005 ? 0 : beatSm;
+      swordBeat.style.opacity = (0.75 * beatShown).toFixed(3);
+      pulse.style.opacity = (0.16 * beatShown).toFixed(3);
+    }
+    // the sword leans with the tilt like the world, a little less, and lifts a touch on each hit
+    if (landing.classList.contains("show") && !landing.classList.contains("is-gone"))
+      swordTilt.style.transform = still ? `scale(${(1 + 0.025 * beatShown).toFixed(4)})`
+        : `rotateY(${(tx * 27 * SWORD_TILT).toFixed(2)}deg) rotateX(${(ty * -20 * SWORD_TILT).toFixed(2)}deg) scale(${(1 + 0.025 * beatShown).toFixed(4)})`;
+    if (phase !== "world" || !worldBuilt) return;
     target = scrolled();
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
     if (Math.abs(target - cur) < 0.03) cur = target;

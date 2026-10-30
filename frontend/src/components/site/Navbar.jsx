@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { NAV_LINKS } from "@/data/site";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { SoundButton } from "@/components/site/SoundButton";
 
 const NavLink = ({ to, label, active, testId, mobile }) => (
   <Link
@@ -54,6 +55,9 @@ export const Navbar = () => {
         }`}
       >
         {!isHomeBar && (
+          <div className="flex items-center gap-3">
+          {/* the speaker: "Kingdom" keeps playing from page to page */}
+          <SoundButton />
           <Link to="/" data-testid="nav-link-wordmark">
             {/* TREV logo (gold, sun above the letters, transparent PNG
                 ~788x484). Same asset on mobile and desktop, sized to the
@@ -64,6 +68,7 @@ export const Navbar = () => {
               className={`${isMobile ? "animate-wordmark-float h-10" : "h-11"} w-auto object-contain`}
             />
           </Link>
+          </div>
         )}
         {!isPortalHero && (
           <div className="hidden items-center gap-5 md:flex">

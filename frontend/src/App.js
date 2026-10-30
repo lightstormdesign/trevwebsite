@@ -13,6 +13,7 @@ import { TrackingPixel } from "@/components/site/TrackingPixel";
 import { GlowCursor } from "@/components/site/GlowCursor";
 import { SacredGeometryField } from "@/components/site/SacredGeometryField";
 import { WorldDim } from "@/components/site/WorldDim";
+import { FilmGrain } from "@/components/site/FilmGrain";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -48,6 +49,7 @@ function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/shop" element={<Shop />} />
         </Routes>
+        <FilmGrain />
       </BrowserRouter>
     </div>
   );
