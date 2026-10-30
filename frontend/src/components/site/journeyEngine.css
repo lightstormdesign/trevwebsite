@@ -117,11 +117,11 @@
    bottom isn't lost under Safari's toolbar; below that it stays at its darkest. */
 .tj-vignette { position: fixed; left: 0; right: 0; top: 0; z-index: 31; pointer-events: none; }
 .tj-vignette .top { position: absolute; left: 0; right: 0; top: 0; height: 46svh;
-  background: linear-gradient(to bottom, rgba(10,4,4,0.74) 0%, rgba(10,4,4,0.4) 42%, transparent 100%); }
+  background: linear-gradient(to bottom, rgba(10,4,4,0.82) 0%, rgba(10,4,4,0.46) 42%, transparent 100%); }
 .tj-vignette .bottom { position: absolute; left: 0; right: 0; bottom: 0; height: calc(40svh + max(100lvh, 100vh) - 100svh);
-  background: linear-gradient(to top, rgba(10,4,4,0.9) 0, rgba(10,4,4,0.9) calc(max(100lvh, 100vh) - 100svh), rgba(10,4,4,0.5) calc(max(100lvh, 100vh) - 100svh + 16svh), transparent 100%); }
+  background: linear-gradient(to top, rgba(10,4,4,0.95) 0, rgba(10,4,4,0.95) calc(max(100lvh, 100vh) - 100svh), rgba(10,4,4,0.57) calc(max(100lvh, 100vh) - 100svh + 16svh), transparent 100%); }
 .tj-vignette .sides { position: absolute; left: 0; right: 0; top: 0; height: 100svh;
-  background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 55%, rgba(10,4,4,0.38) 100%); }
+  background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 52%, rgba(10,4,4,0.45) 100%); }
 
 .tj-story { position: fixed; left: 0; right: 0; top: 0; z-index: 30; pointer-events: none; }
 .tj-storyShade { position: absolute; inset: 0; background: #070605; opacity: 0; }

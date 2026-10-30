@@ -93,6 +93,10 @@ const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - l
 // fluttering, flowing, breathing and twinkling are CSS animations.
 const FAR_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42], [-110, 46]];
 const NEAR_FLOCK = [[0, 0], [95, -34], [108, 40]];
+// TREV's white doves: a third flock, first crossing ~12s after the world opens (after Burnell's
+// swallows have been through), then every 36s
+const DOVE_FLOCK = [[0, 0], [-62, -26], [-70, 30], [-128, 4]];
+const DOVES_AT_S = 12, DOVES_EVERY_S = 36, DOVES_CROSS_S = 14;
 // flap pairs (two frames drawn eye on eye) and their sizes
 const FLYER = { swallow: [1, 0.75], dove: [260, 213], bluebird: [240, 218], hummingbird: [300, 215] };
 // [leaf, after layer, depth, size (longest side, canvas px, as Burnell's), x, start offset, phase]
@@ -125,6 +129,13 @@ const CREATURES = [
     pose: (t) => { const u = (t / 34 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
   ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", flip: true, layer: "forest", w: 84, flap: 0.26 + i * 0.04,
     pose: (t) => { const u = ((t + 4) % 24) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
+  ...DOVE_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", layer: "mountains", w: 56, flap: 0.42 + i * 0.04,
+    pose: (t, p, c) => {
+      if (!c.t0) c.t0 = t;   // the world's own clock
+      const s = t - c.t0 - DOVES_AT_S; if (s < 0) return null;
+      const u = (s % DOVES_EVERY_S) / DOVES_CROSS_S; if (u > 1) return null;
+      return { x: -160 + u * 1260 + dx, y: 390 + dy - 60 * u + 8 * Math.sin(t * 1.2 + i) };
+    } })),
   { kind: "falls", layer: "falls", x: 318, y: 440, w: 297, h: 372, pose: () => ({ x: 318, y: 440 }) },
   ...[[455, 565, 170, 0], [535, 805, 210, 2.2], [335, 748, 90, 4.1]].map(([x, y, w, d]) =>
     ({ kind: "mist", layer: "falls", w, delay: d, pose: () => ({ x, y }) })),
@@ -424,6 +435,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   off.push(() => docEl.classList.remove("tj-owl-hover"));
   function creatureEl(c) {
     const el = document.createElement("div");
+    c.t0 = 0;
     el.className = `tj-cr tj-cr-${c.kind}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
