@@ -1,6 +1,6 @@
 <title>TREV Hero Loop</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Outfit:wght@300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Outfit:wght@300;400&display=swap">
 <style>
   /* Full-bleed hero: animated plate (locked after the opening settle) + TREV's real cutout, warped in WebGL */
   :root {
@@ -20,21 +20,31 @@
   #plate { object-fit: fill; transform-origin: 50% 50%; will-change: transform; }
   #me, #meImg { transition: opacity .6s ease; }
   .gone { opacity: 0 !important; }
-  #header { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: center;
-            padding-top: calc(14px + env(safe-area-inset-top, 0px)); padding-bottom: 28px;
-            padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-            background: linear-gradient(to bottom, rgba(8,7,6,.5), rgba(8,7,6,0)); pointer-events: none; }
-  #header img { width: clamp(92px, 11vw, 132px); height: auto; filter: drop-shadow(0 1px 10px rgba(0,0,0,.45)); }
-  #enter { position: absolute; left: 50%; transform: translateX(-50%);
-           bottom: calc(7svh + env(safe-area-inset-bottom, 0px));
-           font: 400 clamp(17px, 1.5vw, 19px)/1 var(--display); letter-spacing: .32em; text-transform: uppercase; white-space: nowrap;
-           color: var(--bone); background: rgba(12,11,10,.3); border: 1px solid rgba(231,201,143,.75); border-radius: 999px;
-           padding: 22px 44px 22px 50px; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-           opacity: 0; pointer-events: none; transition: opacity 1s ease, color .2s, border-color .2s; }
+  /* header: only a soft shadow band, the name left, the menu right */
+  #header { position: absolute; left: 0; right: 0; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between;
+            padding-top: calc(18px + env(safe-area-inset-top, 0px)); padding-bottom: 46px;
+            padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px));
+            background: linear-gradient(to bottom, rgba(6,5,4,.62) 0%, rgba(6,5,4,.28) 55%, rgba(6,5,4,0) 100%); }
+  #name { font: 500 clamp(15px, 1.25vw, 18px)/1 var(--display); letter-spacing: .42em; color: var(--bone);
+          text-shadow: 0 1px 12px rgba(0,0,0,.45); }
+  #menuBtn { width: 44px; height: 44px; display: grid; place-content: center; gap: 6px; background: none; border: 0; cursor: pointer; padding: 0; }
+  #menuBtn span { display: block; width: 24px; height: 1.5px; background: var(--bone); box-shadow: 0 1px 6px rgba(0,0,0,.4); }
+  #menuBtn:focus-visible, #enter:focus-visible { outline: 1px solid var(--gold); outline-offset: 6px; }
+  #menu { position: absolute; inset: 0; z-index: 3; background: rgba(8,7,6,.92); display: flex; flex-direction: column;
+          align-items: center; justify-content: center; gap: 26px; }
+  #menu[hidden] { display: none; }
+  #menu a { font: 500 18px/1 var(--display); letter-spacing: .32em; color: var(--bone); text-decoration: none; }
+  #menu a:hover { color: var(--gold); }
+  #menuClose { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));
+               width: 44px; height: 44px; background: none; border: 0; color: var(--bone); font: 300 30px/1 var(--body); cursor: pointer; }
+  /* "Tap to enter": gold-gradient words floating above his head, no button chrome */
+  #enter { position: absolute; left: 0; top: 0; z-index: 1; background: none; border: 0; padding: 10px 6px; cursor: pointer;
+           opacity: 0; pointer-events: none; transition: opacity 1.2s ease; filter: drop-shadow(0 0 1px rgba(40,24,6,.55)) drop-shadow(0 1px 14px rgba(0,0,0,.6)); }
+  #enter span { font: 600 clamp(20px, 1.7vw, 24px)/1 var(--display); letter-spacing: .3em; text-transform: uppercase; white-space: nowrap;
+                background: linear-gradient(180deg, #f8e0a2 0%, #e2b45c 42%, #b98530 72%, #e9c47c 100%);
+                -webkit-background-clip: text; background-clip: text; color: transparent; }
   #enter.show { opacity: 1; pointer-events: auto; }
-  #enter:hover { border-color: var(--gold); color: var(--gold); }
-  #enter:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-  #note { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(7svh + 84px + env(safe-area-inset-bottom, 0px));
+  #note { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(7svh + env(safe-area-inset-bottom, 0px));
           font-size: 12px; letter-spacing: .08em; opacity: 0; transition: opacity .4s; text-shadow: 0 1px 10px #000;
           white-space: nowrap; pointer-events: none; }
   #note.on { opacity: .85; }
@@ -47,9 +57,16 @@
     <canvas id="me"></canvas>
     <img id="meImg" alt="TREV" hidden>
   </div>
-  <header id="header"><img src="trev-logo.webp" alt="TREV"></header>
+  <header id="header">
+    <span id="name">TREV</span>
+    <button id="menuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
+  </header>
+  <nav id="menu" hidden>
+    <button id="menuClose" type="button" aria-label="Close menu">&times;</button>
+    <a href="#">Music</a><a href="#">About</a><a href="#">Tour</a><a href="#">Community</a><a href="#">EPK</a><a href="#">Shop</a><a href="#">Contact</a>
+  </nav>
   <div id="note">The transition video would start here</div>
-  <button id="enter" type="button">Tap to enter</button>
+  <button id="enter" type="button"><span>Tap to enter</span></button>
 </div>
 
 <script>
@@ -57,9 +74,9 @@
 // point of the frame to keep in view when the screen crops it.
 const SETS = {
   desktop: { w: 1920, h: 1740, video: "trev-hero-desktop.mp4", poster: "trev-hero-desktop-poster.jpg",
-             cut: { src: "trev-hero-cutout-desktop.webp", x: 580, y: 927, w: 923, h: 813 }, fx: 0.5, fy: 0.8 },
+             cut: { src: "trev-hero-cutout-desktop.webp", x: 580, y: 927, w: 923, h: 813 }, headX: 966, fx: 0.5, fy: 0.8 },
   mobile:  { w: 1080, h: 1920, video: "trev-hero-mobile.mp4", poster: "trev-hero-mobile-poster.jpg",
-             cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, fx: 0.48, fy: 0.55 },
+             cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, headX: 516, fx: 0.48, fy: 0.55 },
 };
 const INTRO_S = 3;          // the background settles into place over this long, then never moves again
 const INTRO_ZOOM = 0.05;    // how far it starts pushed in
@@ -67,6 +84,7 @@ const INTRO_SHIFT = 22;     // screen px the background still follows the pointe
 const HEAD_PX = 13;         // screen px TREV's head travels at full tilt (his base stays pinned)
 const TILT_DEG = 9;         // phone tilt (degrees from where it's held) that gives full travel
 const MARGIN = 70;          // canvas room around the cutout for the head to move into (loop px)
+const ENTER_GAP = 30;       // screen px between the top of his hair and "Tap to enter"
 
 const box = document.getElementById("box"), plate = document.getElementById("plate");
 const canvas = document.getElementById("me"), meImg = document.getElementById("meImg");
@@ -160,6 +178,10 @@ function layout() {
     ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
     oy: Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k)) };
   box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
+  // "Tap to enter" sits centred over his head, just above his hair
+  const hx = fit.ox + set.headX * k, hy = fit.oy + set.cut.y * k - ENTER_GAP;
+  const half = enter.offsetWidth / 2, x = Math.min(W - 16 - half, Math.max(16 + half, hx));
+  enter.style.transform = `translate(${(x - half).toFixed(1)}px, ${(hy - enter.offsetHeight).toFixed(1)}px)`;
 }
 
 // ---------- input: mouse on desktop, tilt on phones, a slow drift underneath both ----------
@@ -217,7 +239,12 @@ enter.addEventListener("click", () => {
   const note = document.getElementById("note"); setTimeout(() => note.classList.add("on"), 600);
   setTimeout(() => { note.classList.remove("on"); canvas.classList.remove("gone"); meImg.classList.remove("gone"); }, 3200);
 });
-if (matchMedia("(hover: hover)").matches) enter.textContent = "Click to enter";
+if (matchMedia("(hover: hover)").matches) enter.firstElementChild.textContent = "Click to enter";
+const menu = document.getElementById("menu");
+document.getElementById("menuBtn").addEventListener("click", () => { menu.hidden = false; });
+document.getElementById("menuClose").addEventListener("click", () => { menu.hidden = true; });
+menu.addEventListener("click", (e) => { if (e.target.tagName === "A") { e.preventDefault(); menu.hidden = true; } });
+document.fonts?.ready.then(layout);
 
 addEventListener("resize", layout);
 layout();
