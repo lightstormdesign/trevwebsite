@@ -78,6 +78,45 @@ const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing
   { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83, depth: 1 },
 ];
 const RIM = { x: 194, y: 302, w: 447 };
+const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
+
+// Alive (as on Burnell's world): Burnell's swallows cross the sky, his butterflies wander over the
+// flowers, golden aspen leaves tumble down from the aspens, the falls run, mist breathes at their
+// feet, the pool glints and motes of light drift up through the sun. Each lives in the coordinates
+// of the layer it's part of (so it rides with that layer through the descent and the tilt), or, for
+// `free` ones, in the canvas at its own depth. pose(t, p): where it is at time t (s) and descent p,
+// or null when it's off stage. Kept light: small images moved and turned only; the flapping,
+// fluttering, flowing, breathing and twinkling are CSS animations.
+const FAR_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42], [-110, 46]];
+const NEAR_FLOCK = [[0, 0], [95, -34], [108, 40]];
+const LEAVES = [ // [leaf, after layer, depth, width, x, start offset, phase]
+  [4, "foreground", 1, 120, 150, 0, 0], [2, "foreground", 1, 105, 700, 1100, 2.1],
+  [1, "forest", 0.6, 78, 420, 400, 4.2], [3, "forest", 0.6, 70, 230, 1500, 1.3],
+  [4, "mountains", 0.35, 46, 640, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
+];
+const GLINTS = [[300, 865], [380, 895], [450, 875], [520, 910], [600, 865], [360, 840], [560, 835], [420, 1035], [640, 1055]];
+const CREATURES = [
+  ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", layer: "mountains", w: 44, flap: 0.3 + i * 0.035,
+    pose: (t) => { const u = (t / 34 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
+  ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", flip: true, layer: "forest", w: 84, flap: 0.26 + i * 0.04,
+    pose: (t) => { const u = ((t + 4) % 24) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
+  { kind: "falls", layer: "falls", x: 318, y: 440, w: 297, h: 372, pose: () => ({ x: 318, y: 440 }) },
+  ...[[455, 565, 170, 0], [535, 805, 210, 2.2], [335, 748, 90, 4.1]].map(([x, y, w, d]) =>
+    ({ kind: "mist", layer: "falls", w, delay: d, pose: () => ({ x, y }) })),
+  ...GLINTS.map(([x, y], i) => ({ kind: "glint", layer: "river", w: 16 + (i % 3) * 5, delay: (i * 0.77) % 3.4, pose: () => ({ x, y }) })),
+  ...[[200, 1200, 0, 115, 1.6], [760, 1060, 2.1, 46, 1]].map(([cx, cy, ph, w, roam]) => ({ kind: "butterfly", layer: "foreground", w,
+    pose: (t) => ({ x: cx + roam * (60 * Math.sin(t * 0.55 + ph) + 18 * Math.sin(t * 1.7 + ph)), y: cy + roam * 32 * Math.sin(t * 0.85 + ph * 2), rot: 10 * Math.cos(t * 0.55 + ph) }) })),
+  ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-leaf-${n}.webp`, after, depth, w,
+    pose: (t, p) => ({
+      x: x0 + 70 * Math.sin(t * 0.5 + ph) + 25 * Math.sin(t * 1.3 + ph * 2),
+      y: wrap(off + t * (45 + 95 * depth) - p * (250 + 650 * depth), -220, 1890),
+      rot: 30 * Math.sin(t * 0.7 + ph) + ph * 40,
+      flip: Math.cos(t * (1.1 + 0.4 * depth) + ph),
+      op: depth < 0.5 ? 0.85 : 1,
+    }) })),
+  ...Array.from({ length: 9 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
+    pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
+];
 const BISON_TAP_S = 4;      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
 // Flower of Life centres: a hexagonal lattice of circles out to three rings (as on Burnell's deer)
 const FLOWER = (() => {
@@ -255,15 +294,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // into the world. Hover (or a tap, for BISON_TAP_S) brightens it all and widens the aura.
   let bison = null;
   function bisonRig(L) {
-    const src = `${A}w3-bison.webp`;
+    const src = `${A}w3-bison-body.webp`, tail = `${A}w3-bison-tail.webp`;
     const rig = document.createElement("div");
-    rig.className = "tj-bison"; rig.style.width = L.w + "px"; rig.style.setProperty("--sil", `url("${src}")`);
+    rig.className = "tj-bison"; rig.style.width = L.w + "px";
+    rig.style.setProperty("--sil", `url("${src}")`); rig.style.setProperty("--tail", `url("${tail}")`);
     rig.innerHTML = `
       <div class="aura" aria-hidden="true"><div class="glow"></div>
         <svg class="geo" viewBox="-60 -60 120 120" preserveAspectRatio="xMidYMid meet"><g fill="none" stroke="rgba(255,236,190,1)" stroke-width="0.3">
           ${FLOWER.map(([x, y]) => `<circle r="10" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}"/>`).join("")}</g></svg></div>
       <div class="pulse" aria-hidden="true"></div><div class="pulse" aria-hidden="true" style="animation-delay:2s"></div>
       <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
+      <div class="tail" aria-hidden="true"><div class="tailOutline"></div><img class="tailImg" src="${tail}" alt="" decoding="async"></div>
       <img class="body" alt="The white bison" decoding="async">`;
     const body = rig.querySelector(".body");
     body.addEventListener("load", onLayer, { once: true }); body.addEventListener("error", onLayer, { once: true });
@@ -296,6 +337,23 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonHover = h; bison.classList.toggle("is-on", h || performance.now() - bisonTapAt < BISON_TAP_S * 1000);
     docEl.classList.toggle("tj-bison-hover", h);
   }, { passive: true });
+  function creatureEl(c) {
+    const el = document.createElement("div");
+    el.className = `tj-cr tj-cr-${c.kind}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
+    const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
+    if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
+    if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s${c.flip ? ";transform:scaleX(-1)" : ""}">`
+      + `<img class="up" src="${A}trev-world-bird-up.webp" alt=""><img class="down" src="${A}trev-world-bird-down.webp" alt=""></div>`;
+    else if (c.kind === "butterfly") body.innerHTML = `<img class="wings" src="${A}trev-world-butterfly.webp" alt="">`;
+    else if (c.kind === "leaf") body.innerHTML = `<img src="${A + c.src}" alt="">`;
+    else if (c.kind === "falls") {   // streaks running down, seen only through the falls' own water
+      body.style.height = c.h + "px";
+      body.style.setProperty("--water", `url("${A}trev-world-falls-mask.webp")`);
+      body.innerHTML = `<div class="flow" style="background-image:url(${A}trev-world-falls-streaks.webp)"></div>`;
+    } else body.innerHTML = "<span></span>";
+    el.appendChild(body);
+    return el;
+  }
   function buildWorld() {
     if (worldBuilt) return; worldBuilt = true;
     const img = (src, w) => {
@@ -313,6 +371,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (const c of CLOUDS) if (c.after === L.key) {
         c.el = img(A + c.src, c.w); c.el.style.opacity = c.op; world.appendChild(c.el);
       }
+      for (const c of CREATURES) if ((c.layer || c.after) === L.key) { c.el = creatureEl(c); world.appendChild(c.el); }
     }
     world.appendChild(sunsetEl);
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
@@ -351,7 +410,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const gx = (L) => tx * (L.depth - 0.3) * TILT_X, gy = (L) => ty * Math.max(0, L.depth - 0.1) * TILT_Y;
     for (const L of LAYERS) {
       const t = 1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0]));
-      L.el.style.transform = `translate3d(${(L.x + L.from[0] * t + gx(L)).toFixed(1)}px, ${(L.y + L.from[1] * t + gy(L)).toFixed(1)}px, 0)`;
+      L.cx = L.x + L.from[0] * t + gx(L); L.cy = L.y + L.from[1] * t + gy(L);
+      L.el.style.transform = `translate3d(${L.cx.toFixed(1)}px, ${L.cy.toFixed(1)}px, 0)`;
     }
     const sunY = SUN_SKY_Y + ty0(LAYERS[0]), ridgeY = RIDGE_Y + ty0(LAYERS[1]);
     const hid = clamp01((sunY + SUN_R - ridgeY) / (2 * SUN_R));
@@ -371,6 +431,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
       c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
     });
+    if (!still) placeCreatures(now, p);
     // landing: blurred + dimmed under the copy (the video ends in exactly this state), clearing as you descend
     const veil = 1 - smooth(p / 0.3);
     world.style.filter = veil > 0.02 ? `blur(${(6 * veil).toFixed(1)}px)` : "none";
@@ -380,6 +441,19 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     landing.style.opacity = o.toFixed(3);
     landing.style.filter = o < 0.999 ? `blur(${((1 - o) * 8).toFixed(1)}px)` : "none";
     landing.classList.toggle("is-gone", o < 0.05);
+  }
+  const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
+  function placeCreatures(t, p) {
+    for (const c of CREATURES) {
+      const pose = c.pose(t, p), el = c.el;
+      if (!pose) { if (el.style.opacity !== "0") el.style.opacity = "0"; continue; }
+      let x = pose.x, y = pose.y;
+      if (c.layer) { const L = layerOf[c.layer]; x += L.cx; y += L.cy; }
+      else { x += tx * TILT_X * CLOUD_TILT * c.depth; y += ty * TILT_Y * CLOUD_TILT * c.depth; }
+      const op = (pose.op ?? 1).toFixed(2);
+      if (el.style.opacity !== op) el.style.opacity = op;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${pose.flip != null ? ` scaleX(${pose.flip.toFixed(3)})` : ""}`;
+    }
   }
   function storyLayout(s) {
     $(".tj-storyShade").style.opacity = (0.82 * clamp01((s + 0.7) / 0.7)).toFixed(3);

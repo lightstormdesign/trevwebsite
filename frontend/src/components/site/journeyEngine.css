@@ -208,16 +208,61 @@
 .tj-bison .shadow { background: rgba(28,18,8,.9); transform: scale(1.05); transform-origin: 50% 58%; opacity: .32; }
 .tj-bison .outline { background: rgba(255,226,150,.95); transform: scale(1.018); transform-origin: 50% 52%; opacity: .75; }
 .tj-bison .body { position: relative; display: block; width: 100%; height: auto; transition: filter .6s ease; }
+/* the tail (cut from the painting) swishes now and then, pivoting at the rump (Burnell's deer tail) */
+.tj-bison .tail { inset: 0; transform-origin: 10.5% 37.4%; animation: tj-bisonTail 6.5s ease-in-out infinite; }
+.tj-bison .tailImg { position: absolute; inset: 0; width: 100%; height: 100%; transition: filter .6s ease; }
+.tj-bison .tailOutline { position: absolute; inset: 0; background: rgba(255,226,150,.95); transform: scale(1.018); transform-origin: 50% 52%; opacity: .75;
+  -webkit-mask-image: var(--tail); mask-image: var(--tail); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+@keyframes tj-bisonTail {
+  0%, 30%, 52%, 100% { transform: rotate(0deg); }
+  35% { transform: rotate(22deg); }
+  41% { transform: rotate(-9deg); }
+  47% { transform: rotate(13deg); }
+}
 /* a tap (or hover): everything brighter, the aura wider, the pulse quicker */
 .tj-bison.is-on .aura { filter: brightness(1.5); transform: scale(1.15); }
 .tj-bison.is-on .glow { opacity: .62; }
 .tj-bison.is-on .geo { opacity: .38; }
-.tj-bison.is-on .body { filter: drop-shadow(0 0 1px rgba(255,240,190,1)) drop-shadow(0 0 8px rgba(255,210,120,.8)); }
+.tj-bison.is-on .body, .tj-bison.is-on .tailImg { filter: drop-shadow(0 0 1px rgba(255,240,190,1)) drop-shadow(0 0 8px rgba(255,210,120,.8)); }
 .tj-bison.is-on .pulse { animation-duration: 2.6s; }
 html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 
+/* ---------- the world alive (journeyEngine.js CREATURES): moved by transform, animated by CSS ---------- */
+.tj-cr { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; pointer-events: none; }
+.tj-crBody { position: relative; transform: translate(-50%, -50%); }
+.tj-crBody img { position: relative; display: block; width: 100%; will-change: auto; }
+.tj-cr-bird .frames { position: relative; width: 100%; aspect-ratio: 1 / 0.75; }
+.tj-cr-bird .frames img { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+.tj-cr-bird .up { animation: tj-flapA var(--flap, .36s) infinite; }
+.tj-cr-bird .down { animation: tj-flapB var(--flap, .36s) infinite; }
+@keyframes tj-flapA { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes tj-flapB { 0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; } }
+.tj-cr-butterfly .wings { animation: tj-flutter .15s ease-in-out infinite alternate; }
+@keyframes tj-flutter { from { transform: scaleX(1); } to { transform: scaleX(.26); } }
+/* the falls: streaks of light running down, seen only through the painted water */
+.tj-cr-falls .tj-crBody { transform: none; overflow: hidden; opacity: .55;
+  -webkit-mask: var(--water) 0 0 / 100% 100% no-repeat; mask: var(--water) 0 0 / 100% 100% no-repeat; }
+.tj-cr-falls .flow { position: absolute; left: 0; right: 0; top: -256px; bottom: 0; background-size: 64px 256px; background-repeat: repeat;
+  will-change: transform; animation: tj-falls 1.6s linear infinite; }
+@keyframes tj-falls { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 256px, 0); } }
+/* mist breathing at the foot of each fall */
+.tj-cr-mist .tj-crBody { aspect-ratio: 2 / 1; }
+.tj-cr-mist span { position: absolute; inset: 0; border-radius: 50%; will-change: transform, opacity;
+  background: radial-gradient(closest-side, rgba(255,250,240,.55), rgba(255,246,232,.22) 55%, rgba(255,246,232,0));
+  animation: tj-mist 7s ease-in-out var(--delay, 0s) infinite; }
+@keyframes tj-mist { 0%, 100% { opacity: .55; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.08) translateY(-4%); } }
+/* sun glints on the pool, and motes of light drifting up */
+.tj-cr-glint .tj-crBody, .tj-cr-mote .tj-crBody { aspect-ratio: 1; }
+.tj-cr-glint span, .tj-cr-mote span { position: absolute; inset: 0; border-radius: 50%; will-change: transform, opacity; }
+.tj-cr-glint span { background: radial-gradient(closest-side, #fffaf0 0%, rgba(255,236,190,.75) 30%, rgba(255,226,160,0) 100%);
+  animation: tj-glint2 3.4s ease-in-out var(--delay, 0s) infinite; }
+@keyframes tj-glint2 { 0%, 60%, 100% { opacity: 0; transform: scale(.3); } 75% { opacity: 1; transform: scale(1); } }
+.tj-cr-mote span { background: radial-gradient(closest-side, rgba(255,240,200,.95), rgba(255,214,140,.35) 50%, rgba(255,214,140,0));
+  animation: tj-mote 5s ease-in-out var(--delay, 0s) infinite; }
+@keyframes tj-mote { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse { animation: none; }
+  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
