@@ -43,7 +43,9 @@ const HERO_SETS = {
              cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, headX: 516, fx: 0.48, fy: 0.55,
              face: [470, 1380, 215, 320] },
 };
-const INTRO_S = 3;          // "Tap to enter" shows a little into this
+// A title card: the full gold TREV logo fades up where "Tap to enter" will be as the portal appears,
+// holds, and dissolves; "Tap to enter" rises in its place as it goes.
+const TITLE_MS = 3300, ENTER_AFTER_MS = 2600;
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
@@ -307,7 +309,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         </div>
       </div>
     </div>
-    ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
+    ${phase === "hero" ? `<div class="tj-enterLayer"><img class="tj-title" src="${A}trev-title.webp" alt="TREV"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <header class="tj-header">
       <div class="tj-headLeft">
         <span class="tj-soundSlot" aria-hidden="true"></span>
@@ -650,9 +652,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   else { buildWorld(); openWorld(); showLanding(); later(beckon, 2400); }
 
   function initHero() {
-    const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $("video.tj-plate"), still = $(".tj-plateStill");
+    const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $("video.tj-plate"), plateStill = $(".tj-plateStill");
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
-    const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
+    const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer"), title = $(".tj-title");
+    let titleAt = 0;
+    const startTitle = () => {
+      if (titleAt) return; titleAt = performance.now();
+      if (!still) { title.classList.add("play"); later(() => { title.hidden = true; }, TITLE_MS + 100); } else title.hidden = true;
+    };
     const trans = $(".tj-trans"), keep = $(".tj-keep"), bars = $(".tj-bars");
     const tv = $(".tj-tv");
     const transUrl = A + (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
@@ -717,10 +724,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       box.classList.remove("ready");
       box.style.width = set.w + "px"; box.style.height = set.h + "px";
       Object.assign(plate.style, { width: set.w + "px", height: set.h + "px" });
-      still.src = A + set.poster; plate.src = A + set.video; showWhenPlaying(plate);
-      Object.assign(still.style, { width: set.w + "px", height: set.h + "px" });
+      plateStill.src = A + set.poster; plate.src = A + set.video; showWhenPlaying(plate);
+      Object.assign(plateStill.style, { width: set.w + "px", height: set.h + "px" });
       plate.play().then(() => afterFirstFrame(plate, () => later(warmUp, WARM_DELAY_MS))).catch(() => {});  // Low Power Mode: the poster stays
-      let loaded = 0; const done = () => { if (++loaded === 2) box.classList.add("ready"); };
+      let loaded = 0; const done = () => { if (++loaded === 2) { box.classList.add("ready"); startTitle(); } };
       const p = new Image(); p.onload = done; p.onerror = done; p.src = A + set.poster;
       const img = new Image();
       img.onload = () => {
@@ -749,6 +756,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
       enter.style.left = Math.min(W - 16 - half, Math.max(16 + half, hx)).toFixed(1) + "px";
       enter.style.top = mid.toFixed(1) + "px";
+      title.style.left = enter.style.left; title.style.top = enter.style.top;
       if (phase === "trans") placeVideo(recovered || tv);
     }
 
@@ -786,7 +794,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       vx += ((gx - px) * 26 - vx * 8.5) * dt; vy += ((gy - py) * 26 - vy * 8.5) * dt;
       px += vx * dt; py += vy * dt;
       const m = still ? 0 : 1, k = fit.k;
-      if (t > INTRO_S * 0.6 && !leaving) enter.classList.add("show");
+      if (titleAt && now - titleAt > (still ? 0 : ENTER_AFTER_MS) && !leaving) enter.classList.add("show");
       drawMe(px * ME_PX * m / k, py * ME_PX * 0.75 * m / k, 0);
     }
 
@@ -917,7 +925,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function onEnter() {
       if (leaving) return; leaving = true;
       sound.enter();                                  // the song starts (or keeps playing), inside the tap so phones allow it
-      enter.classList.add("leave"); grade.style.opacity = 0;
+      enter.classList.add("leave"); title.classList.add("leave"); grade.style.opacity = 0;
       if (!warm) warmUp();
       fadeFrom = performance.now(); bars.classList.add("on"); playTransition();   // at once (no motion prompt here)
     }

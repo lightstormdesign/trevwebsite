@@ -77,6 +77,17 @@
 .tj-hero.thru .tj-plate, .tj-hero.thru .tj-grade { visibility: hidden; }
 .tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
   background: linear-gradient(to bottom, rgba(6,5,4,.22) 0%, rgba(6,5,4,.14) 26%, rgba(6,5,4,.05) 44%, rgba(6,5,4,0) 58%); }
+/* the title card (journeyEngine.js TITLE_MS): the gold TREV logo fades up, holds and dissolves */
+.tj-title { position: absolute; left: 50%; top: 30%; width: min(58vw, 300px); height: auto; transform: translate(-50%, -50%);
+  opacity: 0; pointer-events: none; filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)); }
+.tj-title.play { animation: tj-title 3.3s ease-in-out forwards; }
+.tj-title.leave { animation: none; opacity: 0; transition: opacity .3s ease; }
+@keyframes tj-title {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.97); filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)) blur(6px); }
+  28% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)) blur(0); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(1.01); filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)) blur(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.03); filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)) blur(5px); }
+}
 .tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .tj-enter { position: absolute; left: 0; top: 0; z-index: 1; display: grid; place-items: center; isolation: isolate;
   transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
