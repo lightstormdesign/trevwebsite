@@ -2,7 +2,7 @@ import "@/App.css";
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Home from "@/pages/Home";
-import About from "@/pages/About";
+import { Journey } from "@/components/site/Journey";
 import EPK from "@/pages/EPK";
 import Contact from "@/pages/Contact";
 import Music from "@/pages/Music";
@@ -22,6 +22,13 @@ function ScrollToTop() {
   return null;
 }
 
+// The journey pages (home + about) are full-screen paintings with their own lighting; the site-wide
+// cursor dimming would sit on top of them.
+function SiteDim() {
+  const { pathname } = useLocation();
+  return pathname === "/" || pathname === "/about" ? null : <WorldDim />;
+}
+
 function App() {
   return (
     <div className="App">
@@ -29,11 +36,11 @@ function App() {
         <ScrollToTop />
         <TrackingPixel />
         <SacredGeometryField />
-        <WorldDim />
+        <SiteDim />
         <GlowCursor />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/about" element={<Journey start="world" />} />
           <Route path="/epk" element={<EPK />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/music" element={<Music />} />

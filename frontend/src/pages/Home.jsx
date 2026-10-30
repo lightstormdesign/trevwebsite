@@ -1,13 +1,7 @@
-import { Navbar } from "@/components/site/Navbar";
-import { KingdomHome } from "@/components/site/KingdomHome";
+import { Journey } from "@/components/site/Journey";
 
-// Hard stop: Entry -> Hero is the entire homepage. No scrollable content beneath
-// the hero — Music/Tour/Community/etc. live on their own pages (see App.js routes).
+// Home: TREV's hero (the Sedona loop with his real cutout), Tap to enter, the transition into the
+// painted world, the world's descent and his story. See components/site/journeyEngine.js.
 export default function Home() {
-  return (
-    <div data-testid="home-page" className="relative bg-[var(--sm-black)]">
-      <Navbar />
-      <KingdomHome />
-    </div>
-  );
+  return <Journey start="hero" />;
 }
