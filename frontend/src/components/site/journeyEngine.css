@@ -65,7 +65,10 @@
 .tj-box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
 .tj-box.ready { opacity: 1; }
 .tj-plate, .tj-me, .tj-meImg { position: absolute; left: 0; top: 0; display: block; }
-.tj-plate { object-fit: fill; transform-origin: 50% 50%; will-change: transform; }
+.tj-plate { object-fit: fill; transform-origin: 50% 50%; }
+.tj-hidden { opacity: 0 !important; }
+.tj-slide .media-v { position: relative; overflow: hidden; }
+.tj-slide .media-v img, .tj-slide .media-v video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .tj-me, .tj-meImg { transition: opacity .6s ease; }
 .tj-gone { opacity: 0 !important; }
 /* once the video's first frame is up: the plate goes, TREV's real photo stays over the playing video
@@ -244,9 +247,12 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-crBody img { position: relative; display: block; width: 100%; will-change: auto; }
 .tj-cr-bird .frames, .tj-cr-lizard .frames { position: relative; width: 100%; }
 .tj-cr-bird .frames img, .tj-cr-lizard .frames img { position: absolute; left: 0; top: 0; width: 100%; }
+.tj-cr-bird .frames img.mid { top: 50%; transform: translateY(-50%); }
 .tj-cr-lizard .frames { aspect-ratio: 360 / 218; }
 /* the lizard does its push-ups now and then */
 .tj-cr-lizard .up { opacity: 0; animation: tj-pushup 10s steps(1, end) infinite; }
+.tj-cr-lizard .rest { animation: tj-pushupRest 10s steps(1, end) infinite; }   /* only ever one lizard showing */
+@keyframes tj-pushupRest { 0%, 70% { opacity: 1; } 72%, 76% { opacity: 0; } 78%, 81% { opacity: 1; } 83%, 88% { opacity: 0; } 90%, 100% { opacity: 1; } }
 @keyframes tj-pushup { 0%, 70% { opacity: 0; } 72%, 76% { opacity: 1; } 78%, 81% { opacity: 0; } 83%, 88% { opacity: 1; } 90%, 100% { opacity: 0; } }
 /* the perched bluebird: still on its branch until it's tapped, then it flies off (its flapping frames) */
 .tj-cr-perch .tj-crBody { aspect-ratio: 200 / 167; }
@@ -304,7 +310,7 @@ html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 @keyframes tj-mote { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-owl .geo { animation: none; }
+  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-lizard .rest, .tj-cr-owl .geo { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
