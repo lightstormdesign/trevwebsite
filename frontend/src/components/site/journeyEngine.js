@@ -130,7 +130,7 @@ const CREATURES = [
       y: wrap(off + t * (45 + 95 * depth) - p * (250 + 650 * depth), -220, 1890),
       rot: 30 * Math.sin(t * 0.7 + ph) + ph * 40,
       flip: Math.cos(t * (1.1 + 0.4 * depth) + ph),
-      op: depth < 0.5 ? 0.85 : 1,
+      op: (depth < 0.5 ? 0.85 : 1) * smooth((p - 0.45) / 0.2),   // only once the trees have come in
     }) })),
   { kind: "perch", layer: "juniper", w: 46, pose: () => ({ x: 530, y: 389 }) },
   { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
@@ -150,10 +150,11 @@ const FLOWER = (() => {
   return pts;
 })();
 
-// TREV's story (the About copy, his own words). It opens on him pulling the sword from the stone and
-// closes on him in Sedona, hand on heart.
+// TREV's story (the About copy, his own words). It opens on him in Sedona, hand on heart, and closes
+// on him pulling the sword from the stone. It only starts once the whole world is in view and you've
+// had a moment with it (STORY_HOLD_SVH past the end of the descent).
 const STORY = [
-  { cover: true, eyebrow: "About", title: "My Story", media: "story-08-sword.webp", pos: "50% 45%" },
+  { cover: true, eyebrow: "About", title: "My Story", media: "story-00-heart.webp", pos: "50% 55%" },
   { lead: "This whole thing started the day I quit music.", media: "story-01-quit-music.webp" },
   { title: "The First Dream", media: "story-02-first-dream.webp", body: [
     "Basketball was my religion and Michael Jordan was God. Then I didn't make the high school team. The coach was the bishop, and every kid he picked was from his church.",
@@ -177,9 +178,10 @@ const STORY = [
     "I stopped seeking a kingdom and started building my own. Now I tour internationally and live from my music."] },
   { title: "My Name Is TREV", media: "story-10-my-name.webp", body: [
     "I come with the infinite power of the spoken word. Every song is medicine made from my journey, a prayerformance for the man I needed during my own dark night of the soul."] },
-  { title: "The Kingdom Within", media: "story-00-heart.webp", pos: "50% 55%", lead: "The Kingdom of Heaven is within." },
+  { title: "The Kingdom Within", media: "story-08-sword.webp", pos: "50% 45%", lead: "The Kingdom of Heaven is within." },
 ];
-const STORY_AT = 0.88, STEP_SVH = 70, TAIL_SVH = 40;
+const STORY_HOLD_SVH = 110, STEP_SVH = 70, TAIL_SVH = 40;
+const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
 
 const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Community", "/community"], ["Tour", "/tour"],
   ["Shop", "/shop"], ["EPK", "/epk"], ["Contact", "/contact"]];
@@ -230,7 +232,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
       <div class="tj-grade"></div>
     </div>` : ""}
-    <div class="tj-vignette" aria-hidden="true"><div class="top"></div><div class="bottom"></div></div>
+    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div><div class="bottom"></div></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
@@ -462,7 +464,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   let tx = 0, ty = 0;   // the eased phone tilt (Burnell's: it glides rather than jitters)
   function worldLayout(p) {
-    const { narrow, colW, k, ox, oy } = worldFit();
+    const { H, narrow, colW, k, ox, oy: oy0 } = worldFit();
+    // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
+    // rises by that much, so at the bottom the whole painting is in view above the toolbar
+    const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
     $(".tj-side").style.display = narrow ? "none" : "block";
     world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
     world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
@@ -529,7 +534,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function openWorld() {
     phase = "world";
     worldStage.style.visibility = "visible";
-    track.style.height = `${100 + DESCENT_SVH * STORY_AT + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
+    track.style.height = `${100 + STORY_START_SVH + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
     scroller.classList.add("live");
     scroller.scrollTop = 0;
     worldLayout(0);
@@ -630,7 +635,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     function layout() {
       pick();
-      const W = heroW(), H = heroH(), k = Math.max(W / set.w, H / set.h);
+      // framed in the visible screen (above Safari's bottom toolbar), so TREV is never cut off by it
+      const W = heroW(), H = Math.min(heroH(), Hs()), k = Math.max(W / set.w, H / set.h);
       fit = { k,
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k)) };
@@ -689,13 +695,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // ---------- the transition ----------
     // its first frame is the hero plate exactly (same crop), its last frame the world's landing
     function placeVideo(v) {
-      const wf = worldFit(), W = wf.W, H = wf.H;
+      const wf = worldFit(), W = wf.W, H = wf.H, H0 = Math.min(H, Hs());
       const u = v.duration ? clamp01(v.currentTime / v.duration) : 0;
       v.style.width = TRANS.w + "px"; v.style.height = TRANS.h + "px";
       if (set === HERO_SETS.mobile) {               // full screen, gliding from the hero's crop to the world's
-        const k = Math.max(W / TRANS.w, H / TRANS.h);
+        const k = Math.max(W / TRANS.w, H0 / TRANS.h);
         const hx = Math.min(0, Math.max(W - TRANS.w * k, W / 2 - set.fx * TRANS.w * k));
-        const hy = Math.min(0, Math.max(H - TRANS.h * k, H / 2 - set.fy * TRANS.h * k));
+        const hy = Math.min(0, Math.max(H0 - TRANS.h * k, H0 / 2 - set.fy * TRANS.h * k));
         const kw = wf.k * CANVAS.w / TRANS.w, e = smooth(u);
         v.style.transform = `translate(${(hx + (wf.ox - hx) * e).toFixed(1)}px, ${(hy + (wf.oy - hy) * e).toFixed(1)}px) scale(${(k + (kw - k) * e).toFixed(5)})`;
       } else {                                       // desktop: the world's column, with its blurred sides
@@ -825,7 +831,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       else dissolve();
     }
     wire(tv);
-    on(enter, "click", onEnter);
+    on(enterLayer, "click", onEnter);   // anywhere on the hero, not just the words
     on(tv, "error", () => { if (phase !== "world" && !playing) fallbackToWorld(); });
     on(window, "resize", layout);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (phase === "hero") layout(); });
@@ -870,7 +876,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
     if (Math.abs(target - cur) < 0.03) cur = target;
     worldLayout(Math.min(1, cur / DESCENT_SVH));
-    storyLayout((cur - DESCENT_SVH * STORY_AT) / STEP_SVH);
+    storyLayout((cur - STORY_START_SVH) / STEP_SVH);
   }
   raf = requestAnimationFrame(loop);
   on(window, "resize", () => { if (phase === "world") worldLayout(Math.min(1, cur / DESCENT_SVH)); });

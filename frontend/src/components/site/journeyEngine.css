@@ -25,6 +25,9 @@
 /* the full-screen layers: as tall as the screen with the toolbars retracted, never shorter than vh,
    and the same whichever way the toolbars are (Soleil's .world-full) */
 .tj-hero, .tj-trans, .tj-worldStage, .tj-enterLayer, .tj-vignette, .tj-story { height: 100vh; height: max(100lvh, 100vh); }
+/* never a native play button over a video (iPhone shows one when autoplay is held back) */
+.tj video::-webkit-media-controls, .tj video::-webkit-media-controls-start-playback-button,
+.tj video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; opacity: 0; }
 
 /* ---------- header: a soft shadow band, the name left, the menu right ---------- */
 .tj-header { position: fixed; left: 0; right: 0; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
@@ -67,7 +70,97 @@
 .tj-gone { opacity: 0 !important; }
 .tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
   background: linear-gradient(to bottom, rgba(6,5,4,.46) 0%, rgba(6,5,4,.30) 26%, rgba(6,5,4,.10) 44%, rgba(6,5,4,0) 58%); }
-.tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; pointer-events: none; }
+.tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.tj-enter { position: absolute; left: 0; top: 0; z-index: 1; display: grid; place-items: center; isolation: isolate;
+  transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
+  opacity: 0; pointer-events: none; filter: blur(6px);
+  transition: opacity 1.6s cubic-bezier(.2,.7,.2,1), filter 1.6s cubic-bezier(.2,.7,.2,1); }
+.tj-enter > span { grid-area: 1 / 1; font: 400 clamp(18px, 1.53vw, 21.5px)/1 var(--tj-display); text-transform: uppercase;
+  white-space: nowrap; letter-spacing: .5em; margin-right: -.5em;
+  transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin-right 1.8s cubic-bezier(.2,.7,.2,1); }
+.tj-enter .halo { width: 190%; height: 640%; border-radius: 50%; z-index: -2; letter-spacing: 0; margin: 0;
+  background: radial-gradient(closest-side, rgba(12,9,6,.26), rgba(12,9,6,.12) 50%, rgba(12,9,6,0)); }
+.tj-enter .glow { color: #f1c472; filter: blur(10px); opacity: .4; z-index: -1; animation: tj-breathe 5s ease-in-out infinite alternate; }
+.tj-enter.show { opacity: 1; pointer-events: auto; filter: blur(0); }
+.tj-enter.show > span:not(.halo) { letter-spacing: .32em; margin-right: -.32em; }
+.tj-enter.leave { opacity: 0 !important; transition: opacity .5s ease; pointer-events: none; }
+.tj-enter:hover .glow { opacity: .62; }
+
+/* ---------- transition video ---------- */
+/* under the hero until its first frame is on screen (an invisible video is never drawn on iOS) */
+.tj-trans { position: fixed; left: 0; right: 0; top: 0; z-index: 15; overflow: hidden; pointer-events: none; transition: opacity .9s ease; }
+.tj-keep { position: absolute; inset: 0; background: rgba(0,0,0,.012); } /* keeps iPhone off the direct video path that can freeze */
+.tj-transSide { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); }
+.tj-tv { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
+
+/* ---------- world ---------- */
+.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: var(--tj-bg); pointer-events: none; }
+.tj-side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
+.tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
+.tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
+.tj-shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
+/* the bass, after the drop: a soft warm light, opacity only (no filter or blend: those made the
+   other worlds stutter) */
+.tj-pulse { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity;
+  background: radial-gradient(ellipse 75% 60% at 50% 42%, rgba(255,206,138,.9) 0%, rgba(255,178,104,.35) 55%, rgba(255,160,90,0) 100%); }
+
+/* Soleil's cinematic vignette, deepened, on screen the whole way: over the hero, the transition, the
+   world and the story (under the landing copy). Measured from the visible screen (svh), so its dark
+   bottom isn't lost under Safari's toolbar; below that it stays at its darkest. */
+.tj-vignette { position: fixed; left: 0; right: 0; top: 0; z-index: 31; pointer-events: none; }
+.tj-vignette .top { position: absolute; left: 0; right: 0; top: 0; height: 46svh;
+  background: linear-gradient(to bottom, rgba(10,4,4,0.74) 0%, rgba(10,4,4,0.4) 42%, transparent 100%); }
+.tj-vignette .bottom { position: absolute; left: 0; right: 0; bottom: 0; height: calc(40svh + max(100lvh, 100vh) - 100svh);
+  background: linear-gradient(to top, rgba(10,4,4,0.9) 0, rgba(10,4,4,0.9) calc(max(100lvh, 100vh) - 100svh), rgba(10,4,4,0.5) calc(max(100lvh, 100vh) - 100svh + 16svh), transparent 100%); }
+.tj-vignette .sides { position: absolute; left: 0; right: 0; top: 0; height: 100svh;
+  background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 55%, rgba(10,4,4,0.38) 100%); }
+.tj-story { height: 100vh; height: max(100lvh, 100vh); }
+/* never a native play button over a video (iPhone shows one when autoplay is held back) */
+.tj video::-webkit-media-controls, .tj video::-webkit-media-controls-start-playback-button,
+.tj video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; opacity: 0; }
+
+/* ---------- header: a soft shadow band, the name left, the menu right ---------- */
+.tj-header { position: fixed; left: 0; right: 0; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) 46px max(22px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(to bottom, rgba(6,5,4,.38) 0%, rgba(6,5,4,.14) 55%, rgba(6,5,4,0) 100%); pointer-events: none; }
+.tj-headLeft { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
+.tj-name { display: block; line-height: 0; }
+.tj-name img { height: clamp(17px, 1.7vw, 22px); width: auto; filter: drop-shadow(0 1px 10px rgba(0,0,0,.5)); }
+/* the speaker is SoundButton (site-wide, styles in index.css), fixed over this slot */
+.tj-soundSlot { flex: none; width: 40px; height: 40px; margin-left: -8px; }
+.tj-menuBtn { pointer-events: auto; width: 44px; height: 44px; display: grid; place-content: center; gap: 6px; background: none; border: 0; cursor: pointer; padding: 0; }
+.tj-menuBtn span { display: block; width: 24px; height: 1.5px; background: var(--tj-fg); box-shadow: 0 1px 6px rgba(0,0,0,.4); }
+.tj-menuBtn:focus-visible, .tj-enter:focus-visible, .tj-name:focus-visible { outline: 1px solid var(--tj-gold); outline-offset: 6px; }
+.tj-menu { position: fixed; inset: 0; z-index: 60; background: rgba(8,7,6,.94); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 26px; }
+.tj-menu a { font: 500 18px/1 var(--tj-display); letter-spacing: .32em; text-transform: uppercase; color: var(--tj-fg); text-decoration: none; padding-left: .32em; }
+.tj-menu a:hover { color: var(--tj-gold); }
+.tj-menuClose { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));
+  width: 44px; height: 44px; background: none; border: 0; color: var(--tj-fg); font: 300 30px/1 var(--tj-sans); cursor: pointer; }
+
+/* ---------- the polished gold used for "Tap to enter", "Kingdom Within" and "My Story" ---------- */
+.tj-gold { background-image: linear-gradient(100deg, #c09245 0%, #dcb062 14%, #f6e2aa 26%, #deb05a 38%, #c69a4a 50%,
+    #eccd88 62%, #fff4d4 70%, #e2b866 80%, #c09245 100%);
+  background-size: 260% 100%; background-position: 100% 50%;
+  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+  animation: tj-glint 9s ease-in-out infinite alternate; text-shadow: none; }
+@keyframes tj-glint { from { background-position: 100% 50%; } to { background-position: 0% 50%; } }
+@keyframes tj-breathe { from { opacity: .3; } to { opacity: .55; } }
+@keyframes tj-bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(5px); opacity: 1; } }
+
+/* ---------- hero ---------- */
+.tj-hero { position: fixed; left: 0; right: 0; top: 0; z-index: 20; overflow: hidden; background: var(--tj-bg); pointer-events: none; transition: opacity .7s ease; }
+.tj-hero.out { opacity: 0; pointer-events: none; }
+.tj-hero.lift { opacity: 0; pointer-events: none; transition: opacity .15s linear; }
+.tj-box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
+.tj-box.ready { opacity: 1; }
+.tj-plate, .tj-me, .tj-meImg { position: absolute; left: 0; top: 0; display: block; }
+.tj-plate { object-fit: fill; transform-origin: 50% 50%; will-change: transform; }
+.tj-me, .tj-meImg { transition: opacity .6s ease; }
+.tj-gone { opacity: 0 !important; }
+.tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
+  background: linear-gradient(to bottom, rgba(6,5,4,.46) 0%, rgba(6,5,4,.30) 26%, rgba(6,5,4,.10) 44%, rgba(6,5,4,0) 58%); }
+.tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .tj-enter { position: absolute; left: 0; top: 0; z-index: 1; display: grid; place-items: center; isolation: isolate;
   transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
   opacity: 0; pointer-events: none; filter: blur(6px);
