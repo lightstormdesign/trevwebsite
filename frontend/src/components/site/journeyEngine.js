@@ -109,7 +109,7 @@ const LEAVES = [
   [4, "mountains", 0.35, 46, 700, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
 ];
 const OWL = { x: 530, y: 341, w: 95 };   // on the juniper's upper branch (juniper layer coordinates)
-const PERCH = { x: 580, y: 632, w: 92 }; // the bluebird, on its lower limb
+const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // the hummingbird feeds at the lily, darts out and back now and then (foreground coordinates)
 const HUM_AT = [250, 1052], HUM_CYCLE_S = 11;
@@ -346,6 +346,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // open Flower of Life turning behind it, a fine gold outline and a soft shadow just behind its
   // silhouette (masked copies, not filters, so scrolling stays smooth), and its outline pulsing out
   // into the world. Hover (or a tap, for BISON_TAP_S) brightens it all and widens the aura.
+  // the golden aura + Flower of Life behind a sacred animal (the bison, the bluebird): each turns
+  // slowly, and swells a little above its resting glow and back every 5s, so it reads as tappable
+  const sacredAura = () => `<div class="aura" aria-hidden="true"><div class="glow"><i></i></div><div class="geo">`
+    + `<svg viewBox="-60 -60 120 120" preserveAspectRatio="xMidYMid meet"><g fill="none" stroke="rgba(255,236,190,1)" stroke-width="0.3">`
+    + FLOWER.map(([x, y]) => `<circle r="10" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}"/>`).join("") + `</g></svg></div></div>`;
   let bison = null;
   function bisonRig(L) {
     const src = `${A}w3-bison-body.webp`, tail = `${A}w3-bison-tail.webp`;
@@ -353,9 +358,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     rig.className = "tj-bison"; rig.style.width = L.w + "px";
     rig.style.setProperty("--sil", `url("${src}")`); rig.style.setProperty("--tail", `url("${tail}")`);
     rig.innerHTML = `
-      <div class="aura" aria-hidden="true"><div class="glow"></div>
-        <svg class="geo" viewBox="-60 -60 120 120" preserveAspectRatio="xMidYMid meet"><g fill="none" stroke="rgba(255,236,190,1)" stroke-width="0.3">
-          ${FLOWER.map(([x, y]) => `<circle r="10" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}"/>`).join("")}</g></svg></div>
+      ${sacredAura()}
       <div class="pulse" aria-hidden="true"></div><div class="pulse" aria-hidden="true" style="animation-delay:2s"></div>
       <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
       <div class="tail" aria-hidden="true"><div class="tailOutline"></div><img class="tailImg" src="${tail}" alt="" decoding="async"></div>
@@ -401,7 +404,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const pad = Math.max(22, r.width * 0.4);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
-  const flyOff = () => { perch.flyAt = performance.now() / 1000; };
+  const flyOff = () => { perch.flyAt = performance.now() / 1000; perch.el.classList.remove("is-on"); };
+  let perchHover = false;
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
+    const h = overPerch(e.clientX, e.clientY);
+    if (h === perchHover) return;
+    perchHover = h; perch.el.classList.toggle("is-on", h); docEl.classList.toggle("tj-bison-hover", h);
+  }, { passive: true });
   on(window, "pointerdown", (e) => { if (overPerch(e.clientX, e.clientY)) flyOff(); }, { passive: true, capture: true });
   on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overPerch(t.clientX, t.clientY)) flyOff(); }, { passive: true, capture: true });
   const overOwl = (x, y, margin) => {
@@ -441,7 +450,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         ? `<img class="up mid" src="${A}trev-world-swallow-up.webp" alt=""><img class="down mid" src="${A}trev-world-swallow-down.webp" alt=""></div>`
         : `<img class="up" src="${A}trev-world-${c.bird}-a.webp" alt=""><img class="down" src="${A}trev-world-${c.bird}-b.webp" alt=""></div>`);
     else if (c.kind === "perch") {
-      body.innerHTML = `<img class="sit" src="${A}trev-world-bluebird-perched.webp" alt="">`
+      body.innerHTML = sacredAura() + `<img class="sit" src="${A}trev-world-bluebird-perched.webp" alt="">`
         + `<div class="frames"><img class="up" src="${A}trev-world-bluebird-a.webp" alt=""><img class="down" src="${A}trev-world-bluebird-b.webp" alt=""></div>`;
       c.flyAt = 0; c.flying = false; perch = c;
     }
