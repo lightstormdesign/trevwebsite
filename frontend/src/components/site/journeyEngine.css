@@ -19,8 +19,8 @@
 .tj-header { position: fixed; left: 0; right: 0; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
   padding: calc(18px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) 46px max(22px, env(safe-area-inset-left, 0px));
   background: linear-gradient(to bottom, rgba(6,5,4,.38) 0%, rgba(6,5,4,.14) 55%, rgba(6,5,4,0) 100%); pointer-events: none; }
-.tj-name { pointer-events: auto; font: 500 clamp(15px, 1.25vw, 18px)/1 var(--tj-display); letter-spacing: .42em; color: var(--tj-fg);
-  text-decoration: none; text-shadow: 0 1px 12px rgba(0,0,0,.45); }
+.tj-name { pointer-events: auto; display: block; line-height: 0; }
+.tj-name img { height: clamp(30px, 3vw, 40px); width: auto; filter: drop-shadow(0 1px 10px rgba(0,0,0,.5)); }
 .tj-menuBtn { pointer-events: auto; width: 44px; height: 44px; display: grid; place-content: center; gap: 6px; background: none; border: 0; cursor: pointer; padding: 0; }
 .tj-menuBtn span { display: block; width: 24px; height: 1.5px; background: var(--tj-fg); box-shadow: 0 1px 6px rgba(0,0,0,.4); }
 .tj-menuBtn:focus-visible, .tj-enter:focus-visible, .tj-name:focus-visible { outline: 1px solid var(--tj-gold); outline-offset: 6px; }
@@ -42,8 +42,9 @@
 @keyframes tj-bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(5px); opacity: 1; } }
 
 /* ---------- hero ---------- */
-.tj-hero { position: fixed; inset: 0; z-index: 20; overflow: hidden; background: var(--tj-bg); transition: opacity .7s ease; }
+.tj-hero { position: fixed; left: 0; right: 0; top: 0; height: 100lvh; z-index: 20; overflow: hidden; background: var(--tj-bg); transition: opacity .7s ease; }
 .tj-hero.out { opacity: 0; pointer-events: none; }
+.tj-hero.lift { opacity: 0; pointer-events: none; transition: opacity .15s linear; }
 .tj-box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
 .tj-box.ready { opacity: 1; }
 .tj-plate, .tj-me, .tj-meImg { position: absolute; left: 0; top: 0; display: block; }
@@ -68,34 +69,18 @@
 .tj-enter:hover .glow { opacity: .62; }
 
 /* ---------- transition video ---------- */
-.tj-trans { position: fixed; inset: 0; z-index: 30; overflow: hidden; opacity: 0; pointer-events: none; transition: opacity .25s linear; }
-.tj-trans.on { opacity: 1; }
+/* under the hero until its first frame is on screen (an invisible video is never drawn on iOS) */
+.tj-trans { position: fixed; left: 0; right: 0; top: 0; height: 100lvh; z-index: 15; overflow: hidden; pointer-events: none; transition: opacity .9s ease; }
+.tj-keep { position: absolute; inset: 0; background: rgba(0,0,0,.012); } /* keeps iPhone off the direct video path that can freeze */
 .tj-transSide { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); }
 .tj-tv { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 
 /* ---------- world ---------- */
-.tj-worldStage { position: fixed; inset: 0; z-index: 10; overflow: hidden; background: var(--tj-bg); }
+.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; height: 100lvh; z-index: 10; overflow: hidden; background: var(--tj-bg); }
 .tj-side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
 .tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
 .tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
 .tj-shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
-
-.tj-intro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(14px, 2.4svh, 22px); text-align: center; pointer-events: none; opacity: 0;
-  padding: 0 max(22px, env(safe-area-inset-right, 0px)) 14svh max(22px, env(safe-area-inset-left, 0px)); }
-.tj-intro::before { content: ""; position: absolute; left: 50%; top: 43%; width: min(130vw, 980px); height: 78svh; transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side, rgba(6,5,4,.66), rgba(6,5,4,.42) 55%, rgba(6,5,4,0));
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  -webkit-mask: radial-gradient(closest-side, #000 45%, transparent); mask: radial-gradient(closest-side, #000 45%, transparent); z-index: -1; }
-.tj-intro img { width: clamp(160px, 44vw, 290px); height: auto; filter: drop-shadow(0 2px 18px rgba(0,0,0,.5)); }
-.tj-intro h1 { margin: 0; font: 500 clamp(21px, 5.4vw, 34px)/1.35 var(--tj-display); letter-spacing: .14em; text-transform: uppercase;
-  color: var(--tj-fg); text-wrap: balance; text-shadow: 0 1px 16px rgba(0,0,0,.45); }
-.tj-intro .sub { margin-top: -6px; font: 400 12px/1 var(--tj-sans); letter-spacing: .46em; text-transform: uppercase; color: rgba(239,230,214,.78); padding-left: .46em; }
-.tj-intro p { margin: 0; max-width: 32ch; font: 400 clamp(17px, 4.3vw, 21px)/1.5 var(--tj-serif); color: rgba(239,230,214,.9); text-wrap: balance; }
-.tj-explore { position: absolute; left: 0; right: 0; bottom: calc(5.5svh + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column;
-  align-items: center; gap: 10px; font: 400 11px/1 var(--tj-sans); letter-spacing: .42em; text-transform: uppercase; color: var(--tj-fg);
-  text-shadow: 0 1px 12px rgba(0,0,0,.6); padding-left: .42em; opacity: 0; pointer-events: none; }
-.tj-explore svg { width: 16px; height: 16px; animation: tj-bob 2.4s ease-in-out infinite; }
 
 .tj-story { position: absolute; inset: 0; pointer-events: none; }
 .tj-storyShade { position: absolute; inset: 0; background: #070605; opacity: 0; }
@@ -117,7 +102,61 @@
   .tj-slide .text { text-align: left; max-width: 36ch; }
   .tj-slide.cover .media { width: min(48vw, 760px); height: min(70svh, 600px); }
 }
+/* ---------- landing (Burnell's): the sword rises in over the veiled world, then the words, then the cue ---------- */
+.tj-landing { position: fixed; left: 0; right: 0; top: 0; height: 100svh; z-index: 35; pointer-events: none; visibility: hidden;
+  padding: 0 max(24px, env(safe-area-inset-right, 0px)) 0 max(24px, env(safe-area-inset-left, 0px)); text-align: center; }
+.tj-landing.show { visibility: visible; }
+.tj-landing.is-gone { visibility: hidden; }
+.tj-landingCol { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 20svh; }
+.tj-emblem { position: relative; height: clamp(150px, 26svh, 250px); aspect-ratio: 338 / 760;
+  opacity: 0; transform: scale(.86); filter: blur(10px);
+  transition: opacity 1.5s ease, transform 2.2s cubic-bezier(.16,1,.3,1), filter 1.5s ease; }
+.tj-landing.show .tj-emblem { opacity: 1; transform: none; filter: none; }
+.tj-emblem img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tj-emblem .halo { position: absolute; left: 50%; top: 58%; width: 260%; height: 120%; transform: translate(-50%, -50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(214,179,101,.22), rgba(214,179,101,.07) 45%, transparent 72%); animation: tj-halo 5s ease-in-out infinite; }
+.tj-emblem .face { animation: tj-swordGlow 5s ease-in-out infinite; }
+.tj-emblem .glow { filter: blur(9px) brightness(1.15); opacity: .35; animation: tj-breathe 5s ease-in-out infinite alternate; }
+/* a faint band of light that drifts down the blade now and then */
+.tj-emblem .glint { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .55;
+  -webkit-mask: var(--sword) center / contain no-repeat; mask: var(--sword) center / contain no-repeat;
+  background: linear-gradient(170deg, transparent 38%, rgba(255,246,222,.55) 48%, transparent 58%) 0 0 / 100% 300% no-repeat;
+  animation: tj-glintDown 7s ease-in-out infinite; }
+@keyframes tj-swordGlow { 0%, 100% { filter: drop-shadow(0 0 5px rgba(240,210,140,.35)) drop-shadow(0 0 16px rgba(214,179,101,.2)); }
+  50% { filter: drop-shadow(0 0 7px rgba(255,226,160,.5)) drop-shadow(0 0 24px rgba(214,179,101,.3)); } }
+@keyframes tj-halo { 0%, 100% { opacity: .6; transform: translate(-50%, -50%) scale(.96); } 50% { opacity: .9; transform: translate(-50%, -50%) scale(1.04); } }
+@keyframes tj-glintDown { 0%, 55% { background-position: 0 100%; } 85%, 100% { background-position: 0 0%; } }
+.tj-landingText { display: flex; flex-direction: column; align-items: center; position: relative;
+  opacity: 0; transform: translateY(10px); transition: opacity 1.4s ease .5s, transform 1.4s ease .5s; }
+.tj-landing.show .tj-landingText { opacity: 1; transform: none; }
+.tj-landingText::before { content: ""; position: absolute; left: 50%; top: 50%; width: 140%; height: 150%; transform: translate(-50%, -50%); z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.62) 0%, rgba(0,0,0,.38) 48%, transparent 75%); filter: blur(16px); }
+.tj-landingText h1 { margin: 34px 0 0; font: 500 clamp(22px, 5.6vw, 34px)/1.3 var(--tj-display); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--tj-fg); text-wrap: balance; text-shadow: 0 2px 28px rgba(0,0,0,.75), 0 1px 6px rgba(0,0,0,.65); }
+.tj-landingText .sub { margin-top: 14px; font: 500 10.5px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; color: #e7c98f;
+  padding-left: .34em; text-shadow: 0 2px 20px rgba(0,0,0,.75); }
+.tj-landingText p { margin: 20px 0 0; max-width: 21rem; font: 300 clamp(15px, 3.9vw, 17px)/1.6 var(--tj-sans); color: rgba(255,255,255,.85);
+  text-wrap: balance; text-shadow: 0 2px 28px rgba(0,0,0,.75), 0 1px 6px rgba(0,0,0,.65); }
+.tj-cue { position: absolute; left: 0; right: 0; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center;
+  opacity: 0; transition: opacity 1.2s ease 1.6s; }
+.tj-landing.show .tj-cue { opacity: 1; }
+.tj-cueInner { position: relative; display: flex; flex-direction: column; align-items: center; animation: tj-cueBob 2.6s ease-in-out infinite; color: #f2dca5; }
+.tj-cueInner .pool { position: absolute; left: 50%; top: 50%; width: 200%; height: 150%; transform: translate(-50%, -50%); z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.62) 0%, rgba(0,0,0,.38) 48%, transparent 75%); filter: blur(12px); }
+.tj-cueInner .label { font: 500 10.5px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em;
+  text-shadow: 0 2px 28px rgba(0,0,0,.75), 0 1px 6px rgba(0,0,0,.65); }
+.tj-cueInner .capsule { position: relative; margin-top: 12px; width: 26px; height: 42px; border-radius: 999px;
+  border: 1.5px solid rgba(240,210,140,.85); background: rgba(0,0,0,.28); box-shadow: 0 0 10px rgba(214,179,101,.55); }
+.tj-cueInner .drop { position: absolute; left: 50%; top: 8px; width: 5px; height: 9px; border-radius: 999px; background: #f5dfa8;
+  box-shadow: 0 0 8px rgba(245,223,168,.95); animation: tj-capsuleDrop 1.9s cubic-bezier(.55,0,.45,1) infinite; }
+.tj-cueInner .chevrons { margin-top: 4px; display: flex; flex-direction: column; align-items: center; }
+.tj-cueInner .chevrons svg { width: 16px; height: 16px; margin-bottom: -10px; animation: tj-chevron 1.9s ease-in-out infinite; }
+@keyframes tj-capsuleDrop { 0% { transform: translate(-50%, 0); opacity: 0; } 20% { opacity: 1; } 70% { transform: translate(-50%, 15px); opacity: 1; } 100% { transform: translate(-50%, 19px); opacity: 0; } }
+@keyframes tj-chevron { 0%, 100% { opacity: .15; } 40% { opacity: 1; } }
+@keyframes tj-cueBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
 @media (prefers-reduced-motion: reduce) {
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
-  .tj-gold, .tj-enter .glow, .tj-explore svg { animation: none; }
+  .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
+  .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
 }
