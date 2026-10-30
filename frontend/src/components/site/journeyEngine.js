@@ -76,10 +76,13 @@ const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing
   { src: "burnell-world-cloud-medium.webp", after: "sky", w: 1061, x0: 200, y0: 300, dir: -1, op: 0.97, spd: 0.32, depth: 0.25 },
   { src: "burnell-world-cloud-large.webp", after: "sky", w: 660, x0: 720, y0: 440, dir: 1, op: 0.97, flip: true, spd: 0.15, depth: 0.5 },
   { src: "trev-cloud-d.webp", ar: 0.413, after: "mountains", w: 470, x0: 330, y0: 560, dir: -1, op: 0.97, spd: 0.54, depth: 0.35 },
-  { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.37, depth: 0.35 },
+  // (in the transition's last frame, so it's there at the handoff; it fades out once the world is in)
+  { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.37, depth: 0.35, leaves: true },
   { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83, depth: 1 },
 ];
 const RIM = { x: 194, y: 302, w: 447 };
+const CLOUD_LEAVE_S = [1.5, 3];
+const VIG_LANDED = 0.85, VIG_BOTTOM = 0.15;   // the leaving cloud starts to go this long after the world opens, over this long
 const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
 
 // Alive (as on Burnell's world): Burnell's two flocks of swallows, then TREV's doves;
@@ -93,12 +96,12 @@ const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - l
 // `free` ones, in the canvas at its own depth. pose(t, p): where it is at time t (s) and descent p,
 // or null when it's off stage. Kept light: small images moved and turned only; the flapping,
 // fluttering, flowing, breathing and twinkling are CSS animations.
-const FAR_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42], [-110, 46]];
-const NEAR_FLOCK = [[0, 0], [95, -34], [108, 40]];
+const FAR_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42]];
+const NEAR_FLOCK = [[0, 0], [95, -34]];
 // TREV's white doves: a third flock, first crossing ~12s after the world opens (after Burnell's
 // swallows have been through), then every 36s
-const DOVE_FLOCK = [[0, 0], [-62, -26], [-70, 30], [-128, 4]];
-const DOVES_AT_S = 12, DOVES_EVERY_S = 36, DOVES_CROSS_S = 14;
+const DOVE_FLOCK = [[0, 0], [-62, -26], [-70, 30]];
+const DOVES_AT_S = 12, DOVES_EVERY_S = 45, DOVES_CROSS_S = 14;
 // flap pairs (two frames drawn eye on eye) and their sizes
 const FLYER = { swallow: [1, 0.75], dove: [260, 213], bluebird: [240, 218], hummingbird: [300, 215] };
 // Burnell's falling aspen leaves, exactly (his LEAVES: leaf, layer it falls behind, depth, width, x,
@@ -110,6 +113,7 @@ const LEAVES = [
 ];
 const OWL = { x: 530, y: 341, w: 95 };   // on the juniper's upper branch (juniper layer coordinates)
 const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
+const BUTTERFLY_AT = [818, 1294], BUTTERFLY_FLY_S = 9;   // landed on the cactus flower (foreground coordinates)
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // the hummingbird feeds at the lily, darts out and back now and then (foreground coordinates)
 const HUM_AT = [250, 1052], HUM_CYCLE_S = 11;
@@ -123,9 +127,9 @@ function hummingbird(t) {
 const GLINTS = [[300, 865], [380, 895], [450, 875], [520, 910], [600, 865], [360, 840], [560, 835], [420, 1035], [640, 1055]];
 const CREATURES = [
   ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", layer: "mountains", w: 44, flap: 0.3 + i * 0.035,
-    pose: (t) => { const u = (t / 34 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
+    pose: (t) => { const u = (t / 42.5 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
   ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "swallow", flip: true, layer: "forest", w: 84, flap: 0.26 + i * 0.04,
-    pose: (t) => { const u = ((t + 4) % 24) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
+    pose: (t) => { const u = ((t + 4) % 30) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
   ...DOVE_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", layer: "mountains", w: 56, flap: 0.42 + i * 0.04,
     pose: (t, p, c) => {
       if (!c.t0) c.t0 = t;   // the world's own clock
@@ -137,8 +141,15 @@ const CREATURES = [
   ...[[455, 565, 170, 0], [535, 805, 210, 2.2], [335, 748, 90, 4.1]].map(([x, y, w, d]) =>
     ({ kind: "mist", layer: "falls", w, delay: d, pose: () => ({ x, y }) })),
   ...GLINTS.map(([x, y], i) => ({ kind: "glint", layer: "river", w: 16 + (i % 3) * 5, delay: (i * 0.77) % 3.4, pose: () => ({ x, y }) })),
-  ...[[345, 1125, 0, 115, 1.2], [760, 1060, 2.1, 46, 1]].map(([cx, cy, ph, w, roam]) => ({ kind: "butterfly", layer: "foreground", w,
-    pose: (t) => ({ x: cx + roam * (60 * Math.sin(t * 0.55 + ph) + 18 * Math.sin(t * 1.7 + ph)), y: cy + roam * 32 * Math.sin(t * 0.85 + ph * 2), rot: 10 * Math.cos(t * 0.55 + ph) }) })),
+  { kind: "butterfly", layer: "forest", w: 30, pose: (t) => ({ x: 650 + 70 * Math.sin(t * 0.55 + 2.1) + 20 * Math.sin(t * 1.7 + 2.1),
+    y: 1000 + 30 * Math.sin(t * 0.85 + 4.2), rot: 10 * Math.cos(t * 0.55 + 2.1) }) },
+  { kind: "butterfly", landed: true, layer: "foreground", w: 84, pose: (t, p, c) => {
+    const d = c.flyAt ? t - c.flyAt : -1;
+    if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { x: BUTTERFLY_AT[0], y: BUTTERFLY_AT[1], flying: false }; }
+    const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, wanders, comes back down
+    return { x: BUTTERFLY_AT[0] + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
+      y: BUTTERFLY_AT[1] - e * (130 + 60 * Math.sin(d * 1.3)), rot: e * 12 * Math.cos(d * 0.9), flying: true };
+  } },
   ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-bleaf-${n}.webp`, after, depth, w,
     pose: (t, p) => ({
       x: x0 + 70 * Math.sin(t * 0.5 + ph) + 25 * Math.sin(t * 1.3 + ph * 2),
@@ -249,7 +260,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-side"></div>
       <div class="tj-world"></div>
       <div class="tj-shade"></div>
-      <div class="tj-pulse" aria-hidden="true"></div>
     </div>
     ${phase === "hero" ? `
     <div class="tj-trans"><div class="tj-transSide"></div><video class="tj-tv" muted playsinline preload="none" tabindex="-1"></video><div class="tj-keep" hidden></div></div>
@@ -262,6 +272,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
       <div class="tj-grade"></div>
     </div>` : ""}
+    ${phase === "hero" ? `<div class="tj-bars" aria-hidden="true"><i class="t"></i><i class="b"></i></div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
@@ -331,7 +342,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // WORLD
   // ======================================================================================
   const worldStage = $(".tj-worldStage"), world = $(".tj-world");
-  const landing = $(".tj-landing"), shade = $(".tj-shade"), pulse = $(".tj-pulse");
+  const landing = $(".tj-landing"), shade = $(".tj-shade");
   const swordTilt = $(".tj-swordTilt"), swordBeat = $(".tj-emblem .beat"), vignette = $(".tj-vignette");
   const storyEl = $(".tj-story");
   let worldBuilt = false, layersLoaded = 0, layersReady = false;
@@ -396,23 +407,30 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
   // closes them and looks back out over the world.
-  let owl = null, owlBusy = false, owlHover = false, perch = null;
-  // the bluebird: a tap sends it flying off
-  const overPerch = (x, y) => {
-    if (!perch || perch.flyAt || phase !== "world" || perch.el.style.opacity === "0") return false;
-    const r = perch.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
+  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null;
+  // the bluebird and the landed butterfly: a tap sends it flying (hover on desktop lights it a touch)
+  const overFlier = (c, x, y) => {
+    if (!c || c.flyAt || phase !== "world" || c.el.style.opacity === "0") return false;
+    const r = c.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
     const pad = Math.max(22, r.width * 0.4);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
-  const flyOff = () => { perch.flyAt = performance.now() / 1000; perch.el.classList.remove("is-on"); };
-  let perchHover = false;
+  const fly = (c) => { c.flyAt = performance.now() / 1000; c.el.classList.remove("is-on"); };
+  const tapFliers = (x, y) => { for (const c of [perch, butterfly]) if (overFlier(c, x, y)) fly(c); };
+  const hovering = new Set();
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
-    const h = overPerch(e.clientX, e.clientY);
-    if (h === perchHover) return;
-    perchHover = h; perch.el.classList.toggle("is-on", h); docEl.classList.toggle("tj-bison-hover", h);
+    for (const c of [perch, butterfly]) {
+      if (!c) continue;
+      const h = overFlier(c, e.clientX, e.clientY);
+      if (h === hovering.has(c)) continue;
+      if (h) hovering.add(c); else hovering.delete(c);
+      c.el.classList.toggle("is-on", h);
+    }
+    docEl.classList.toggle("tj-flier-hover", hovering.size > 0);
   }, { passive: true });
-  on(window, "pointerdown", (e) => { if (overPerch(e.clientX, e.clientY)) flyOff(); }, { passive: true, capture: true });
-  on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overPerch(t.clientX, t.clientY)) flyOff(); }, { passive: true, capture: true });
+  off.push(() => docEl.classList.remove("tj-flier-hover"));
+  on(window, "pointerdown", (e) => tapFliers(e.clientX, e.clientY), { passive: true, capture: true });
+  on(window, "touchstart", (e) => { const t = e.touches[0]; if (t) tapFliers(t.clientX, t.clientY); }, { passive: true, capture: true });
   const overOwl = (x, y, margin) => {
     if (!owl || phase !== "world" || owl.style.opacity === "0") return false;
     const r = owl.firstChild.getBoundingClientRect(); if (!r.width) return false;
@@ -461,7 +479,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         + ["away", "closed", "open"].map((k) => `<img class="${k}" src="${A}trev-world-owl-${k}.webp" alt="">`).join("");
       owl = el;
     }
-    else if (c.kind === "butterfly") body.innerHTML = `<img class="wings" src="${A}trev-world-butterfly.webp" alt="">`;
+    else if (c.kind === "butterfly") {
+      body.innerHTML = (c.landed ? sacredAura() : "") + `<img class="wings" src="${A}trev-world-butterfly.webp" alt="">`;
+      if (c.landed) { el.classList.add("landed"); c.flyAt = 0; c.flying = false; butterfly = c; }
+    }
     else if (c.kind === "leaf") body.innerHTML = `<img src="${A + c.src}" alt="">`;
     else if (c.kind === "falls") {   // streaks running down, seen only through the falls' own water
       body.style.height = c.h + "px";
@@ -531,7 +552,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
     // rises by that much, so at the bottom the whole painting is in view above the toolbar
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
-    vignette.style.opacity = (1 - 0.9 * clamp01(p)).toFixed(3);   // 100% on the landing to 10% at the bottom
+    setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
     $(".tj-side").style.display = narrow ? "none" : "block";
     world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
     world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
@@ -559,6 +580,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i) + tx * TILT_X * CLOUD_TILT * c.depth;
       const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
       c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
+      if (c.leaves && worldAt && !c.gone) {
+        const o = c.op * (1 - smooth((now - worldAt - CLOUD_LEAVE_S[0]) / CLOUD_LEAVE_S[1]));
+        c.el.style.opacity = o.toFixed(3); if (o <= 0) c.gone = true;
+      }
     });
     if (!still) placeCreatures(now, p);
     // landing: blurred + dimmed under the copy (the video ends in exactly this state), clearing as you descend
@@ -596,8 +621,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (sl.video) { if (o > 0.2) sl.m.play().catch(() => {}); else if (!sl.m.paused) sl.m.pause(); }
     });
   }
+  // the vignette: full on the portal, 15% lighter by the end of the transition (following the video's
+  // clock), then down to 15% through the descent, coming back as you scroll up; one opacity, set only
+  // when it changes
+  let vigShown = -1;
+  const setVignette = (o) => { if (Math.abs(o - vigShown) > 0.004) { vigShown = o; vignette.style.opacity = o.toFixed(3); } };
+  let worldAt = 0;   // when the world opened (s)
   function openWorld() {
-    phase = "world";
+    phase = "world"; worldAt = performance.now() / 1000;
+    for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
     track.style.height = `${100 + STORY_START_SVH + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
     scroller.classList.add("live");
@@ -617,7 +649,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $("video.tj-plate"), still = $(".tj-plateStill");
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
     const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
-    const trans = $(".tj-trans"), keep = $(".tj-keep");
+    const trans = $(".tj-trans"), keep = $(".tj-keep"), bars = $(".tj-bars");
     const tv = $(".tj-tv");
     const transUrl = A + (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
@@ -776,6 +808,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     off.push(stopWatch);
     function beginLanding(v) {                        // from LANDING_AT: veil the video exactly like the world's landing, raise the copy
       if (landingShown) return; landingShown = true;
+      bars.classList.add("off"); bars.classList.remove("on");   // the bars slide away as the landing comes up
       v.style.transition = "filter 2s ease";
       v.style.filter = "blur(6px) brightness(0.5)";
       showLanding();
@@ -801,7 +834,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (phase === "world") return;
       stopWatch(); buildWorld(); openWorld(); showLanding(); landingShown = true; later(beckon, 2400);
       docEl.classList.remove("tj-face-grain");
-      heroEl.classList.add("out"); enterLayer.hidden = true; trans.hidden = true;
+      heroEl.classList.add("out"); enterLayer.hidden = true; trans.hidden = true; bars.classList.remove("on");
       later(() => { heroEl.hidden = true; plate.pause(); }, 800);
     }
     function wire(v) {
@@ -887,7 +920,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       enter.classList.add("leave"); grade.style.opacity = 0;
       if (!warm) warmUp();
       let gone = false;
-      const go = () => { if (gone) return; gone = true; fadeFrom = performance.now(); playTransition(); };   // at once
+      const go = () => { if (gone) return; gone = true; fadeFrom = performance.now(); bars.classList.add("on"); playTransition(); };   // at once
       if (asking) { motion.then(go); later(go, MOTION_WAIT_MS); }
       else go();
     }
@@ -912,6 +945,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         fadeMe(now);
         if (phase === "hero") heroFrame(now);
         else if (phase === "trans") {
+          const vv = recovered || tv;
+          if (vv.duration) setVignette(1 - (1 - VIG_LANDED) * clamp01(vv.currentTime / vv.duration));
           const v = recovered || tv;
           placeVideo(v);
           if (v.currentTime >= LANDING_AT) beginLanding(v);   // checked every frame, so it starts right on 6.0s
@@ -931,13 +966,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
     // the tilt, eased so it glides (Burnell's)
     tx += (tilt.x - tx) * TILT_EASE; ty += (tilt.y - ty) * TILT_EASE;
-    // The bass, from the drop on: the sword's glow and a soft warm light over the world. Opacity and
-    // transform only, on two small layers: no page-wide filter or blend has to be redrawn per beat.
+    // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).
+    // Opacity and transform only, on one small layer.
     beatSm = Math.max(sound.beat(), beatSm * Math.exp(-dt * 7));
     if (Math.abs(beatSm - beatShown) > 0.004) {
       beatShown = beatSm < 0.005 ? 0 : beatSm;
       swordBeat.style.opacity = (0.75 * beatShown).toFixed(3);
-      pulse.style.opacity = (0.16 * beatShown).toFixed(3);
     }
     // the sword leans with the tilt like the world, a little less, and lifts a touch on each hit
     if (landing.classList.contains("show") && !landing.classList.contains("is-gone"))

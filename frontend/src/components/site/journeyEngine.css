@@ -106,10 +106,15 @@
 .tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
 .tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
 .tj-shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
-/* the bass, after the drop: a soft warm light, opacity only (no filter or blend: those made the
-   other worlds stutter) */
-.tj-pulse { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity;
-  background: radial-gradient(ellipse 75% 60% at 50% 42%, rgba(255,206,138,.9) 0%, rgba(255,178,104,.35) 55%, rgba(255,160,90,0) 100%); }
+
+/* widescreen bars: thin black bands that slide in when the transition starts and away as the
+   landing comes up (transform only); the bottom one runs on under Safari's toolbar */
+.tj-bars > i { position: fixed; left: 0; right: 0; z-index: 32; background: #000; pointer-events: none; will-change: transform;
+  transition: transform 1.2s cubic-bezier(.65,0,.35,1); }
+.tj-bars .t { top: 0; height: 5svh; transform: translateY(-100%); }
+.tj-bars .b { top: 95svh; height: calc(5svh + max(100lvh, 100vh) - 100svh); transform: translateY(100%); }
+.tj-bars.on > i { transform: none; }
+.tj-bars.off > i { transition-duration: 1.8s; }
 
 /* the vignette, top and sides only: over the hero, the transition, the world and the story (under
    the landing copy); full on the landing, fading to 10% through the descent (journeyEngine.js) */
@@ -202,13 +207,13 @@
 .tj-bison .aura { left: -50%; top: -41.7%; width: 200%; height: 183.5%; transition: opacity .6s ease, transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
 /* the sacred aura (journeyEngine.js sacredAura): a turning golden glow and Flower of Life, resting at
    their base glow and swelling 15 points above it and back every 5s */
-.tj-bison .glow, .tj-bison .geo, .tj-cr-perch .glow, .tj-cr-perch .geo { position: absolute; inset: 0; transition: opacity .6s ease; }
-.tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow i, .tj-cr-perch .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.tj-bison .glow i, .tj-cr-perch .glow i { border-radius: 50%;
+.tj-bison .glow, .tj-bison .geo, .tj-cr-perch .glow, .tj-cr-perch .geo, .tj-cr-butterfly .glow, .tj-cr-butterfly .geo { position: absolute; inset: 0; transition: opacity .6s ease; }
+.tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow i, .tj-cr-perch .geo svg, .tj-cr-butterfly .glow i, .tj-cr-butterfly .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tj-bison .glow i, .tj-cr-perch .glow i, .tj-cr-butterfly .glow i { border-radius: 50%;
   background: conic-gradient(from 0deg, rgba(255,236,190,.6), rgba(255,250,235,.55), rgba(240,200,120,.55), rgba(255,244,214,.5), rgba(228,182,96,.55), rgba(255,250,240,.55), rgba(255,236,190,.6));
   -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); mask-image: radial-gradient(closest-side, #000 25%, transparent 100%);
   animation: tj-auraSpin 30s linear infinite; }
-.tj-bison .geo svg, .tj-cr-perch .geo svg {
+.tj-bison .geo svg, .tj-cr-perch .geo svg, .tj-cr-butterfly .geo svg {
   -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
   animation: tj-auraSpin 80s linear infinite reverse; }
 .tj-bison .glow { opacity: .4; animation: tj-bisonGlow 5s ease-in-out infinite; }
@@ -300,7 +305,23 @@ html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 .tj-cr-bird .down { animation: tj-flapB var(--flap, .36s) infinite; }
 @keyframes tj-flapA { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @keyframes tj-flapB { 0%, 49.9% { opacity: 0; } 50%, 100% { opacity: 1; } }
-.tj-cr-butterfly .wings { animation: tj-flutter .15s ease-in-out infinite alternate; }
+.tj-cr-butterfly .wings { position: relative; animation: tj-flutter .15s ease-in-out infinite alternate; }
+/* the landed butterfly: wings opening and closing slowly on its flower; a tap and it flutters off */
+.tj-cr-butterfly.landed .wings { animation: tj-restWings 3.4s ease-in-out infinite; }
+.tj-cr-butterfly.landed.flying .wings { animation: tj-flutter .15s ease-in-out infinite alternate; }
+@keyframes tj-restWings { 0%, 55%, 100% { transform: scaleX(1); } 70%, 80% { transform: scaleX(.45); } }
+/* its aura: the faintest of the three (bison > bluebird > butterfly) */
+.tj-cr-butterfly .aura { position: absolute; left: -50%; top: -94%; width: 200%; height: 288%; pointer-events: none;
+  transition: opacity .4s ease, transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.tj-cr-butterfly .glow { opacity: .14; animation: tj-flyGlow 5s ease-in-out infinite; }
+.tj-cr-butterfly .geo { opacity: .07; animation: tj-flyGeo 5s ease-in-out infinite; }
+@keyframes tj-flyGlow { 0%, 100% { opacity: .14; } 50% { opacity: .2; } }
+@keyframes tj-flyGeo { 0%, 100% { opacity: .07; } 50% { opacity: .12; } }
+.tj-cr-butterfly.is-on .aura { filter: brightness(1.2); transform: scale(1.08); }
+.tj-cr-butterfly.is-on .glow { animation: none; opacity: .24; }
+.tj-cr-butterfly.is-on .geo { animation: none; opacity: .14; }
+.tj-cr-butterfly.flying .aura { opacity: 0; }
+html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @keyframes tj-flutter { from { transform: scaleX(1); } to { transform: scaleX(.26); } }
 /* the falls: streaks of light running down, seen only through the painted water */
 .tj-cr-falls .tj-crBody { transform: none; overflow: hidden; opacity: .55;
@@ -325,7 +346,7 @@ html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 @keyframes tj-mote { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tj-bison .glow, .tj-bison .geo, .tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow, .tj-cr-perch .geo, .tj-cr-perch .glow i, .tj-cr-perch .geo svg, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-lizard .rest, .tj-cr-owl .geo { animation: none; }
+  .tj-bison .glow, .tj-bison .geo, .tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow, .tj-cr-perch .geo, .tj-cr-perch .glow i, .tj-cr-perch .geo svg, .tj-cr-butterfly .glow, .tj-cr-butterfly .geo, .tj-cr-butterfly .glow i, .tj-cr-butterfly .geo svg, .tj-cr-butterfly.landed .wings, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-lizard .rest, .tj-cr-owl .geo { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
