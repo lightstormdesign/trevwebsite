@@ -1,0 +1,136 @@
+<title>TREV Hero Loop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Outfit:wght@300;400&display=swap">
+<style>
+  /* Full-bleed hero: animated plate + TREV's real cutout on one shared box, cover-fit per screen */
+  :root {
+    --night: #0c0b0a;
+    --bone: #f1e9dc;
+    --gold: #e7c98f;
+    --shade: rgba(8, 7, 6, 0.55);
+    --display: "Cinzel", "Trajan Pro", Georgia, serif;
+    --body: "Outfit", -apple-system, "Segoe UI", sans-serif;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; background: var(--night); color: var(--bone); overflow: hidden; }
+  body { font-family: var(--body); }
+  #stage { position: fixed; inset: 0; overflow: hidden; background: var(--night); }
+  #box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
+  #box.ready { opacity: 1; }
+  #plate, #me { position: absolute; left: 0; top: 0; max-width: none; display: block; will-change: transform; }
+  #plate { object-fit: fill; }
+  #me { transition: opacity .6s ease; transform-origin: 50% 100%; }
+  #me.gone { opacity: 0; }
+  #veil { position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(to bottom, var(--shade) 0%, transparent 32%, transparent 78%, rgba(8,7,6,.35) 100%); }
+  #top { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 10px;
+         padding-top: calc(3.5svh + env(safe-area-inset-top, 0px));
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+         text-align: center; pointer-events: none; }
+  #top img { width: min(46vw, 300px); filter: drop-shadow(0 2px 16px rgba(0,0,0,.5)); }
+  #top p { margin: 0; font-family: var(--display); font-weight: 500; font-size: clamp(14px, 2.2vw, 20px);
+           letter-spacing: .14em; line-height: 1.45; text-shadow: 0 1px 14px rgba(0,0,0,.65); }
+  #top p span { color: var(--gold); }
+  #enter { position: absolute; left: 50%; transform: translateX(-50%);
+           bottom: calc(6svh + env(safe-area-inset-bottom, 0px));
+           font: 400 12px/1 var(--body); letter-spacing: .38em; text-transform: uppercase; color: var(--bone);
+           background: rgba(12,11,10,.28); border: 1px solid rgba(231,201,143,.7); border-radius: 999px;
+           padding: 14px 26px 14px 30px; cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  #enter:hover { border-color: var(--gold); color: var(--gold); }
+  #enter:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  #note { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(6svh + 60px + env(safe-area-inset-bottom, 0px));
+          font-size: 12px; letter-spacing: .08em; color: var(--bone); opacity: 0; transition: opacity .4s; text-shadow: 0 1px 10px #000;
+          white-space: nowrap; pointer-events: none; }
+  #note.on { opacity: .85; }
+  #tag { position: absolute; right: max(10px, env(safe-area-inset-right, 0px)); top: calc(10px + env(safe-area-inset-top, 0px));
+         font: 11px/1 ui-monospace, monospace; opacity: .5; }
+  @media (prefers-reduced-motion: reduce) { #me { transition: none; } }
+</style>
+
+<div id="stage">
+  <div id="box">
+    <video id="plate" muted loop playsinline autoplay preload="auto"></video>
+    <img id="me" alt="TREV">
+  </div>
+  <div id="veil"></div>
+  <div id="top">
+    <img src="trev-logo.webp" alt="TREV">
+    <p>Music for the<br><span>Kingdom Within</span></p>
+  </div>
+  <div id="note">The transition video would start here</div>
+  <button id="enter" type="button">Enter</button>
+  <div id="tag"></div>
+</div>
+
+<script>
+// Each version: the loop's size, where TREV's cutout sits on it (in loop pixels), and the
+// point of the frame to keep in view when the screen crops it.
+const SETS = {
+  desktop: { w: 1920, h: 1740, video: "trev-hero-desktop.mp4", poster: "trev-hero-desktop-poster.jpg",
+             cut: { src: "trev-hero-cutout-desktop.webp", x: 580, y: 927, w: 923, h: 813 }, fx: 0.5, fy: 0.8 },
+  mobile:  { w: 1080, h: 1920, video: "trev-hero-mobile.mp4", poster: "trev-hero-mobile-poster.jpg",
+             cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, fx: 0.48, fy: 0.55 },
+};
+const OVERSCAN = 1.06;            // a little extra so the moving background never shows an edge
+const SHIFT_PX = 14;              // depth: the background slides this far (screen px); TREV stays put,
+                                  // since his cutout touches the frame edges and must never pull away
+
+const box = document.getElementById("box"), plate = document.getElementById("plate"), me = document.getElementById("me");
+let set = null, fit = { k: 1, ox: 0, oy: 0 };
+
+function pick() {
+  const portrait = innerWidth / innerHeight < 0.9;
+  const next = portrait ? SETS.mobile : SETS.desktop;
+  if (next === set) return;
+  set = next;
+  box.classList.remove("ready");
+  box.style.width = set.w + "px"; box.style.height = set.h + "px";
+  plate.width = set.w; plate.height = set.h;
+  plate.style.width = set.w + "px"; plate.style.height = set.h + "px";
+  plate.poster = set.poster; plate.src = set.video;
+  me.style.left = set.cut.x + "px"; me.style.top = set.cut.y + "px";
+  me.style.width = set.cut.w + "px"; me.style.height = set.cut.h + "px";
+  let loaded = 0;
+  const done = () => { if (++loaded === 2) box.classList.add("ready"); };
+  me.onload = done; me.src = set.cut.src;
+  const p = new Image(); p.onload = done; p.onerror = done; p.src = set.poster;   // show as soon as the still is in
+  plate.play().catch(() => {});                                                       // Low Power Mode: the poster stays
+  document.getElementById("tag").textContent = portrait ? "phone" : "desktop";
+}
+
+function layout() {
+  pick();
+  const W = innerWidth, H = innerHeight;
+  const k = Math.max(W / set.w, H / set.h) * OVERSCAN;
+  const ox = Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k));
+  const oy = Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k));
+  fit = { k, ox, oy };
+}
+
+// pointer (desktop) or a slow drift (touch) drives a small depth shift
+let tx = 0, ty = 0, cx = 0, cy = 0, touch = matchMedia("(hover: none)").matches;
+addEventListener("pointermove", (e) => { if (e.pointerType === "mouse") { touch = false; tx = e.clientX / innerWidth * 2 - 1; ty = e.clientY / innerHeight * 2 - 1; } });
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function frame(now) {
+  if (touch) { tx = Math.sin(now / 5200) * 0.8; ty = Math.sin(now / 7300) * 0.4; }
+  cx += (tx - cx) * 0.06; cy += (ty - cy) * 0.06;
+  const m = still ? 0 : 1, { k, ox, oy } = fit;
+  box.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
+  plate.style.transform = `translate(${(-cx * SHIFT_PX * m / k).toFixed(2)}px, ${(-cy * SHIFT_PX * 0.4 * m / k).toFixed(2)}px)`;
+  const breathe = 1 + (still ? 0 : 0.0035 * (0.5 - 0.5 * Math.cos(now / 5000 * 2 * Math.PI)));
+  me.style.transform = `scale(${breathe.toFixed(5)})`;
+  requestAnimationFrame(frame);
+}
+
+// preview of the hand-off: TREV dissolves, the loop keeps running underneath
+document.getElementById("enter").addEventListener("click", () => {
+  me.classList.add("gone");
+  const note = document.getElementById("note"); setTimeout(() => note.classList.add("on"), 600);
+  setTimeout(() => { note.classList.remove("on"); me.classList.remove("gone"); }, 3200);
+});
+
+addEventListener("resize", layout);
+layout();
+requestAnimationFrame(frame);
+</script>
