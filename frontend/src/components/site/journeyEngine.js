@@ -1,9 +1,10 @@
 // TREV's journey, as plain DOM so it can run frame by frame without React re-rendering:
-//   hero  — the Sedona loop (birds from the first second) with TREV's real cutout on top, leaning
-//           toward the pointer / phone tilt
-//   enter — the song starts (from 0.0 unless it's already playing), iPhone asks for motion access,
-//           TREV dissolves (the artist is never in the AI video), then the transition plays: the
-//           camera tilts down to a rain puddle and dives into the painted world
+//   hero  — the Sedona loop (birds from the first second; the background itself never moves) with
+//           TREV's real cutout on top, leaning toward the pointer / phone tilt for the depth
+//   enter — a tap anywhere: the song starts (from 0.0 unless it's already playing), iPhone asks for
+//           motion access, and the transition plays at once: the camera tilts down to a rain puddle
+//           and dives into the painted world, while TREV's real photo fades out over it in 2s (the
+//           artist is never in the AI video itself)
 //   world — the video ends exactly on the world's landing frame. From LANDING_AT (6s) into the 8s
 //           video it blurs and dims (to exactly the world's landing veil) while the sword, the
 //           headline and the bio rise in over it (Burnell's landing). Scrolling lifts the veil and
@@ -41,12 +42,10 @@ const HERO_SETS = {
   mobile:  { w: 1080, h: 1920, video: "trev-hero-mobile.mp4", poster: "trev-hero-mobile-poster.jpg",
              cut: { src: "trev-hero-cutout-mobile.webp", x: 91, y: 1023, w: 989, h: 897 }, headX: 516, fx: 0.48, fy: 0.55 },
 };
-const INTRO_S = 3;          // the hero background settles over this long, then never moves again
-const INTRO_ZOOM = 0.05;
-const INTRO_SHIFT = 22;
-const HEAD_PX = 13;         // screen px TREV's head travels at full tilt (his base stays pinned)
+const INTRO_S = 3;          // "Tap to enter" shows a little into this
+const HEAD_PX = 20;         // screen px TREV's head travels at full tilt (his base stays pinned); the background never moves
 const MARGIN = 70;
-const DISSOLVE_MS = 650;    // TREV fades out before the transition video starts
+const FADE_ME_MS = 2000;    // TREV's real photo fades out over the playing transition
 const MOTION_WAIT_MS = 12000; // longest the journey waits on iPhone's motion prompt before carrying on
 const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
@@ -80,9 +79,10 @@ const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing
 const RIM = { x: 194, y: 302, w: 447 };
 const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
 
-// Alive (as on Burnell's world): a far flock of white doves and a raven high in the sky, bluebirds
-// sweeping past nearer, a bluebird perched on the juniper and a sacred owl on its lower limb (tap:
-// it turns its head to you, then opens its eyes), a hummingbird feeding at the white lily, a lizard
+// Alive (as on Burnell's world): Burnell's two flocks, as white doves, and a raven high in the sky;
+// a bluebird still on the juniper until it's tapped (then it flies off, and is back a while later);
+// a sacred owl on the juniper's lower limb (tap: it turns its head to you, opens its eyes, and its
+// aura grows, 65% as much as the bison's); a hummingbird feeding at the white lily, a lizard
 // doing push-ups on a boulder, Burnell's butterflies over the flowers, TREV's golden aspen leaves
 // tumbling down, the falls running, mist breathing at their feet, glints on the pool and motes of
 // light drifting up through the sun. Each lives in the coordinates
@@ -114,9 +114,9 @@ const GLINTS = [[300, 865], [380, 895], [450, 875], [520, 910], [600, 865], [360
 const CREATURES = [
   { kind: "raven", layer: "mountains", w: 84, pose: (t) => { const u = ((t + 9) % 46) / 30; if (u > 1) return null;
     return { x: -120 + u * 1180, y: 150 + 40 * Math.sin(u * Math.PI * 1.5), rot: 7 * Math.sin(t * 0.6) }; } },
-  ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", layer: "mountains", w: 50, flap: 0.42 + i * 0.04,
+  ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", layer: "mountains", w: 44, flap: 0.4 + i * 0.035,
     pose: (t) => { const u = (t / 34 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
-  ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "bluebird", flip: true, layer: "forest", w: 66, flap: 0.17 + i * 0.03,
+  ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", flip: true, layer: "forest", w: 84, flap: 0.36 + i * 0.04,
     pose: (t) => { const u = ((t + 4) % 24) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
   { kind: "falls", layer: "falls", x: 318, y: 440, w: 297, h: 372, pose: () => ({ x: 318, y: 440 }) },
   ...[[455, 565, 170, 0], [535, 805, 210, 2.2], [335, 748, 90, 4.1]].map(([x, y, w, d]) =>
@@ -132,7 +132,15 @@ const CREATURES = [
       flip: Math.cos(t * (1.1 + 0.4 * depth) + ph),
       op: (depth < 0.5 ? 0.85 : 1) * smooth((p - 0.45) / 0.2),   // only once the trees have come in
     }) })),
-  { kind: "perch", layer: "juniper", w: 46, pose: () => ({ x: 530, y: 389 }) },
+  { kind: "perch", layer: "juniper", w: 46, pose: (t, p, c) => {
+    const d = c.flyAt ? t - c.flyAt : -1;
+    if (d < 0) return { x: 530, y: 389, flying: false };
+    if (d < 2.6) { const e = Math.pow(d / 2.6, 1.5);
+      return { x: 530 - 720 * e, y: 389 - 380 * e + 22 * Math.sin(d * 9) * (1 - e), flying: true, face: -1 }; }
+    if (d < 18) return null;
+    if (d > 19) c.flyAt = 0;                              // back on its branch
+    return { x: 530, y: 389, flying: false, op: Math.min(1, d - 18) };
+  } },
   { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: () => ({ x: 225, y: 1266 }) },
   { kind: "bird", bird: "hummingbird", layer: "foreground", w: 62, flap: 0.07, pose: hummingbird },
@@ -188,7 +196,6 @@ const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Communit
 
 const clamp01 = (t) => Math.min(1, Math.max(0, t));
 const smooth = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
-const easeOut3 = (t) => 1 - Math.pow(1 - clamp01(t), 3);
 
 // Run cb once the video has actually put a frame on screen: a presented frame, playback moving
 // past zero, or a short timeout, whichever comes first (iOS doesn't always report frames).
@@ -363,7 +370,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
   // closes them and looks back out over the world.
-  let owl = null, owlBusy = false, owlHover = false;
+  let owl = null, owlBusy = false, owlHover = false, perch = null;
+  // the bluebird: a tap sends it flying off
+  const overPerch = (x, y) => {
+    if (!perch || perch.flyAt || phase !== "world" || perch.el.style.opacity === "0") return false;
+    const r = perch.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
+    const pad = Math.max(22, r.width * 0.4);
+    return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
+  };
+  const flyOff = () => { perch.flyAt = performance.now() / 1000; };
+  on(window, "pointerdown", (e) => { if (overPerch(e.clientX, e.clientY)) flyOff(); }, { passive: true, capture: true });
+  on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overPerch(t.clientX, t.clientY)) flyOff(); }, { passive: true, capture: true });
   const overOwl = (x, y, margin) => {
     if (!owl || phase !== "world" || owl.style.opacity === "0") return false;
     const r = owl.firstChild.getBoundingClientRect(); if (!r.width) return false;
@@ -398,7 +415,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
       + `<img class="up" src="${A}trev-world-${c.bird}-a.webp" alt=""><img class="down" src="${A}trev-world-${c.bird}-b.webp" alt=""></div>`;
     else if (c.kind === "raven") body.innerHTML = `<img src="${A}trev-world-raven.webp" alt="">`;
-    else if (c.kind === "perch") body.innerHTML = `<img src="${A}trev-world-bluebird-perched.webp" alt="">`;
+    else if (c.kind === "perch") {
+      body.innerHTML = `<img class="sit" src="${A}trev-world-bluebird-perched.webp" alt="">`
+        + `<div class="frames"><img class="up" src="${A}trev-world-bluebird-a.webp" alt=""><img class="down" src="${A}trev-world-bluebird-b.webp" alt=""></div>`;
+      c.flyAt = 0; c.flying = false; perch = c;
+    }
     else if (c.kind === "lizard") body.innerHTML = `<div class="frames"><img class="rest" src="${A}trev-world-lizard-a.webp" alt=""><img class="up" src="${A}trev-world-lizard-b.webp" alt=""></div>`;
     else if (c.kind === "owl") {
       body.innerHTML = `<div class="aura"><div class="glow"></div><svg class="geo" viewBox="-60 -60 120 120"><g fill="none" stroke="rgba(255,236,190,1)" stroke-width="0.3">`
@@ -510,7 +531,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
   function placeCreatures(t, p) {
     for (const c of CREATURES) {
-      const pose = c.pose(t, p), el = c.el;
+      const pose = c.pose(t, p, c), el = c.el;
+      if (pose && pose.flying !== undefined && pose.flying !== c.flying) { c.flying = pose.flying; el.classList.toggle("flying", pose.flying); }
       if (!pose) { if (el.style.opacity !== "0") el.style.opacity = "0"; continue; }
       let x = pose.x, y = pose.y;
       if (c.layer) { const L = layerOf[c.layer]; x += L.cx; y += L.cy; }
@@ -676,17 +698,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       const t = (now - t0) / 1000;
       if (tilt.live) { inX = tilt.x; inY = tilt.y; }
-      const drift = tilt.live ? 0.18 : 0.45;
+      const drift = tilt.live ? 0.18 : 0.6;
       const dX = drift * (Math.sin(t * 0.53) * 0.6 + Math.sin(t * 0.21 + 1.3) * 0.4);
       const dY = drift * (Math.sin(t * 0.37 + 0.7) * 0.6 + Math.sin(t * 0.17 + 2.1) * 0.4);
       const gx = Math.max(-1, Math.min(1, inX + dX)), gy = Math.max(-1, Math.min(1, inY + dY));
       vx += ((gx - px) * 26 - vx * 8.5) * dt; vy += ((gy - py) * 26 - vy * 8.5) * dt;
       px += vx * dt; py += vy * dt;
       const m = still ? 0 : 1, k = fit.k;
-      const rest = 1 - easeOut3(t / INTRO_S);         // the background settles, then holds exactly still
-      plate.style.transform = rest > 0.0001 && m
-        ? `translate(${(-px * INTRO_SHIFT * rest / k).toFixed(2)}px, ${(-py * INTRO_SHIFT * 0.6 * rest / k).toFixed(2)}px) scale(${(1 + INTRO_ZOOM * rest).toFixed(4)})`
-        : "none";
       if (t > INTRO_S * 0.6 && !leaving) enter.classList.add("show");
       const breath = m * 2.2 / k * (0.5 - 0.5 * Math.cos(t / 5 * 2 * Math.PI));
       drawMe(px * HEAD_PX * m / k, py * HEAD_PX * 0.75 * m / k, breath);
@@ -801,7 +819,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       on(tv, "playing", () => afterFirstFrame(tv, () => {
         if (playing) return; playing = true;
         phase = "trans"; keep.hidden = false;
-        heroEl.classList.add(set === HERO_SETS.desktop ? "out" : "lift");   // hero lifts off the identical first frame
+        // the plate lifts off the identical first frame; TREV's real photo stays over the playing
+        // video and fades out over 2s (the artist is never in the AI video itself)
+        heroEl.classList.add("thru");
+        canvas.classList.add("tj-fade2"); meImg.classList.add("tj-fade2");
+        later(() => { heroEl.hidden = true; }, FADE_ME_MS + 100);
         plate.pause(); watchStall(); watchFreeze();
       }), { once: true });
       const begin = () => tv.play().catch(() => {
@@ -822,13 +844,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       enter.classList.add("leave"); grade.style.opacity = 0;
       if (!warm) warmUp();
       let gone = false;
-      const dissolve = () => {
-        if (gone) return; gone = true;
-        canvas.classList.add("tj-gone"); meImg.classList.add("tj-gone");   // TREV leaves first
-        later(playTransition, DISSOLVE_MS);
-      };
-      if (asking) { motion.then(dissolve); later(dissolve, MOTION_WAIT_MS); }
-      else dissolve();
+      const go = () => { if (gone) return; gone = true; playTransition(); };   // at once
+      if (asking) { motion.then(go); later(go, MOTION_WAIT_MS); }
+      else go();
     }
     wire(tv);
     on(enterLayer, "click", onEnter);   // anywhere on the hero, not just the words

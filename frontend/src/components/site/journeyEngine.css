@@ -68,6 +68,11 @@
 .tj-plate { object-fit: fill; transform-origin: 50% 50%; will-change: transform; }
 .tj-me, .tj-meImg { transition: opacity .6s ease; }
 .tj-gone { opacity: 0 !important; }
+/* once the video's first frame is up: the plate goes, TREV's real photo stays over the playing video
+   and fades out over 2s */
+.tj-hero.thru { background: transparent; }
+.tj-hero.thru .tj-plate, .tj-hero.thru .tj-grade { visibility: hidden; }
+.tj-fade2 { opacity: 0 !important; transition: opacity 2s ease-in-out !important; }
 .tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
   background: linear-gradient(to bottom, rgba(6,5,4,.46) 0%, rgba(6,5,4,.30) 26%, rgba(6,5,4,.10) 44%, rgba(6,5,4,0) 58%); }
 .tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -114,93 +119,6 @@
   background: linear-gradient(to top, rgba(10,4,4,0.9) 0, rgba(10,4,4,0.9) calc(max(100lvh, 100vh) - 100svh), rgba(10,4,4,0.5) calc(max(100lvh, 100vh) - 100svh + 16svh), transparent 100%); }
 .tj-vignette .sides { position: absolute; left: 0; right: 0; top: 0; height: 100svh;
   background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 55%, rgba(10,4,4,0.38) 100%); }
-.tj-story { height: 100vh; height: max(100lvh, 100vh); }
-/* never a native play button over a video (iPhone shows one when autoplay is held back) */
-.tj video::-webkit-media-controls, .tj video::-webkit-media-controls-start-playback-button,
-.tj video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; opacity: 0; }
-
-/* ---------- header: a soft shadow band, the name left, the menu right ---------- */
-.tj-header { position: fixed; left: 0; right: 0; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
-  padding: calc(18px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) 46px max(22px, env(safe-area-inset-left, 0px));
-  background: linear-gradient(to bottom, rgba(6,5,4,.38) 0%, rgba(6,5,4,.14) 55%, rgba(6,5,4,0) 100%); pointer-events: none; }
-.tj-headLeft { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
-.tj-name { display: block; line-height: 0; }
-.tj-name img { height: clamp(17px, 1.7vw, 22px); width: auto; filter: drop-shadow(0 1px 10px rgba(0,0,0,.5)); }
-/* the speaker is SoundButton (site-wide, styles in index.css), fixed over this slot */
-.tj-soundSlot { flex: none; width: 40px; height: 40px; margin-left: -8px; }
-.tj-menuBtn { pointer-events: auto; width: 44px; height: 44px; display: grid; place-content: center; gap: 6px; background: none; border: 0; cursor: pointer; padding: 0; }
-.tj-menuBtn span { display: block; width: 24px; height: 1.5px; background: var(--tj-fg); box-shadow: 0 1px 6px rgba(0,0,0,.4); }
-.tj-menuBtn:focus-visible, .tj-enter:focus-visible, .tj-name:focus-visible { outline: 1px solid var(--tj-gold); outline-offset: 6px; }
-.tj-menu { position: fixed; inset: 0; z-index: 60; background: rgba(8,7,6,.94); display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 26px; }
-.tj-menu a { font: 500 18px/1 var(--tj-display); letter-spacing: .32em; text-transform: uppercase; color: var(--tj-fg); text-decoration: none; padding-left: .32em; }
-.tj-menu a:hover { color: var(--tj-gold); }
-.tj-menuClose { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));
-  width: 44px; height: 44px; background: none; border: 0; color: var(--tj-fg); font: 300 30px/1 var(--tj-sans); cursor: pointer; }
-
-/* ---------- the polished gold used for "Tap to enter", "Kingdom Within" and "My Story" ---------- */
-.tj-gold { background-image: linear-gradient(100deg, #c09245 0%, #dcb062 14%, #f6e2aa 26%, #deb05a 38%, #c69a4a 50%,
-    #eccd88 62%, #fff4d4 70%, #e2b866 80%, #c09245 100%);
-  background-size: 260% 100%; background-position: 100% 50%;
-  -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
-  animation: tj-glint 9s ease-in-out infinite alternate; text-shadow: none; }
-@keyframes tj-glint { from { background-position: 100% 50%; } to { background-position: 0% 50%; } }
-@keyframes tj-breathe { from { opacity: .3; } to { opacity: .55; } }
-@keyframes tj-bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(5px); opacity: 1; } }
-
-/* ---------- hero ---------- */
-.tj-hero { position: fixed; left: 0; right: 0; top: 0; z-index: 20; overflow: hidden; background: var(--tj-bg); pointer-events: none; transition: opacity .7s ease; }
-.tj-hero.out { opacity: 0; pointer-events: none; }
-.tj-hero.lift { opacity: 0; pointer-events: none; transition: opacity .15s linear; }
-.tj-box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
-.tj-box.ready { opacity: 1; }
-.tj-plate, .tj-me, .tj-meImg { position: absolute; left: 0; top: 0; display: block; }
-.tj-plate { object-fit: fill; transform-origin: 50% 50%; will-change: transform; }
-.tj-me, .tj-meImg { transition: opacity .6s ease; }
-.tj-gone { opacity: 0 !important; }
-.tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
-  background: linear-gradient(to bottom, rgba(6,5,4,.46) 0%, rgba(6,5,4,.30) 26%, rgba(6,5,4,.10) 44%, rgba(6,5,4,0) 58%); }
-.tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.tj-enter { position: absolute; left: 0; top: 0; z-index: 1; display: grid; place-items: center; isolation: isolate;
-  transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
-  opacity: 0; pointer-events: none; filter: blur(6px);
-  transition: opacity 1.6s cubic-bezier(.2,.7,.2,1), filter 1.6s cubic-bezier(.2,.7,.2,1); }
-.tj-enter > span { grid-area: 1 / 1; font: 400 clamp(18px, 1.53vw, 21.5px)/1 var(--tj-display); text-transform: uppercase;
-  white-space: nowrap; letter-spacing: .5em; margin-right: -.5em;
-  transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin-right 1.8s cubic-bezier(.2,.7,.2,1); }
-.tj-enter .halo { width: 190%; height: 640%; border-radius: 50%; z-index: -2; letter-spacing: 0; margin: 0;
-  background: radial-gradient(closest-side, rgba(12,9,6,.26), rgba(12,9,6,.12) 50%, rgba(12,9,6,0)); }
-.tj-enter .glow { color: #f1c472; filter: blur(10px); opacity: .4; z-index: -1; animation: tj-breathe 5s ease-in-out infinite alternate; }
-.tj-enter.show { opacity: 1; pointer-events: auto; filter: blur(0); }
-.tj-enter.show > span:not(.halo) { letter-spacing: .32em; margin-right: -.32em; }
-.tj-enter.leave { opacity: 0 !important; transition: opacity .5s ease; pointer-events: none; }
-.tj-enter:hover .glow { opacity: .62; }
-
-/* ---------- transition video ---------- */
-/* under the hero until its first frame is on screen (an invisible video is never drawn on iOS) */
-.tj-trans { position: fixed; left: 0; right: 0; top: 0; z-index: 15; overflow: hidden; pointer-events: none; transition: opacity .9s ease; }
-.tj-keep { position: absolute; inset: 0; background: rgba(0,0,0,.012); } /* keeps iPhone off the direct video path that can freeze */
-.tj-transSide { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); }
-.tj-tv { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
-
-/* ---------- world ---------- */
-.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: var(--tj-bg); pointer-events: none; }
-.tj-side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
-.tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
-.tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
-.tj-shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
-/* the bass, after the drop: a soft warm light, opacity only (no filter or blend: those made the
-   other worlds stutter) */
-.tj-pulse { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity;
-  background: radial-gradient(ellipse 75% 60% at 50% 42%, rgba(255,206,138,.9) 0%, rgba(255,178,104,.35) 55%, rgba(255,160,90,0) 100%); }
-
-/* Soleil's cinematic vignette, top and bottom, the whole way: over the hero, the transition and the
-   world, under the landing copy and the story so it never darkens the words */
-.tj-vignette { position: fixed; left: 0; right: 0; top: 0; z-index: 25; pointer-events: none; }
-.tj-vignette .top { position: absolute; left: 0; right: 0; top: 0; height: 40%;
-  background: linear-gradient(to bottom, rgba(10,4,4,0.54) 0%, rgba(10,4,4,0.285) 45%, transparent 100%); }
-.tj-vignette .bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 32%;
-  background: linear-gradient(to top, rgba(10,4,4,0.78) 0%, rgba(10,4,4,0.4) 45%, transparent 100%); }
 
 .tj-story { position: fixed; left: 0; right: 0; top: 0; z-index: 30; pointer-events: none; }
 .tj-storyShade { position: absolute; inset: 0; background: #070605; opacity: 0; }
@@ -328,12 +246,17 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-cr-bird .frames img, .tj-cr-lizard .frames img { position: absolute; left: 0; top: 0; width: 100%; }
 .tj-cr-lizard .frames { aspect-ratio: 360 / 218; }
 /* the lizard does its push-ups now and then */
-.tj-cr-lizard .up { opacity: 0; animation: tj-pushup 9s steps(1, end) infinite; }
+.tj-cr-lizard .up { opacity: 0; animation: tj-pushup 10s steps(1, end) infinite; }
 @keyframes tj-pushup { 0%, 70% { opacity: 0; } 72%, 76% { opacity: 1; } 78%, 81% { opacity: 0; } 83%, 88% { opacity: 1; } 90%, 100% { opacity: 0; } }
-/* the perched bluebird bobs and looks about */
-.tj-cr-perch img { transform-origin: 55% 95%; animation: tj-perch 5.5s ease-in-out infinite; }
-@keyframes tj-perch { 0%, 40%, 100% { transform: none; } 45% { transform: rotate(-7deg); } 52% { transform: rotate(2deg); } 70% { transform: rotate(0deg) scaleX(1); }
-  72%, 86% { transform: scaleX(-1); } 88% { transform: none; } }
+/* the perched bluebird: still on its branch until it's tapped, then it flies off (its flapping frames) */
+.tj-cr-perch .tj-crBody { aspect-ratio: 200 / 167; }
+.tj-cr-perch .sit, .tj-cr-perch .frames { position: absolute; left: 0; top: 0; width: 100%; }
+.tj-cr-perch .frames { aspect-ratio: 240 / 218; top: -14%; width: 118%; left: -9%; opacity: 0; }
+.tj-cr-perch .frames img { position: absolute; left: 0; top: 0; width: 100%; }
+.tj-cr-perch .frames .up { animation: tj-flapA .17s infinite; }
+.tj-cr-perch .frames .down { animation: tj-flapB .17s infinite; }
+.tj-cr-perch.flying .sit { opacity: 0; }
+.tj-cr-perch.flying .frames { opacity: 1; }
 /* the owl: a slow golden aura and Flower of Life behind it (as on the bison); three poses crossfade */
 .tj-cr-owl .tj-crBody { aspect-ratio: 300 / 558; }
 .tj-cr-owl img { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .45s ease; }
@@ -341,15 +264,16 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-cr-owl.look .away { opacity: 0; transition-duration: .5s; }
 .tj-cr-owl.look .closed { opacity: 1; }
 .tj-cr-owl.open .open { opacity: 1; transition-duration: .3s; }
-.tj-cr-owl .aura { position: absolute; left: -45%; top: -12%; width: 190%; height: 100%; transition: opacity .6s ease, transform .9s cubic-bezier(.16,1,.3,1); }
-.tj-cr-owl .glow, .tj-cr-owl .geo { position: absolute; inset: 0; width: 100%; height: 100%; }
-.tj-cr-owl .glow { border-radius: 50%; opacity: .35;
-  background: radial-gradient(closest-side, rgba(255,226,160,.7), rgba(240,190,110,.3) 55%, transparent 100%);
-  animation: tj-auraBreathe 6s ease-in-out infinite; }
-.tj-cr-owl .geo { opacity: .2; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+.tj-cr-owl .aura { position: absolute; left: -45%; top: -12%; width: 190%; height: 100%; transition: opacity .6s ease, transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.tj-cr-owl .glow, .tj-cr-owl .geo { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .6s ease; }
+.tj-cr-owl .glow { border-radius: 50%; opacity: .26;
+  background: radial-gradient(closest-side, rgba(255,226,160,.7), rgba(240,190,110,.3) 55%, transparent 100%); }
+.tj-cr-owl .geo { opacity: .14; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
   animation: tj-auraSpin 80s linear infinite reverse; }
-.tj-cr-owl.look .aura { transform: scale(1.12); }
-.tj-cr-owl.look .glow { opacity: .6; }
+/* 65% of what a tap does to the bison's aura (scale 1.15, brightness 1.5, glow .62, geometry .38) */
+.tj-cr-owl.look .aura { transform: scale(1.0975); filter: brightness(1.325); }
+.tj-cr-owl.look .glow { opacity: .40; }
+.tj-cr-owl.look .geo { opacity: .25; }
 html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 .tj-cr-bird .up { animation: tj-flapA var(--flap, .36s) infinite; }
 .tj-cr-bird .down { animation: tj-flapB var(--flap, .36s) infinite; }
@@ -380,7 +304,7 @@ html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 @keyframes tj-mote { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-perch img, .tj-cr-owl .glow, .tj-cr-owl .geo { animation: none; }
+  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-owl .geo { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
