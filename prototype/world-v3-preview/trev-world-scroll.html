@@ -1,9 +1,10 @@
 <title>TREV World Scroll</title>
 <style>
-  :root { --bg: #0b0c0f; --fg: #efe6d6; --gold: #f1cf97; color-scheme: dark; }
+  :root { --bg: #0b0c0f; --fg: #efe6d6; --gold: #f1cf97; color-scheme: dark;
+          --display: "Cinzel", "Trajan Pro", Georgia, serif; --serif: "Cormorant Garamond", Georgia, serif; --sans: "Outfit", -apple-system, "Segoe UI", sans-serif; }
   html, body { background: var(--bg); color: var(--fg); margin: 0; }
   body { font-family: "Cinzel", Georgia, serif; }
-  #track { height: 336svh; } /* 100svh screen + 236svh descent, same as Burnell */
+  #track { height: 1070svh; } /* 100svh screen + the descent (236svh, same as Burnell) + the story; set exactly in code */
   #stage { position: fixed; inset: 0; overflow: hidden; background: var(--bg); }
   #side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
   #world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
@@ -11,20 +12,68 @@
   #clouds { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; pointer-events: none; }
   #sunset { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; pointer-events: none; }
   #shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
-  #logo { position: absolute; left: 0; top: 0; max-width: none; pointer-events: none; filter: drop-shadow(0 2px 18px rgba(0,0,0,.45)); }
-  #hint { position: absolute; left: 0; right: 0; bottom: calc(5svh + env(safe-area-inset-bottom, 0px)); text-align: center;
-          font-size: 11px; letter-spacing: .42em; text-transform: uppercase; color: var(--fg); text-shadow: 0 1px 12px rgba(0,0,0,.6); }
+  /* landing copy: logo, headline, one line of bio, "slide to explore", over a soft dark blurred pool */
+  #intro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+           gap: clamp(14px, 2.4svh, 22px); text-align: center; pointer-events: none;
+           padding: 0 max(22px, env(safe-area-inset-right, 0px)) 14svh max(22px, env(safe-area-inset-left, 0px)); }
+  #intro::before { content: ""; position: absolute; left: 50%; top: 43%; width: min(130vw, 980px); height: 78svh; transform: translate(-50%, -50%);
+                   background: radial-gradient(closest-side, rgba(6,5,4,.66), rgba(6,5,4,.42) 55%, rgba(6,5,4,0));
+                   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+                   -webkit-mask: radial-gradient(closest-side, #000 45%, transparent); mask: radial-gradient(closest-side, #000 45%, transparent); z-index: -1; }
+  #intro img { width: clamp(160px, 44vw, 290px); height: auto; max-width: none; filter: drop-shadow(0 2px 18px rgba(0,0,0,.5)); }
+  #intro h1 { margin: 0; font: 500 clamp(21px, 5.4vw, 34px)/1.35 var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--fg);
+              text-wrap: balance; text-shadow: 0 1px 16px rgba(0,0,0,.45); }
+  #intro p { margin: 0; max-width: 30ch; font: 400 clamp(17px, 4.3vw, 21px)/1.5 var(--serif); color: rgba(239,230,214,.9); text-wrap: balance; }
+  #explore { position: absolute; left: 0; right: 0; bottom: calc(5.5svh + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column;
+             align-items: center; gap: 10px; font: 400 11px/1 var(--sans); letter-spacing: .42em; text-transform: uppercase; color: var(--fg);
+             text-shadow: 0 1px 12px rgba(0,0,0,.6); padding-left: .42em; }
+  #explore svg { width: 16px; height: 16px; animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(5px); opacity: 1; } }
+  /* the same polished gold as "Tap to enter", with its slow glint */
+  .gold { background-image: linear-gradient(100deg, #c09245 0%, #dcb062 14%, #f6e2aa 26%, #deb05a 38%, #c69a4a 50%, #eccd88 62%, #fff4d4 70%, #e2b866 80%, #c09245 100%);
+          background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+          animation: glint 9s ease-in-out infinite alternate; text-shadow: none; }
+  @keyframes glint { from { background-position: 100% 50%; } to { background-position: 0% 50%; } }
+
+  /* the story: near the end of the descent the world dims and TREV's story takes over, one chapter per step */
+  #story { position: absolute; inset: 0; pointer-events: none; }
+  #storyShade { position: absolute; inset: 0; background: #070605; opacity: 0; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(16px, 2.6svh, 26px);
+           padding: 8svh max(22px, env(safe-area-inset-right, 0px)) 8svh max(22px, env(safe-area-inset-left, 0px)); opacity: 0; will-change: opacity, transform; }
+  .slide .media { width: min(86vw, 520px); height: min(46svh, 560px); object-fit: cover; display: block; border-radius: 2px;
+                  -webkit-mask: radial-gradient(ellipse 80% 84% at 50% 50%, #000 60%, rgba(0,0,0,.4) 82%, transparent 100%);
+                  mask: radial-gradient(ellipse 80% 84% at 50% 50%, #000 60%, rgba(0,0,0,.4) 82%, transparent 100%); }
+  .slide .text { max-width: 34ch; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+  .slide .eyebrow { font: 400 11px/1 var(--sans); letter-spacing: .42em; text-transform: uppercase; color: rgba(239,230,214,.7); padding-left: .42em; }
+  .slide h2 { margin: 0; font: 500 clamp(22px, 5.6vw, 34px)/1.25 var(--display); letter-spacing: .1em; text-transform: uppercase; text-wrap: balance; }
+  .slide.cover h2 { font-size: clamp(30px, 8vw, 52px); letter-spacing: .16em; }
+  .slide.cover .media { height: min(52svh, 620px); }
+  .slide p { margin: 0; font: 400 clamp(17px, 4.3vw, 21px)/1.55 var(--serif); color: rgba(239,230,214,.92); }
+  .slide p.lead { font-size: clamp(22px, 5.6vw, 30px); line-height: 1.35; font-style: italic; }
+  @media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+    .slide { flex-direction: row; gap: 5vw; }
+    .slide .media { width: min(42vw, 640px); height: min(70svh, 640px); }
+    .slide .text { text-align: left; max-width: 36ch; }
+    .slide.cover .media { width: min(48vw, 760px); height: min(70svh, 600px); }
+  }
+  @media (prefers-reduced-motion: reduce) { .gold, #explore svg { animation: none; } }
   #bar { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--gold); width: 0; opacity: .8; }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Outfit:wght@400&display=swap" rel="stylesheet">
 
 <div id="track"></div>
 <div id="stage">
   <div id="side"></div>
   <div id="world"></div>
   <div id="shade"></div>
-  <img id="logo" src="trev-logo.webp" alt="TREV" hidden> <!-- logo hidden for now -->
-  <div id="hint">Scroll to enter</div>
+  <div id="intro">
+    <img src="trev-logo-new.webp" alt="TREV">
+    <h1>Music for the<br><span class="gold">Kingdom Within</span></h1>
+    <p>TREV is a Conscious Hip-Hop Artist using the infinite power of the spoken word to activate the awakening of humanity.</p>
+  </div>
+  <div id="explore"><span id="exploreWord">Slide to explore</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></div>
+  <div id="story"><div id="storyShade"></div></div>
   <div id="bar"></div>
 </div>
 
@@ -63,6 +112,63 @@ const CLOUDS = [ // ~60% of the sky above the rock covered, castle clear
   { src: "trev-cloud-b.webp", ar: 0.5, after: "mountains", depth: 0.35, w: 520, x0: 860, y0: 585, dir: 1, op: 0.9, spd: 0.37 },
   { src: "trev-cloud-a.webp", ar: 0.457, after: "foreground", depth: 1.0, w: 520, x0: 560, y0: 690, dir: 1, op: 0.95, flip: true, spd: 0.83 },
 ];
+// TREV's story (the About copy, his own words). The first slide is the title card.
+const STORY = [
+  { cover: true, eyebrow: "About", title: "My Story", media: "story-00-heart.webp", pos: "50% 55%" },
+  { lead: "This whole thing started the day I quit music.", media: "story-01-quit-music.webp" },
+  { title: "The First Dream", media: "story-02-first-dream.webp", body: [
+    "Basketball was my religion and Michael Jordan was God. Then I didn't make the high school team. The coach was the bishop, and every kid he picked was from his church.",
+    "My first lesson on the \u201cKingdom of Heaven\u201d: it was an exclusive club, and I wasn't chosen."] },
+  { title: "The Second Dream", media: "story-03-the-room.webp", body: [
+    "If I couldn't find God in basketball, I'd find it through hip-hop. I locked myself in my room to meditate and write until I became the best rapper in the world.",
+    "But I was caught in cycles of addiction, and I wasn't building anything."] },
+  { title: "The Leap", media: "story-04-the-leap.webp", body: [
+    "Years later, a few videos took off: over a million views, opening for artists I idolized. Believing \u201cif you jump, the net will appear,\u201d we took a one-way flight to Costa Rica.",
+    "The net was a mirage. And maybe I was too."] },
+  { title: "Rise Free", media: "story-05-rise-free.webp", body: [
+    "I gave up on music and ended up in my mom's basement, working night shifts at the post office. My dream was dead for a second time.",
+    "In that basement I finally understood: no label, no manager, no miracle was coming. I was the one I'd been waiting for.",
+    "So I wrote my way out."] },
+  { title: "Making It", media: "story-06-the-crowd.webp", body: [
+    "I started to build. I saved post office checks for my first tour and did every job myself.",
+    "After that tour, I wasn't trying to \u201cmake it\u201d anymore. I WAS making it."] },
+  { title: "Create Who I Am", media: "story-08-sword.webp", body: [
+    "I finally understood The Lion King. The mission wasn't just to remember who I am. It was to CREATE who I am."] },
+  { title: "My Own Kingdom", media: "story-09-the-reward.webp", video: "story-09-the-reward.mp4", body: [
+    "I stopped seeking a kingdom and started building my own. Now I tour internationally and live from my music."] },
+  { title: "My Name Is TREV", media: "story-10-my-name.webp", body: [
+    "I come with the infinite power of the spoken word. Every song is medicine made from my journey, a prayerformance for the man I needed during my own dark night of the soul."] },
+  { title: "The Kingdom Within", media: "story-11-within.webp", lead: "The Kingdom of Heaven is within." },
+];
+const STORY_AT = 0.88;   // the story takes over a little before the descent finishes
+const STEP_SVH = 70;     // scroll per chapter
+const TAIL_SVH = 40;     // hold on the last chapter
+document.getElementById("track").style.height = `${100 + DESCENT_SVH * STORY_AT + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
+const storyEl = document.getElementById("story");
+const slides = STORY.map((c) => {
+  const el = document.createElement("section"); el.className = "slide" + (c.cover ? " cover" : "");
+  const m = document.createElement(c.video ? "video" : "img"); m.className = "media";
+  if (c.video) { Object.assign(m, { muted: true, loop: true, playsInline: true, poster: c.media, src: c.video, preload: "none" }); }
+  else { m.src = c.media; m.alt = ""; m.loading = "lazy"; m.decoding = "async"; }
+  if (c.pos) m.style.objectPosition = c.pos;
+  const t = document.createElement("div"); t.className = "text";
+  if (c.eyebrow) t.insertAdjacentHTML("beforeend", `<span class="eyebrow">${c.eyebrow}</span>`);
+  if (c.title) t.insertAdjacentHTML("beforeend", `<h2 class="${c.cover ? "gold" : ""}">${c.title}</h2>`);
+  if (c.lead) t.insertAdjacentHTML("beforeend", `<p class="lead">${c.lead}</p>`);
+  for (const b of c.body || []) t.insertAdjacentHTML("beforeend", `<p>${b}</p>`);
+  el.append(m, t); storyEl.appendChild(el);
+  return { el, m, video: !!c.video };
+});
+function storyLayout(s) {   // s = chapter position (0 = title card fully in), negative while it's arriving
+  document.getElementById("storyShade").style.opacity = (0.82 * Math.min(1, Math.max(0, (s + 0.7) / 0.7))).toFixed(3);
+  slides.forEach((sl, i) => {
+    const d = s - i, o = Math.min(1, Math.max(0, 1 - Math.abs(d) * 1.7));
+    sl.el.style.opacity = o.toFixed(3);
+    sl.el.style.transform = `translateY(${(-d * 22).toFixed(1)}px)`;
+    sl.el.style.visibility = o > 0 ? "visible" : "hidden";
+    if (sl.video) { if (o > 0.2) sl.m.play().catch(() => {}); else sl.m.pause(); }
+  });
+}
 const world = document.getElementById("world");
 const sunsetEl = document.createElement("canvas"); sunsetEl.id = "sunset"; sunsetEl.width = 941; sunsetEl.height = 1672;
 const sctx = sunsetEl.getContext("2d");
@@ -139,27 +245,27 @@ function layout(p) {
   const veil = 1 - ease(p / 0.3);
   world.style.filter = veil > 0.02 ? `blur(${(6 * veil).toFixed(1)}px)` : "none";
   document.getElementById("shade").style.opacity = (0.5 * veil).toFixed(3);
-  const logo = document.getElementById("logo");
-  const lw = narrow ? colW * 0.82 : Math.min(600, Math.max(265, colW * 0.62));
-  logo.style.width = lw + "px";
-  logo.style.transform = `translate(${(ox + SUN.x * k - lw * LOGO.ax).toFixed(1)}px, ${(oy + SUN.y * k - (lw / LOGO.aspect) * LOGO.ay).toFixed(1)}px)`;
-  const lo = 1 - Math.min(1, window.scrollY / (VH * 0.12)); // copy dissolves on the first bit of scroll
-  logo.style.filter = `drop-shadow(0 2px 18px rgba(0,0,0,.45)) blur(${((1 - lo) * 8).toFixed(1)}px)`;
-  logo.style.opacity = lo.toFixed(3);
-  document.getElementById("hint").style.opacity = lo.toFixed(3);
+  const lo = 1 - Math.min(1, window.scrollY / (VH * 0.14)); // the landing copy dissolves on the first bit of scroll
+  const intro = document.getElementById("intro");
+  intro.style.opacity = lo.toFixed(3);
+  intro.style.filter = lo < 0.999 ? `blur(${((1 - lo) * 8).toFixed(1)}px)` : "none";
+  intro.style.visibility = lo > 0 ? "visible" : "hidden";
+  document.getElementById("explore").style.opacity = lo.toFixed(3);
   document.getElementById("bar").style.width = (p * 100).toFixed(1) + "%";
 }
-let target = 0, cur = 0, raf = 0, last = performance.now();
-const progress = () => Math.max(0, Math.min(1, window.scrollY / Math.max(1, (VH || innerHeight) * DESCENT_SVH / 100)));
+let target = 0, cur = 0, raf = 0, last = performance.now();   // scroll position in svh
+const scrolled = () => Math.max(0, window.scrollY / Math.max(1, VH || innerHeight) * 100);
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  target = progress();
+  target = scrolled();
   cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
-  if (Math.abs(target - cur) < 0.0003) cur = target;
-  layout(cur);
+  if (Math.abs(target - cur) < 0.03) cur = target;
+  layout(Math.min(1, cur / DESCENT_SVH));
+  storyLayout((cur - DESCENT_SVH * STORY_AT) / STEP_SVH);
   raf = requestAnimationFrame(frame); // keep running: the clouds sway
 }
 raf = requestAnimationFrame(frame);
-addEventListener("resize", () => layout(cur));
-layout(0);
+addEventListener("resize", () => layout(Math.min(1, cur / DESCENT_SVH)));
+if (matchMedia("(hover: hover)").matches) document.getElementById("exploreWord").textContent = "Scroll to explore";
+layout(0); storyLayout(-99);
 </script>
