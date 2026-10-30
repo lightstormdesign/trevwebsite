@@ -1,10 +1,10 @@
 // TREV's journey, as plain DOM so it can run frame by frame without React re-rendering:
 //   hero  — the Sedona loop (birds from the first second; the background itself never moves) with
 //           TREV's real cutout on top, leaning toward the pointer / phone tilt for the depth
-//   enter — a tap anywhere: the song starts (from 0.0 unless it's already playing), iPhone asks for
-//           motion access, and the transition plays at once: the camera tilts down to a rain puddle
-//           and dives into the painted world, while TREV's real photo fades out over it in 2s (the
-//           artist is never in the AI video itself)
+//   enter — a tap anywhere: the song starts (from 0.0 unless it's already playing) and the
+//           transition plays at once: the camera tilts down to a rain puddle and dives into the
+//           painted world, while TREV's real photo fades out over it (the artist is never in the AI
+//           video itself). iPhone's motion access is only ever asked by the speaker, never here.
 //   world — the video ends exactly on the world's landing frame. From LANDING_AT (6s) into the 8s
 //           video it blurs and dims (to exactly the world's landing veil) while the sword, the
 //           headline and the bio rise in over it (Burnell's landing). Scrolling lifts the veil and
@@ -25,14 +25,13 @@
 //   dimmed like the landing, until the layers are in, then fades out over the identical picture;
 // - stall + frozen-picture watchdogs: resume, kick once, swap in a fresh player, else go on to the
 //   world rather than sit on a frozen frame; and a failsafe timeout;
-// - the motion prompt is answered before the video starts (a system prompt over it could freeze it);
 // - the beat is a precomputed map (no Web Audio), and it only moves opacity/transform: no filters
 //   or blend modes change per frame.
 // And from Soleil's (SoleilWorld.jsx): the page itself never scrolls. The world scrolls inside its
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt, requestMotion, motionNeedsAsking } from "@/utils/sound";
+import { sound, tilt } from "@/utils/sound";
 
 const A = "/journey/";
 
@@ -49,7 +48,6 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
-const MOTION_WAIT_MS = 12000; // longest the journey waits on iPhone's motion prompt before carrying on
 const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
@@ -919,16 +917,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function onEnter() {
       if (leaving) return; leaving = true;
       sound.enter();                                  // the song starts (or keeps playing), inside the tap so phones allow it
-      // iPhone's motion prompt is asked here, and the journey waits for the answer so the system
-      // prompt never sits over the playing video
-      const asking = motionNeedsAsking();
-      const motion = requestMotion();
       enter.classList.add("leave"); grade.style.opacity = 0;
       if (!warm) warmUp();
-      let gone = false;
-      const go = () => { if (gone) return; gone = true; fadeFrom = performance.now(); bars.classList.add("on"); playTransition(); };   // at once
-      if (asking) { motion.then(go); later(go, MOTION_WAIT_MS); }
-      else go();
+      fadeFrom = performance.now(); bars.classList.add("on"); playTransition();   // at once (no motion prompt here)
     }
     wire(tv);
     on(enterLayer, "click", onEnter);   // anywhere on the hero, not just the words

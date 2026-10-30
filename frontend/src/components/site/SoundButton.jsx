@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { sound, requestMotion } from "@/utils/sound";
 
 // The speaker, top left on every page: slashed until the song plays. Pressing it before anything
-// has played starts "Kingdom" from 0.0 (and asks for motion access on iPhone); after that it pauses
-// and resumes. When the journey's landing asks it to (sound.setBeckon), a muted speaker glows gold
+// has played starts "Kingdom" from 0.0; after that it pauses and resumes. Turning the sound on is
+// the only place iPhone's motion-access prompt is asked (never Tap to Enter). When the journey's landing asks it to (sound.setBeckon), a muted speaker glows gold
 // and rises a touch to invite a press.
 export const SoundButton = ({ className = "" }) => {
   const [, force] = useState(0);
@@ -16,8 +16,9 @@ export const SoundButton = ({ className = "" }) => {
       aria-label={on ? "Mute the song" : "Play the song"}
       aria-pressed={on}
       onClick={() => {
+        const unmuting = !sound.playing;
         sound.toggle();
-        requestMotion();
+        if (unmuting) requestMotion();
       }}
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

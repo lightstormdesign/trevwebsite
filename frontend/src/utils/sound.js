@@ -61,7 +61,8 @@ export const sound = {
 
 // Phone tilt (Burnell's useTilt): how far the phone is tilted from the way it's being held, x and y
 // each -1..1, the resting angle slowly re-centring. iPhone only gives motion after asking, from
-// inside a tap: the speaker or Tap to Enter calls requestMotion(). Android needs no permission.
+// inside a tap: only the speaker (when turning the sound on) calls requestMotion(). Android needs no
+// permission.
 const RANGE_DEG = 10, RECENTER = 0.004;
 export const tilt = { x: 0, y: 0, live: false };
 let base = null, listening = false, asked = null;
@@ -81,10 +82,6 @@ export function requestMotion() {
   if (!asked) asked = D.requestPermission().then((r) => { if (r === "granted") listen(); return r === "granted"; }).catch(() => false);
   return asked;
 }
-export const motionNeedsAsking = () => {
-  const D = typeof window !== "undefined" && window.DeviceOrientationEvent;
-  return !!D && typeof D.requestPermission === "function" && !asked;
-};
 if (typeof window !== "undefined") {
   const D = window.DeviceOrientationEvent;
   if (D && typeof D.requestPermission !== "function") listen();   // Android: start right away
