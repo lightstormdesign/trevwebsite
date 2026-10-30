@@ -80,25 +80,43 @@ const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing
 const RIM = { x: 194, y: 302, w: 447 };
 const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
 
-// Alive (as on Burnell's world): Burnell's swallows cross the sky, his butterflies wander over the
-// flowers, golden aspen leaves tumble down from the aspens, the falls run, mist breathes at their
-// feet, the pool glints and motes of light drift up through the sun. Each lives in the coordinates
+// Alive (as on Burnell's world): a far flock of white doves and a raven high in the sky, bluebirds
+// sweeping past nearer, a bluebird perched on the juniper and a sacred owl on its lower limb (tap:
+// it turns its head to you, then opens its eyes), a hummingbird feeding at the white lily, a lizard
+// doing push-ups on a boulder, Burnell's butterflies over the flowers, TREV's golden aspen leaves
+// tumbling down, the falls running, mist breathing at their feet, glints on the pool and motes of
+// light drifting up through the sun. Each lives in the coordinates
 // of the layer it's part of (so it rides with that layer through the descent and the tilt), or, for
 // `free` ones, in the canvas at its own depth. pose(t, p): where it is at time t (s) and descent p,
 // or null when it's off stage. Kept light: small images moved and turned only; the flapping,
 // fluttering, flowing, breathing and twinkling are CSS animations.
 const FAR_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42], [-110, 46]];
 const NEAR_FLOCK = [[0, 0], [95, -34], [108, 40]];
-const LEAVES = [ // [leaf, after layer, depth, width, x, start offset, phase]
-  [4, "foreground", 1, 120, 150, 0, 0], [2, "foreground", 1, 105, 700, 1100, 2.1],
-  [1, "forest", 0.6, 78, 420, 400, 4.2], [3, "forest", 0.6, 70, 230, 1500, 1.3],
-  [4, "mountains", 0.35, 46, 640, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
+// flap pairs (two frames drawn eye on eye) and their sizes
+const FLYER = { dove: [260, 213], bluebird: [240, 218], hummingbird: [300, 215] };
+const LEAVES = [ // [leaf, after layer, depth, width, x, start offset, phase] (leaf 2 is the curled, edge-on one)
+  [4, "foreground", 1, 110, 150, 0, 0], [1, "foreground", 1, 96, 700, 1100, 2.1],
+  [3, "forest", 0.6, 78, 420, 400, 4.2], [2, "forest", 0.6, 22, 230, 1500, 1.3],
+  [4, "mountains", 0.35, 44, 640, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
 ];
+const OWL = { x: 580, y: 606, w: 95 };   // on the juniper's lower limb (juniper layer coordinates)
+const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
+// the hummingbird feeds at the lily, darts out and back now and then (foreground coordinates)
+const HUM_AT = [250, 1052], HUM_CYCLE_S = 11;
+function hummingbird(t) {
+  const u = (t % HUM_CYCLE_S) / HUM_CYCLE_S;
+  const hover = { x: HUM_AT[0] + 6 * Math.sin(t * 2.3), y: HUM_AT[1] + 5 * Math.sin(t * 3.1), face: 1 };
+  if (u < 0.62) return hover;
+  const d = (u - 0.62) / 0.38, out = Math.sin(Math.PI * d);       // out to the right and back
+  return { x: hover.x + 200 * out, y: hover.y - 110 * out + 30 * Math.sin(Math.PI * 2 * d), face: d < 0.5 ? -1 : 1 };
+}
 const GLINTS = [[300, 865], [380, 895], [450, 875], [520, 910], [600, 865], [360, 840], [560, 835], [420, 1035], [640, 1055]];
 const CREATURES = [
-  ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", layer: "mountains", w: 44, flap: 0.3 + i * 0.035,
+  { kind: "raven", layer: "mountains", w: 84, pose: (t) => { const u = ((t + 9) % 46) / 30; if (u > 1) return null;
+    return { x: -120 + u * 1180, y: 150 + 40 * Math.sin(u * Math.PI * 1.5), rot: 7 * Math.sin(t * 0.6) }; } },
+  ...FAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "dove", layer: "mountains", w: 50, flap: 0.42 + i * 0.04,
     pose: (t) => { const u = (t / 34 + 0.12) % 1; return { x: -140 + u * 1240 + dx, y: 250 + dy + 7 * Math.sin(t * 1.1 + i) }; } })),
-  ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", flip: true, layer: "forest", w: 84, flap: 0.26 + i * 0.04,
+  ...NEAR_FLOCK.map(([dx, dy], i) => ({ kind: "bird", bird: "bluebird", flip: true, layer: "forest", w: 66, flap: 0.17 + i * 0.03,
     pose: (t) => { const u = ((t + 4) % 24) / 11; if (u > 1) return null; return { x: 1150 - u * 1500 + dx, y: 300 + dy + 10 * Math.sin(t * 1.5 + i) }; } })),
   { kind: "falls", layer: "falls", x: 318, y: 440, w: 297, h: 372, pose: () => ({ x: 318, y: 440 }) },
   ...[[455, 565, 170, 0], [535, 805, 210, 2.2], [335, 748, 90, 4.1]].map(([x, y, w, d]) =>
@@ -114,6 +132,10 @@ const CREATURES = [
       flip: Math.cos(t * (1.1 + 0.4 * depth) + ph),
       op: depth < 0.5 ? 0.85 : 1,
     }) })),
+  { kind: "perch", layer: "juniper", w: 46, pose: () => ({ x: 530, y: 389 }) },
+  { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
+  { kind: "lizard", layer: "foreground", w: 104, pose: () => ({ x: 225, y: 1266 }) },
+  { kind: "bird", bird: "hummingbird", layer: "foreground", w: 62, flap: 0.07, pose: hummingbird },
   ...Array.from({ length: 9 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
@@ -337,13 +359,51 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonHover = h; bison.classList.toggle("is-on", h || performance.now() - bisonTapAt < BISON_TAP_S * 1000);
     docEl.classList.toggle("tj-bison-hover", h);
   }, { passive: true });
+  // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
+  // closes them and looks back out over the world.
+  let owl = null, owlBusy = false, owlHover = false;
+  const overOwl = (x, y, margin) => {
+    if (!owl || phase !== "world" || owl.style.opacity === "0") return false;
+    const r = owl.firstChild.getBoundingClientRect(); if (!r.width) return false;
+    const pad = Math.max(margin, r.width * 0.3);
+    return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
+  };
+  const owlLook = () => {
+    if (owlBusy) return; owlBusy = true;
+    owl.classList.add("look");
+    later(() => owl.classList.add("open"), OWL_LOOK_MS);
+    const rest = () => {
+      if (owlHover) return later(rest, 500);
+      owl.classList.remove("open");
+      later(() => { owl.classList.remove("look"); later(() => { owlBusy = false; }, 600); }, 350);
+    };
+    later(rest, OWL_LOOK_MS + OWL_HOLD_MS);
+  };
+  on(window, "pointerdown", (e) => { if (overOwl(e.clientX, e.clientY, 24)) owlLook(); }, { passive: true, capture: true });
+  on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overOwl(t.clientX, t.clientY, 24)) owlLook(); }, { passive: true, capture: true });
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
+    const h = overOwl(e.clientX, e.clientY, 6);
+    if (h === owlHover) return;
+    owlHover = h; if (h) owlLook();
+    docEl.classList.toggle("tj-owl-hover", h);
+  }, { passive: true });
+  off.push(() => docEl.classList.remove("tj-owl-hover"));
   function creatureEl(c) {
     const el = document.createElement("div");
     el.className = `tj-cr tj-cr-${c.kind}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
-    if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s${c.flip ? ";transform:scaleX(-1)" : ""}">`
-      + `<img class="up" src="${A}trev-world-bird-up.webp" alt=""><img class="down" src="${A}trev-world-bird-down.webp" alt=""></div>`;
+    if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
+      + `<img class="up" src="${A}trev-world-${c.bird}-a.webp" alt=""><img class="down" src="${A}trev-world-${c.bird}-b.webp" alt=""></div>`;
+    else if (c.kind === "raven") body.innerHTML = `<img src="${A}trev-world-raven.webp" alt="">`;
+    else if (c.kind === "perch") body.innerHTML = `<img src="${A}trev-world-bluebird-perched.webp" alt="">`;
+    else if (c.kind === "lizard") body.innerHTML = `<div class="frames"><img class="rest" src="${A}trev-world-lizard-a.webp" alt=""><img class="up" src="${A}trev-world-lizard-b.webp" alt=""></div>`;
+    else if (c.kind === "owl") {
+      body.innerHTML = `<div class="aura"><div class="glow"></div><svg class="geo" viewBox="-60 -60 120 120"><g fill="none" stroke="rgba(255,236,190,1)" stroke-width="0.3">`
+        + FLOWER.map(([x, y]) => `<circle r="10" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}"/>`).join("") + `</g></svg></div>`
+        + ["away", "closed", "open"].map((k) => `<img class="${k}" src="${A}trev-world-owl-${k}.webp" alt="">`).join("");
+      owl = el;
+    }
     else if (c.kind === "butterfly") body.innerHTML = `<img class="wings" src="${A}trev-world-butterfly.webp" alt="">`;
     else if (c.kind === "leaf") body.innerHTML = `<img src="${A + c.src}" alt="">`;
     else if (c.kind === "falls") {   // streaks running down, seen only through the falls' own water
@@ -452,7 +512,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       else { x += tx * TILT_X * CLOUD_TILT * c.depth; y += ty * TILT_Y * CLOUD_TILT * c.depth; }
       const op = (pose.op ?? 1).toFixed(2);
       if (el.style.opacity !== op) el.style.opacity = op;
-      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${pose.flip != null ? ` scaleX(${pose.flip.toFixed(3)})` : ""}`;
+      const sx = pose.flip != null ? pose.flip : pose.face;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}`;
     }
   }
   function storyLayout(s) {

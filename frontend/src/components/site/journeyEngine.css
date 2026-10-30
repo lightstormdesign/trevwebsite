@@ -231,8 +231,33 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-cr { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; pointer-events: none; }
 .tj-crBody { position: relative; transform: translate(-50%, -50%); }
 .tj-crBody img { position: relative; display: block; width: 100%; will-change: auto; }
-.tj-cr-bird .frames { position: relative; width: 100%; aspect-ratio: 1 / 0.75; }
-.tj-cr-bird .frames img { position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+.tj-cr-bird .frames, .tj-cr-lizard .frames { position: relative; width: 100%; }
+.tj-cr-bird .frames img, .tj-cr-lizard .frames img { position: absolute; left: 0; top: 0; width: 100%; }
+.tj-cr-lizard .frames { aspect-ratio: 360 / 218; }
+/* the lizard does its push-ups now and then */
+.tj-cr-lizard .up { opacity: 0; animation: tj-pushup 9s steps(1, end) infinite; }
+@keyframes tj-pushup { 0%, 70% { opacity: 0; } 72%, 76% { opacity: 1; } 78%, 81% { opacity: 0; } 83%, 88% { opacity: 1; } 90%, 100% { opacity: 0; } }
+/* the perched bluebird bobs and looks about */
+.tj-cr-perch img { transform-origin: 55% 95%; animation: tj-perch 5.5s ease-in-out infinite; }
+@keyframes tj-perch { 0%, 40%, 100% { transform: none; } 45% { transform: rotate(-7deg); } 52% { transform: rotate(2deg); } 70% { transform: rotate(0deg) scaleX(1); }
+  72%, 86% { transform: scaleX(-1); } 88% { transform: none; } }
+/* the owl: a slow golden aura and Flower of Life behind it (as on the bison); three poses crossfade */
+.tj-cr-owl .tj-crBody { aspect-ratio: 300 / 558; }
+.tj-cr-owl img { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .45s ease; }
+.tj-cr-owl .closed, .tj-cr-owl .open { opacity: 0; }
+.tj-cr-owl.look .away { opacity: 0; transition-duration: .5s; }
+.tj-cr-owl.look .closed { opacity: 1; }
+.tj-cr-owl.open .open { opacity: 1; transition-duration: .3s; }
+.tj-cr-owl .aura { position: absolute; left: -45%; top: -12%; width: 190%; height: 100%; transition: opacity .6s ease, transform .9s cubic-bezier(.16,1,.3,1); }
+.tj-cr-owl .glow, .tj-cr-owl .geo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tj-cr-owl .glow { border-radius: 50%; opacity: .35;
+  background: radial-gradient(closest-side, rgba(255,226,160,.7), rgba(240,190,110,.3) 55%, transparent 100%);
+  animation: tj-auraBreathe 6s ease-in-out infinite; }
+.tj-cr-owl .geo { opacity: .2; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  animation: tj-auraSpin 80s linear infinite reverse; }
+.tj-cr-owl.look .aura { transform: scale(1.12); }
+.tj-cr-owl.look .glow { opacity: .6; }
+html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 .tj-cr-bird .up { animation: tj-flapA var(--flap, .36s) infinite; }
 .tj-cr-bird .down { animation: tj-flapB var(--flap, .36s) infinite; }
 @keyframes tj-flapA { 0%, 49.9% { opacity: 1; } 50%, 100% { opacity: 0; } }
@@ -262,7 +287,7 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 @keyframes tj-mote { 0%, 100% { opacity: .25; } 50% { opacity: .9; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail { animation: none; }
+  .tj-bison .glow, .tj-bison .geo, .tj-bison .pulse, .tj-bison .tail, .tj-cr-lizard .up, .tj-cr-perch img, .tj-cr-owl .glow, .tj-cr-owl .geo { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
