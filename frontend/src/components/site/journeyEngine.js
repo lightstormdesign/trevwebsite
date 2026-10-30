@@ -2,7 +2,7 @@
 //   hero  — the Sedona loop with TREV's real cutout on top (he leans toward the pointer / phone tilt)
 //   enter — TREV dissolves (the artist is never in the AI video), then the transition video plays:
 //           the camera tilts down to a rain puddle and dives into the painted world
-//   world — the video ends exactly on the world's landing frame. From LANDING_AT seconds into the
+//   world — the video ends exactly on the world's landing frame. From LANDING_AT (6s) into the 8s
 //           video it blurs and dims (to exactly the world's landing veil) while the sword, the
 //           headline and the bio rise in over it (Burnell's landing). Scrolling lifts the veil and
 //           descends through the world, and near the end TREV's story takes over.
@@ -36,7 +36,7 @@ const TILT_DEG = 9;
 const MARGIN = 70;
 const DISSOLVE_MS = 650;    // TREV fades out before the transition video starts
 const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
-const LANDING_AT = 4.5;     // seconds into the transition when the landing veil + copy begin
+const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
 
@@ -496,7 +496,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     off.push(stopWatch);
     function beginLanding(v) {                        // from LANDING_AT: veil the video exactly like the world's landing, raise the copy
       if (landingShown) return; landingShown = true;
-      v.style.transition = "filter 1.5s ease";
+      v.style.transition = "filter 2s ease";
       v.style.filter = "blur(6px) brightness(0.5)";
       showLanding();
     }
@@ -606,7 +606,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     return {
       frame(now) {
         if (phase === "hero") heroFrame(now);
-        else if (phase === "trans") placeVideo(recovered || tv);
+        else if (phase === "trans") {
+          const v = recovered || tv;
+          placeVideo(v);
+          if (v.currentTime >= LANDING_AT) beginLanding(v);   // checked every frame, so it starts right on 6.0s
+        }
       },
     };
   }

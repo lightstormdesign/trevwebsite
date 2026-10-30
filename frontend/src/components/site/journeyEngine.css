@@ -110,7 +110,7 @@
 .tj-landingCol { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 20svh; }
 .tj-emblem { position: relative; height: clamp(150px, 26svh, 250px); aspect-ratio: 338 / 760;
   opacity: 0; transform: scale(.86); filter: blur(10px);
-  transition: opacity 1.5s ease, transform 2.2s cubic-bezier(.16,1,.3,1), filter 1.5s ease; }
+  transition: opacity 1.8s ease, transform 2s cubic-bezier(.16,1,.3,1), filter 1.8s ease; }
 .tj-landing.show .tj-emblem { opacity: 1; transform: none; filter: none; }
 .tj-emblem img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .tj-emblem .halo { position: absolute; left: 50%; top: 58%; width: 260%; height: 120%; transform: translate(-50%, -50%); border-radius: 50%;
@@ -127,7 +127,7 @@
 @keyframes tj-halo { 0%, 100% { opacity: .6; transform: translate(-50%, -50%) scale(.96); } 50% { opacity: .9; transform: translate(-50%, -50%) scale(1.04); } }
 @keyframes tj-glintDown { 0%, 55% { background-position: 0 100%; } 85%, 100% { background-position: 0 0%; } }
 .tj-landingText { display: flex; flex-direction: column; align-items: center; position: relative;
-  opacity: 0; transform: translateY(10px); transition: opacity 1.4s ease .5s, transform 1.4s ease .5s; }
+  opacity: 0; transform: translateY(10px); transition: opacity 1.4s ease .6s, transform 1.4s ease .6s; }
 .tj-landing.show .tj-landingText { opacity: 1; transform: none; }
 .tj-landingText::before { content: ""; position: absolute; left: 50%; top: 50%; width: 140%; height: 150%; transform: translate(-50%, -50%); z-index: -1;
   background: radial-gradient(ellipse at center, rgba(0,0,0,.62) 0%, rgba(0,0,0,.38) 48%, transparent 75%); filter: blur(16px); }
@@ -138,7 +138,7 @@
 .tj-landingText p { margin: 20px 0 0; max-width: 21rem; font: 300 clamp(15px, 3.9vw, 17px)/1.6 var(--tj-sans); color: rgba(255,255,255,.85);
   text-wrap: balance; text-shadow: 0 2px 28px rgba(0,0,0,.75), 0 1px 6px rgba(0,0,0,.65); }
 .tj-cue { position: absolute; left: 0; right: 0; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center;
-  opacity: 0; transition: opacity 1.2s ease 1.6s; }
+  opacity: 0; transition: opacity 1s ease 1s; }
 .tj-landing.show .tj-cue { opacity: 1; }
 .tj-cueInner { position: relative; display: flex; flex-direction: column; align-items: center; animation: tj-cueBob 2.6s ease-in-out infinite; color: #f2dca5; }
 .tj-cueInner .pool { position: absolute; left: 50%; top: 50%; width: 200%; height: 150%; transform: translate(-50%, -50%); z-index: -1;
