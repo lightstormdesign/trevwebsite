@@ -24,7 +24,7 @@
   #header { position: absolute; left: 0; right: 0; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between;
             padding-top: calc(18px + env(safe-area-inset-top, 0px)); padding-bottom: 46px;
             padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px));
-            background: linear-gradient(to bottom, rgba(6,5,4,.62) 0%, rgba(6,5,4,.28) 55%, rgba(6,5,4,0) 100%); }
+            background: linear-gradient(to bottom, rgba(6,5,4,.38) 0%, rgba(6,5,4,.14) 55%, rgba(6,5,4,0) 100%); }
   #name { font: 500 clamp(15px, 1.25vw, 18px)/1 var(--display); letter-spacing: .42em; color: var(--bone);
           text-shadow: 0 1px 12px rgba(0,0,0,.45); }
   #menuBtn { width: 44px; height: 44px; display: grid; place-content: center; gap: 6px; background: none; border: 0; cursor: pointer; padding: 0; }
@@ -37,18 +37,36 @@
   #menu a:hover { color: var(--gold); }
   #menuClose { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));
                width: 44px; height: 44px; background: none; border: 0; color: var(--bone); font: 300 30px/1 var(--body); cursor: pointer; }
-  /* "Tap to enter": gold-gradient words floating above his head, no button chrome */
-  #enter { position: absolute; left: 0; top: 0; z-index: 1; background: none; border: 0; padding: 10px 6px; cursor: pointer;
-           opacity: 0; pointer-events: none; transition: opacity 1.2s ease; filter: drop-shadow(0 1px 9px rgba(0,0,0,.32)); }
-  #enter span { font: 400 clamp(18px, 1.53vw, 21.5px)/1 var(--display); letter-spacing: .3em; text-transform: uppercase; white-space: nowrap;
-                background: linear-gradient(90deg, #ecd39b, #ecd39b);   /* replaced at runtime by tintEnter() */
-                -webkit-background-clip: text; background-clip: text; color: transparent; }
-  #enter.show { opacity: 1; pointer-events: auto; }
+  /* "Tap to enter": polished gold words over his head, a slow glint of light across them, a soft warm
+     glow behind, and a faint shadow pool so they read on bright sky without any visible box */
+  #enter { position: absolute; left: 0; top: 0; z-index: 1; display: grid; place-items: center; isolation: isolate;
+           transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
+           opacity: 0; pointer-events: none; filter: blur(6px);
+           transition: opacity 1.6s cubic-bezier(.2,.7,.2,1), filter 1.6s cubic-bezier(.2,.7,.2,1); }
+  #enter > span { grid-area: 1 / 1; font: 400 clamp(18px, 1.53vw, 21.5px)/1 var(--display); text-transform: uppercase;
+                  white-space: nowrap; letter-spacing: .5em; margin-right: -.5em;
+                  transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin-right 1.8s cubic-bezier(.2,.7,.2,1); }
+  #enter .halo { width: 190%; height: 640%; border-radius: 50%; z-index: -2; letter-spacing: 0; margin: 0;
+                 background: radial-gradient(closest-side, rgba(12,9,6,.26), rgba(12,9,6,.12) 50%, rgba(12,9,6,0)); }
+  /* a soft film-grade darkening over the top of the frame, so the sky deepens and the gold reads */
+  #grade { position: absolute; inset: 0; pointer-events: none;
+           background: linear-gradient(to bottom, rgba(6,5,4,.46) 0%, rgba(6,5,4,.30) 26%, rgba(6,5,4,.10) 44%, rgba(6,5,4,0) 58%); }
+  #enter .glow { color: #f1c472; filter: blur(10px); opacity: .4; z-index: -1; animation: breathe 5s ease-in-out infinite alternate; }
+  #enter .word { background-image: linear-gradient(100deg, #c09245 0%, #dcb062 14%, #f6e2aa 26%, #deb05a 38%, #c69a4a 50%,
+                   #eccd88 62%, #fff4d4 70%, #e2b866 80%, #c09245 100%);
+                 background-size: 260% 100%; background-position: 100% 50%;
+                 -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+                 animation: glint 9s ease-in-out infinite alternate; }
+  #enter.show { opacity: 1; pointer-events: auto; filter: blur(0); }
+  #enter.show > span:not(.halo) { letter-spacing: .32em; margin-right: -.32em; }
+  #enter:hover .glow { opacity: .62; }
+  @keyframes glint { from { background-position: 100% 50%; } to { background-position: 0% 50%; } }
+  @keyframes breathe { from { opacity: .3; } to { opacity: .55; } }
   #note { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(7svh + env(safe-area-inset-bottom, 0px));
           font-size: 12px; letter-spacing: .08em; opacity: 0; transition: opacity .4s; text-shadow: 0 1px 10px #000;
           white-space: nowrap; pointer-events: none; }
   #note.on { opacity: .85; }
-  @media (prefers-reduced-motion: reduce) { #me, #meImg, #enter { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { #me, #meImg, #enter, #enter > span { transition: none; } #enter .word, #enter .glow { animation: none; } }
 </style>
 
 <div id="stage">
@@ -57,6 +75,7 @@
     <canvas id="me"></canvas>
     <img id="meImg" alt="TREV" hidden>
   </div>
+  <div id="grade"></div>
   <header id="header">
     <span id="name">TREV</span>
     <button id="menuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
@@ -66,7 +85,7 @@
     <a href="#">Music</a><a href="#">About</a><a href="#">Tour</a><a href="#">Community</a><a href="#">EPK</a><a href="#">Shop</a><a href="#">Contact</a>
   </nav>
   <div id="note">The transition video would start here</div>
-  <button id="enter" type="button"><span>Tap to enter</span></button>
+  <button id="enter" type="button" aria-label="Tap to enter"><span class="halo"></span><span class="glow" aria-hidden="true">Tap to enter</span><span class="word" aria-hidden="true">Tap to enter</span></button>
 </div>
 
 <script>
@@ -84,8 +103,6 @@ const INTRO_SHIFT = 22;     // screen px the background still follows the pointe
 const HEAD_PX = 13;         // screen px TREV's head travels at full tilt (his base stays pinned)
 const TILT_DEG = 9;         // phone tilt (degrees from where it's held) that gives full travel
 const MARGIN = 70;          // canvas room around the cutout for the head to move into (loop px)
-// "Tap to enter" gold: pale over the dark trees, deeper over the bright sky, chosen letter by letter
-const GOLD_ON_DARK = [242, 222, 172], GOLD_ON_LIGHT = [138, 92, 24];
 
 const box = document.getElementById("box"), plate = document.getElementById("plate");
 const canvas = document.getElementById("me"), meImg = document.getElementById("meImg");
@@ -183,40 +200,8 @@ function layout() {
   const nameR = document.getElementById("name").getBoundingClientRect();
   const headTop = fit.oy + set.cut.y * k, mid = (nameR.bottom + headTop) / 2;
   const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
-  const x = Math.min(W - 16 - half, Math.max(16 + half, hx));
-  enter.style.transform = `translate(${(x - half).toFixed(1)}px, ${(mid - enter.offsetHeight / 2).toFixed(1)}px)`;
-  tintEnter();
-}
-
-// read the still frame under the words and blend the gold toward the background behind each letter
-const posterCache = {};
-function tintEnter() {
-  const key = set.poster, word = enter.firstElementChild;
-  if (!posterCache[key]) {
-    posterCache[key] = "loading";
-    const im = new Image();
-    im.onload = () => {
-      const c = document.createElement("canvas"); c.width = Math.round(set.w / 4); c.height = Math.round(set.h / 4);
-      const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(im, 0, 0, c.width, c.height);
-      posterCache[key] = x; tintEnter();
-    };
-    im.src = key; return;
-  }
-  const ctx = posterCache[key]; if (ctx === "loading") return;
-  const r = word.getBoundingClientRect(), { k, ox, oy } = fit, N = 14, stops = [];
-  const toPx = (sx, sy) => [Math.round((sx - ox) / k / 4), Math.round((sy - oy) / k / 4)];
-  for (let i = 0; i <= N; i++) {
-    const sx = r.left + (r.width * i) / N;
-    const [x0, y0] = toPx(sx - 8, r.top - 6), [x1, y1] = toPx(sx + 8, r.bottom + 6);
-    const d = ctx.getImageData(Math.max(0, x0), Math.max(0, y0), Math.max(1, x1 - x0), Math.max(1, y1 - y0)).data;
-    let lum = 0; for (let j = 0; j < d.length; j += 4) lum += 0.2126 * d[j] + 0.7152 * d[j + 1] + 0.0722 * d[j + 2];
-    lum /= d.length / 4;
-    const t = Math.min(1, Math.max(0, (lum - 70) / 110)), e = t * t * (3 - 2 * t);
-    const c = GOLD_ON_DARK.map((v, n) => Math.round(v + (GOLD_ON_LIGHT[n] - v) * e));
-    stops.push(`rgb(${c.join(",")}) ${((100 * i) / N).toFixed(1)}%`);
-  }
-  // a faint top-lit sheen over the per-letter colour keeps it metallic without a heavy stroke
-  word.style.backgroundImage = `linear-gradient(180deg, rgba(255,250,235,.22) 0%, rgba(255,250,235,0) 48%, rgba(60,36,8,.14) 100%), linear-gradient(90deg, ${stops.join(", ")})`;
+  enter.style.left = Math.min(W - 16 - half, Math.max(16 + half, hx)).toFixed(1) + "px";
+  enter.style.top = mid.toFixed(1) + "px";
 }
 
 // ---------- input: mouse on desktop, tilt on phones, a slow drift underneath both ----------
@@ -274,7 +259,10 @@ enter.addEventListener("click", () => {
   const note = document.getElementById("note"); setTimeout(() => note.classList.add("on"), 600);
   setTimeout(() => { note.classList.remove("on"); canvas.classList.remove("gone"); meImg.classList.remove("gone"); }, 3200);
 });
-if (matchMedia("(hover: hover)").matches) enter.firstElementChild.textContent = "Click to enter";
+if (matchMedia("(hover: hover)").matches) {
+  enter.setAttribute("aria-label", "Click to enter");
+  enter.querySelectorAll(".glow, .word").forEach((el) => { el.textContent = "Click to enter"; });
+}
 const menu = document.getElementById("menu");
 document.getElementById("menuBtn").addEventListener("click", () => { menu.hidden = false; });
 document.getElementById("menuClose").addEventListener("click", () => { menu.hidden = true; });
