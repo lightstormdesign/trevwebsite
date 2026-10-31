@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
+import { MailtoFallback } from "@/components/site/MailtoFallback";
 import {
   ARTIST_NAME,
   BIO,
@@ -16,6 +17,7 @@ import {
   BOOKING_STATUS,
   BOOKING_COPY,
   BOOKING_EMAIL,
+  FORMSPREE_ENDPOINT,
   SOCIALS,
 } from "@/data/site";
 
@@ -64,10 +66,10 @@ const PerformanceReel = () => {
 const inputClass =
   "rounded-lg border border-white/15 bg-black/40 px-4 py-2.5 font-body text-sm text-white placeholder:text-white/40 focus:border-[var(--sm-gold)]/60 focus:outline-none";
 
-// Booking form — field labels match the live trevworld.com/contact form
-// exactly. There's no backend, so submitting opens a pre-filled mailto: to
-// BOOKING_EMAIL (zero-backend submission path). Exported so the Contact page
-// renders the same form.
+// Booking form — field labels match the live trevworld.com/contact form exactly. Submits to
+// FORMSPREE_ENDPOINT (same as Sierra's and Jenn's sites); if that request fails, it opens a
+// pre-filled email to BOOKING_EMAIL and shows MailtoFallback, so an inquiry is never lost.
+// Exported so the Contact page renders the same form.
 export const BookingForm = () => {
   const [fields, setFields] = useState({
     name: "",
@@ -78,16 +80,49 @@ export const BookingForm = () => {
     details: "",
   });
 
+  const [status, setStatus] = useState("idle"); // idle | submitting | success | error
+
   const set = (key) => (e) => setFields((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const subject = `Booking Request: ${fields.event || ARTIST_NAME}`;
+  const body = `First/last name: ${fields.name}\nEmail: ${fields.email}\nFestival/Event name: ${fields.event}\nEvent Date(s) / Location: ${fields.dateLocation}\nEstimated Budget Range: ${fields.budget}\nAdditional Details: ${fields.details}`;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`Booking Request: ${fields.event || ARTIST_NAME}`);
-    const body = encodeURIComponent(
-      `First/last name: ${fields.name}\nEmail: ${fields.email}\nFestival/Event name: ${fields.event}\nEvent Date(s) / Location: ${fields.dateLocation}\nEstimated Budget Range: ${fields.budget}\nAdditional Details: ${fields.details}`
-    );
-    window.location.href = `mailto:${BOOKING_EMAIL}?subject=${subject}&body=${body}`;
+    setStatus("submitting");
+    try {
+      const formData = new FormData();
+      formData.append("_subject", subject);
+      formData.append("_replyto", fields.email);
+      formData.append("name", fields.name);
+      formData.append("email", fields.email);
+      formData.append("event", fields.event);
+      formData.append("dateLocation", fields.dateLocation);
+      formData.append("budget", fields.budget);
+      formData.append("details", fields.details);
+      const res = await fetch(FORMSPREE_ENDPOINT, { method: "POST", headers: { Accept: "application/json" }, body: formData });
+      if (res.ok) return setStatus("success");
+      throw new Error("Formspree rejected the submission");
+    } catch {
+      window.location.href = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      setStatus("error");
+    }
   };
+
+  if (status === "success") {
+    return (
+      <div data-testid="booking-success" className="mt-8 rounded-xl border border-white/10 bg-black/30 px-5 py-6 text-center sm:px-6">
+        <p className="font-body text-sm text-white/80">
+          Got it — your booking request is in. Every inquiry is reviewed personally, and our team will follow up with next
+          steps.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return <MailtoFallback email={BOOKING_EMAIL} subject={subject} body={body} onReset={() => setStatus("idle")} />;
+  }
 
   return (
     <form data-testid="booking-form" onSubmit={handleSubmit} className="mt-8 grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
@@ -127,9 +162,10 @@ export const BookingForm = () => {
       <button
         type="submit"
         data-testid="booking-submit"
-        className="mt-1 rounded-full bg-[var(--sm-gold)] px-8 py-3 font-body text-sm font-medium text-black transition-colors hover:bg-[var(--sm-gold-light)] sm:col-span-2"
+        disabled={status === "submitting"}
+        className="mt-1 rounded-full bg-[var(--sm-gold)] px-8 py-3 font-body text-sm font-medium text-black transition-colors hover:bg-[var(--sm-gold-light)] disabled:opacity-60 sm:col-span-2"
       >
-        Send Request
+        {status === "submitting" ? "Sending…" : "Send Request"}
       </button>
       <p className="font-body text-xs text-white/40 sm:col-span-2">
         Every inquiry is reviewed personally, and our team will follow up with next steps. Or email us directly at{" "}

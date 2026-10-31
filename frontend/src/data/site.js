@@ -62,6 +62,10 @@ export const COMMUNITY_LINKS = [{ label: "Patreon", href: PATREON_URL }];
 export const SITE_CONTACT = { email: "trevmentalrap@gmail.com" };
 export const BOOKING_EMAIL = "trevmentalrap@gmail.com";
 
+// Booking form backend (Formspree, as on Sierra's and Jenn's sites): the EPK and Contact booking forms
+// post here. A failed request falls back to a pre-filled email (MailtoFallback).
+export const FORMSPREE_ENDPOINT = "https://formspree.io/f/mgaanove";
+
 // EPK — stats and highlights verbatim from the live Home and Press pages.
 export const EPK_STATS = [
   { value: "1.25M", label: "Streams/Views Across Platforms" },
