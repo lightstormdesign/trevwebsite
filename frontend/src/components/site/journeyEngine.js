@@ -74,7 +74,7 @@ const LAYERS = [
   { key: "river",      w: 941,   x: 0,     y: 425,   from: [0, 1400],  span: [0.1, 1],  depth: 0.4 },
   { key: "bison",      w: 127,   x: 406.9, y: 900.8, from: [0, 1400],  span: [0.1, 1],  depth: 0.4 },
   { key: "foreground", w: 941,   x: 0,     y: 200,   from: [0, 900],   span: [0.25, 1], depth: 0.7 },
-  { key: "aspens",     w: 941,   x: -80,   y: 0,     from: [-235, 0],  span: [0, 1],    depth: 0.7 },
+  { key: "aspens",     w: 941,   x: -40,   y: 0,     from: [-275, 0],  span: [0, 1],    depth: 0.7 },
   { key: "juniper",    w: 799.9, x: 210,   y: 251,   from: [355, 0],   span: [0, 1],    depth: 0.7 },
 ];
 const CLOUDS = [ // the big one keeps the sun covered at the landing, so nothing competes with the sword
@@ -116,7 +116,7 @@ const LEAVES = [
   [1, "forest", 0.6, 78, 560, 400, 4.2], [3, "forest", 0.6, 70, 250, 1500, 1.3],
   [4, "mountains", 0.35, 46, 700, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
 ];
-const OWL = { x: 530, y: 341, w: 95 };   // on the juniper's upper branch (juniper layer coordinates)
+const OWL = { x: 166, y: 482, w: 71 };   // on the aspens' branch, halfway up the grove (aspens layer coordinates)
 const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
 const BUTTERFLY_AT = [818, 1294], BUTTERFLY_FLY_S = 9;   // landed on the cactus flower (foreground coordinates)
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
@@ -174,9 +174,9 @@ const CREATURES = [
     if (d > 19) c.flyAt = 0;                              // back on its branch
     return { x: PERCH.x, y: PERCH.y, flying: false, op: Math.min(1, d - 18) };
   } },
-  { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
+  { kind: "owl", layer: "aspens", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) || t < (c.pushUntil || 0) }) },
-  { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 130, y: 470 }) },
+  { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 120, y: 800 }) },
   { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
   { kind: "roarwave", layer: "bison", top: true, w: 150, pose: () => ({ x: 110, y: -2 }) },
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
@@ -785,6 +785,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (phase !== "world" || !worldBuilt) return false;
     const [lx, ly] = toLayer(x, y, "aspens");
     if (lx < 0 || lx > 270 || ly < 0 || ly > 1150) return false;
+    if (overOwl(x, y, 20)) return true;   // the owl answers its own tap
     const now = performance.now() / 1000;
     if (now - aspenAt < 1.2) return true;
     aspenAt = now;
