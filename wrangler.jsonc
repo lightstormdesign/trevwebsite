@@ -1,0 +1,11 @@
+{
+  "name": "trevwebsite",
+  "compatibility_date": "2026-08-01",
+  // The built site (frontend/build), served as static assets (as on Soleil's and Sierra's).
+  "assets": {
+    "directory": "./frontend/build",
+    // React Router site: serve index.html for /about, /epk, /tour etc. so direct links and
+    // refreshes don't 404.
+    "not_found_handling": "single-page-application"
+  }
+}

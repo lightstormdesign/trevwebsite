@@ -5,10 +5,23 @@ Artist site for TREV, built by LightStorm from the Sierra Marin template (`~/sie
 - `frontend/` — the site (React, CRA + Tailwind). Content lives in `frontend/src/data/site.js`.
 - `prototype/` — the original vanilla hold-to-enter prototype and the asset tools
   (`prototype/tools/dissolve.py`, `person_mask.py`) used to render the entry transition.
-- `vercel.json` — builds from `frontend/` (same setup as the Burnell site).
+- `wrangler.jsonc` + root `package.json` — Cloudflare Workers deploy (same setup as Soleil's and Sierra's).
+- `vercel.json` — the earlier Vercel setup (kept until the domain has moved to Cloudflare).
 
 Dev server: `npm --prefix frontend start` (launch config `trev-frontend`, port 3008).
 Home's entry plays on every fresh load/refresh; it's skipped only when returning to Home via the nav in the same visit.
+
+## Deploying (Cloudflare Workers)
+
+Connect this repo under Workers & Pages → Create → Import a repository, with:
+
+- **Build command:** `npm run build`
+- **Deploy command:** `npx wrangler deploy`
+- **Root directory:** `/` (repo root, where `wrangler.jsonc` lives)
+
+Pushes to `main` deploy to production on `trevwebsite.<account>.workers.dev`. `wrangler.jsonc` serves
+`frontend/build` with single-page-app fallback so `/about`, `/epk` etc. work on refresh; caching is in
+`frontend/public/_headers`.
 
 ## Content source
 Bio, stats, highlights, festivals, booking copy, and links were pulled from the live

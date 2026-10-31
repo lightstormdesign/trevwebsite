@@ -1,0 +1,7 @@
+{
+  "name": "trevwebsite",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm ci && CI=false GENERATE_SOURCEMAP=false npm run build"
+  }
+}
