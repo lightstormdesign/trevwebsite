@@ -138,10 +138,29 @@
   font: 600 13px/1 var(--tj-display); letter-spacing: .18em; text-transform: uppercase; box-shadow: 0 8px 30px rgba(214,179,101,.35); }
 .tj-slide .tj-ctaNote { font: 300 13px/1.5 var(--tj-sans); color: rgba(239,230,214,.7); }
 @media (min-width: 900px) and (min-aspect-ratio: 1/1) { .tj-slide .tj-cta { align-self: flex-start; } }
+/* Burnell's scroll guide along the bottom (journeyEngine.js progress) */
+.tj-progress { position: fixed; left: 0; right: 0; bottom: 0; z-index: 43; pointer-events: none; opacity: 0;
+  transition: opacity 1.2s ease 1.5s; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tj-progress.on { opacity: 1; }
+.tj-progress::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: linear-gradient(to top, rgba(0,0,0,.5), transparent); }
+.tj-progressLine { position: relative; height: 4px; background: rgba(255,255,255,.16); }
+.tj-progressFill { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(0); will-change: transform;
+  background: linear-gradient(90deg, #c09245, #e8cf9a 65%, #fff3d6); box-shadow: 0 0 12px 1px rgba(243,223,176,.7); }
+.tj-progressDrop { position: absolute; left: -5.5px; top: -3.5px; width: 11px; height: 11px; border-radius: 50%; will-change: transform;
+  background: radial-gradient(circle at 35% 35%, #fffaf0, #e8cf9a 60%, #c9a24f); box-shadow: 0 0 10px 3px rgba(243,223,176,.75); }
+.tj-progressDrop::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 1px solid rgba(243,223,176,.7);
+  animation: tj-dropRing 2.2s ease-out infinite; }
+@keyframes tj-dropRing { from { transform: scale(.4); opacity: .9; } to { transform: scale(2.2); opacity: 0; } }
+.tj-progressHint { position: absolute; left: 0; right: 0; bottom: 30px; display: flex; flex-direction: column; align-items: center; color: #f3dfb0;
+  opacity: 0; transition: opacity .8s ease; text-shadow: 0 2px 18px rgba(0,0,0,.8), 0 1px 5px rgba(0,0,0,.7); }
+.tj-progressHint.show { opacity: 1; }
+.tj-progressHint span { font: 500 11px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em; }
+.tj-progressHint svg { width: 15px; height: 15px; margin-top: 4px; animation: tj-chevron 1.9s ease-in-out infinite; }
+
 /* the text-list bubble, bottom left (Burnell's announcement bubble) */
-.tj-bubble { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 44;
+.tj-bubble { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 44;
   display: flex; align-items: center; gap: 11px; padding: 11px 36px 11px 12px; border-radius: 18px; max-width: min(330px, calc(100vw - 32px));
-  background: rgba(10,8,6,.62); border: 1px solid rgba(231,201,143,.35); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  background: rgba(10,8,6,.78); border: 1px solid rgba(231,201,143,.35);   /* no backdrop blur: it re-blurs the moving world each frame */
   color: var(--tj-fg); text-decoration: none; opacity: 0; transform: translateY(16px); pointer-events: none;
   transition: opacity .8s ease, transform .8s ease; }
 .tj-bubble.show { opacity: 1; transform: none; pointer-events: auto; }

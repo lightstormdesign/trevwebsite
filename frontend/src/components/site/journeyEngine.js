@@ -35,6 +35,9 @@ import { sound, tilt } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 
 const A = "/journey/";
+// Cache-buster for re-encoded media (Burnell's MEDIA_V): bump it whenever a video, the song or the
+// hero stills are replaced, or phones keep showing the old files.
+const MV = "?v=3";
 
 const HERO_SETS = {
   desktop: { w: 1920, h: 1740, video: "trev-hero-desktop.mp4", poster: "trev-hero-desktop-poster.jpg",
@@ -219,6 +222,7 @@ const STORY = [
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
+const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
 
@@ -313,6 +317,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <span class="tj-bubbleText"><b>High-vibe texts from TREV</b><span>Unreleased music &amp; new shows, first</span></span>
       <button class="tj-bubbleClose" type="button" aria-label="Close">&times;</button>
     </a>
+    <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
     <header class="tj-header">
       <div class="tj-headLeft">
         <span class="tj-soundSlot" aria-hidden="true"></span>
@@ -527,7 +534,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       let m;
       if (c.video) {   // its still underneath, the video over it only once it's playing (never a play button)
         m = document.createElement("div"); m.className = "media media-v";
-        m.innerHTML = `<img src="${A + c.media}" alt="" loading="lazy" decoding="async"><video class="tj-hidden" muted loop playsinline preload="none" src="${A + c.video}"></video>`;
+        m.innerHTML = `<img src="${A + c.media}" alt="" loading="lazy" decoding="async"><video class="tj-hidden" muted loop playsinline preload="none" src="${A + c.video + MV}"></video>`;
         const v = m.querySelector("video"); v.muted = true; showWhenPlaying(v);
         if (c.pos) m.querySelectorAll("img, video").forEach((e) => { e.style.objectPosition = c.pos; });
         m.play = () => v.play(); Object.defineProperty(m, "paused", { get: () => v.paused }); m.pause = () => v.pause();
@@ -675,7 +682,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const tv = $(".tj-tv");
     // HEVC (smaller) for phones; desktop browsers get H.264, which every one of them plays smoothly
     const phone = matchMedia("(pointer: coarse)").matches;
-    const transUrl = A + (phone && tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
+    const transUrl = A + (phone && tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264) + MV;
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
     docEl.classList.add("tj-face-grain");
     off.push(() => { docEl.classList.remove("tj-face-grain"); docEl.style.removeProperty("--tj-face"); });
@@ -737,7 +744,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       box.classList.remove("ready");
       box.style.width = set.w + "px"; box.style.height = set.h + "px";
       Object.assign(plate.style, { width: set.w + "px", height: set.h + "px" });
-      plateStill.src = A + set.poster; plate.src = A + set.video; showWhenPlaying(plate);
+      plateStill.src = A + set.poster + MV; plate.src = A + set.video + MV; showWhenPlaying(plate);
       Object.assign(plateStill.style, { width: set.w + "px", height: set.h + "px" });
       plate.play().then(() => afterFirstFrame(plate, () => later(warmUp, WARM_DELAY_MS))).catch(() => {});  // Low Power Mode: the poster stays
       let loaded = 0; const done = () => { if (++loaded === 2) { box.classList.add("ready"); readyAt = readyAt || performance.now(); } };
@@ -751,7 +758,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         }
         done();
       };
-      img.src = A + set.cut.src;
+      img.src = A + set.cut.src + MV;
     }
     function layout() {
       pick();
@@ -1021,14 +1028,38 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ======================================================================================
   // one loop drives everything
   // ======================================================================================
-  let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1;
+  let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1, mouseX = 0, mouseY = 0;
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches)
+    on(window, "mousemove", (e) => { mouseX = e.clientX / innerWidth * 2 - 1; mouseY = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+
+  // Burnell's scroll guide: a thin line along the bottom fills as you go, a glowing drop riding its
+  // edge; stop partway and "Keep scrolling" rises above it
+  const prog = $(".tj-progress"), progFill = $(".tj-progressFill"), progDrop = $(".tj-progressDrop"), progHint = $(".tj-progressHint");
+  let progShown = -1, idleT = 0;
+  on(scroller, "scroll", () => {
+    progHint.classList.remove("show"); clearTimeout(idleT);
+    const max = scroller.scrollHeight - scroller.clientHeight, p = max > 0 ? scroller.scrollTop / max : 0;
+    if (p > 0.02 && p < 0.97) idleT = later(() => progHint.classList.add("show"), PROGRESS_IDLE_MS);
+  }, { passive: true });
+  function progress() {
+    const max = scroller.scrollHeight - scroller.clientHeight;
+    const p = max > 0 ? clamp01(scroller.scrollTop / max) : 0;
+    if (Math.abs(p - progShown) < 0.0005) return;
+    progShown = p;
+    progFill.style.transform = `scaleX(${p.toFixed(4)})`;
+    progDrop.style.transform = `translate3d(${(p * prog.clientWidth).toFixed(1)}px, 0, 0)`;
+  }
   const scrolled = () => Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100);
   function loop(now) {
     raf = requestAnimationFrame(loop);
     if (hero) hero.frame(now);
     const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
     // the tilt, eased so it glides (Burnell's)
-    tx += (tilt.x - tx) * TILT_EASE; ty += (tilt.y - ty) * TILT_EASE;
+    // on a computer the mouse leans the world instead (Burnell's desktop), easing in over the first
+    // part of the descent so nothing shifts at the hand-off from the video
+    const mlean = tilt.live ? 1 : MOUSE_LEAN * smooth(cur / DESCENT_SVH / 0.12);
+    const aimX = tilt.live ? tilt.x : mouseX * mlean, aimY = tilt.live ? tilt.y : mouseY * mlean;
+    tx += (aimX - tx) * TILT_EASE; ty += (aimY - ty) * TILT_EASE;
     // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).
     // Opacity and transform only, on one small layer.
     beatSm = Math.max(sound.beat(), beatSm * Math.exp(-dt * 7));
@@ -1041,6 +1072,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       swordTilt.style.transform = still ? `scale(${(1 + 0.025 * beatShown).toFixed(4)})`
         : `rotateY(${(tx * 27 * SWORD_TILT).toFixed(2)}deg) rotateX(${(ty * -20 * SWORD_TILT).toFixed(2)}deg) scale(${(1 + 0.025 * beatShown).toFixed(4)})`;
     if (phase !== "world" || !worldBuilt) return;
+    if (!prog.classList.contains("on")) prog.classList.add("on");
+    progress();
     target = scrolled();
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
     if (Math.abs(target - cur) < 0.03) cur = target;

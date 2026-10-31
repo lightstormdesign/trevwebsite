@@ -2,7 +2,7 @@
 // 70% volume is baked into the file (iPhone ignores .volume). Its bass is a precomputed map (one
 // byte per 1/30 s, trev-kingdom-beat.bin): no Web Audio runs, since on iPhone starting Web Audio
 // froze the transition video mid-play (Burnell's site).
-const SRC = "/journey/trev-kingdom.m4a";
+const SRC = "/journey/trev-kingdom.m4a?v=3";   // bump with the file (phones cache it)
 const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
 const BEAT_FPS = 30;
 export const DROP_AT = 27.43; // seconds: the first bass note (nothing reacts to the beat before it)
