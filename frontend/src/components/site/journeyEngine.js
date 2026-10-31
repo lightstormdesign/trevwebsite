@@ -118,7 +118,11 @@ const LEAVES = [
 ];
 const OWL = { x: 166, y: 482, w: 71 };   // on the aspens' branch, halfway up the grove (aspens layer coordinates)
 const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
-const BUTTERFLY_AT = [818, 1294], BUTTERFLY_FLY_S = 9;   // landed on the cactus flower (foreground coordinates)
+// The lolo (the Madagascan sunset moth, a totem): it begins as a cocoon hanging from the juniper's
+// upper branch; tapped, the cocoon pulses gold and splits, the moth unfolds its wings as light sweeps
+// across them, then settles on the branch (juniper coordinates). After that a tap sends it fluttering.
+const COCOON_AT = [540, 440], COCOON_W = 120;
+const BUTTERFLY_AT = [470, 398], BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 1.0];   // [unfolding, gliding to the branch]
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
 // flock crosses (every other beat).
@@ -167,7 +171,16 @@ const CREATURES = [
     y: 1000 + 30 * Math.sin(t * 0.85 + 4.2), rot: 10 * Math.cos(t * 0.55 + 2.1) }) },
   { kind: "butterfly", layer: "foreground", w: 115, pose: (t) => ({ x: 345 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)),
     y: 1125 + 1.2 * 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55) }) },
-  { kind: "butterfly", landed: true, layer: "foreground", w: 84, pose: (t, p, c) => {
+  { kind: "cocoon", layer: "juniper", w: COCOON_W, pose: (t, p, c) => (c.gone ? null : { x: COCOON_AT[0], y: COCOON_AT[1] }) },
+  { kind: "butterfly", landed: true, layer: "juniper", w: 92, pose: (t, p, c) => {
+    if (!c.emerged) {
+      if (!c.hatchAt) return null;
+      const d = t - c.hatchAt;
+      if (d < HATCH_S[0]) return { x: COCOON_AT[0], y: COCOON_AT[1] + 4, scale: 0.55 + 0.45 * smooth(d / HATCH_S[0]), flying: false };
+      const e = smooth((d - HATCH_S[0]) / HATCH_S[1]);
+      if (e >= 1) { c.emerged = true; c.el.classList.remove("unfolding"); }
+      return { x: COCOON_AT[0] + (BUTTERFLY_AT[0] - COCOON_AT[0]) * e, y: COCOON_AT[1] + 4 + (BUTTERFLY_AT[1] - COCOON_AT[1] - 4) * e - 26 * Math.sin(Math.PI * e), flying: e > 0 && e < 1 };
+    }
     if (c.returnAt) {   // called home: drifts back down onto its flower from wherever it was
       const u = (t - c.returnAt) / RETURN_S;
       if (u >= 1 || u < 0) c.returnAt = 0;
@@ -508,7 +521,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // roar, so nothing on its own clock changes that frame
     try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
     if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.el.classList.remove("is-on"); }
-    if (butterfly) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.el.classList.remove("is-on"); }
+    if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.el.classList.remove("is-on"); }
     if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
     const ref = layerOf.aspens.el.nextSibling;
     for (let i = 0; i < 10; i++) {
@@ -529,7 +542,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     for (const c of CREATURES) {
       c.pushUntil = 0;
       if (!c.flyAt) continue;
-      if (c.kind === "butterfly") { const q = c.pose(now, 1, c); c.fromDx = q.x - BUTTERFLY_AT[0]; c.fromDy = q.y - BUTTERFLY_AT[1]; }
+      if (c.kind === "butterfly") { const q = c.pose(now, 1, c); if (!q) { c.flyAt = 0; continue; } c.fromDx = q.x - BUTTERFLY_AT[0]; c.fromDy = q.y - BUTTERFLY_AT[1]; }
       c.flyAt = 0; c.returnAt = now;
     }
     if (owl) owl.classList.remove("look", "open");
@@ -614,7 +627,20 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
   // closes them and looks back out over the world.
-  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null, salmon = null, homeward = null;
+  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null, salmon = null, homeward = null, cocoon = null;
+  // the lolo's cocoon: tapped, it pulses gold and splits, and the moth unfolds into the light
+  const overCocoon = (x, y) => {
+    if (!cocoon || cocoon.gone || cocoon.hatching || phase !== "world") return false;
+    const r = cocoon.el.firstChild.getBoundingClientRect(), pad = 18;
+    return r.width && x > r.left + r.width * 0.25 - pad && x < r.right - r.width * 0.25 + pad && y > r.top + r.height * 0.15 && y < r.bottom + pad;
+  };
+  function hatch() {
+    cocoon.hatching = true; cocoon.el.classList.add("hatching"); haptic(30);
+    later(() => {
+      butterfly.hatchAt = performance.now() / 1000; butterfly.el.classList.add("unfolding"); wake("butterfly");
+      later(() => { cocoon.gone = true; }, 900);
+    }, 650);
+  }
   // a moving target: the leaping salmon is hit-tested where it is right now (with some forgiveness)
   const overSalmon = (x, y) => {
     if (!salmon || phase !== "world" || salmon.el.style.opacity === "0" || salmon.fish.style.opacity === "0") return false;
@@ -630,7 +656,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   // the bluebird and the landed butterfly: a tap sends it flying (hover on desktop lights it a touch)
   const overFlier = (c, x, y) => {
-    if (!c || c.flyAt || phase !== "world" || c.el.style.opacity === "0") return false;
+    if (!c || c.flyAt || phase !== "world" || c.el.style.opacity === "0" || (c === butterfly && !c.emerged)) return false;
     const r = c.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
     const pad = Math.max(22, r.width * 0.4);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
@@ -656,6 +682,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   const fliers = () => [perch, butterfly];
   const tapFliers = (x, y) => {
+    if (overCocoon(x, y)) return hatch();
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
     if (overSalmon(x, y)) return catchSalmon();
     if (overBison(x, y, 30)) return;
@@ -749,8 +776,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         + ["away", "closed", "open"].map((k) => `<img class="${k}" src="${A}trev-world-owl-${k}.webp" alt="">`).join("");
       owl = el;
     }
+    else if (c.kind === "cocoon") { body.innerHTML = sacredAura() + `<img class="pod" src="${A}trev-world-lolo-cocoon.webp" alt="A glowing cocoon"><i class="flash"></i>`; cocoon = c; }
     else if (c.kind === "butterfly") {
-      body.innerHTML = (c.landed ? sacredAura() : "") + `<img class="wings" src="${A}trev-world-butterfly.webp" alt="">`;
+      body.innerHTML = c.landed
+        ? sacredAura() + `<div class="moth"><img class="open" src="${A}trev-world-lolo-open.webp" alt="The lolo"><img class="raised" src="${A}trev-world-lolo-raised.webp" alt=""><i class="sweep" style="-webkit-mask-image:url(${A}trev-world-lolo-open.webp);mask-image:url(${A}trev-world-lolo-open.webp)"></i></div>`
+        : `<img class="wings" src="${A}trev-world-butterfly.webp" alt="">`;
       if (c.landed) { el.classList.add("landed"); c.flyAt = 0; c.flying = false; butterfly = c; }
     }
     else if (c.kind === "leaf") body.innerHTML = `<img src="${A + c.src}" alt="">`;
@@ -898,7 +928,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (el.style.opacity !== op) el.style.opacity = op;
       if (c.update) c.update(pose);
       const sx = pose.flip != null ? pose.flip : pose.face;
-      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}`;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}${pose.scale ? ` scale(${pose.scale.toFixed(3)})` : ""}`;
     }
   }
   function storyLayout(s) {
@@ -1004,6 +1034,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
 
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
+    if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
     if (isNight) later(() => root.classList.add("night"), NIGHT_AFTER_MS);
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);

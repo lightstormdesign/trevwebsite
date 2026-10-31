@@ -645,3 +645,48 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison.blessing .groundRing u { animation: tj-bloom2 3.4s cubic-bezier(.2,.8,.3,1) var(--d) forwards; }
 @keyframes tj-bloom2 { 0% { opacity: 0; transform: scale(0) rotate(-40deg); } 22% { opacity: 1; transform: scale(1.12) rotate(4deg); }
   30%, 72% { opacity: 1; transform: scale(1) rotate(0deg); } 100% { opacity: 0; transform: scale(.6) rotate(10deg); } }
+
+/* ---------- the lolo: cocoon -> moth (journeyEngine.js) ---------- */
+.tj-cr-cocoon .tj-crBody { aspect-ratio: 1; }
+.tj-cr-cocoon .pod { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 47% 15%; animation: tj-podSway 5s ease-in-out infinite; }
+@keyframes tj-podSway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+.tj-cr-cocoon .aura { position: absolute; left: 10%; top: 18%; width: 80%; aspect-ratio: 1; pointer-events: none; }
+.tj-cr-cocoon .glow, .tj-cr-cocoon .geo { position: absolute; inset: 0; }
+.tj-cr-cocoon .glow i, .tj-cr-cocoon .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tj-cr-cocoon .glow i { border-radius: 50%; background: radial-gradient(closest-side, rgba(255,226,150,.6), rgba(240,190,100,.2) 60%, transparent); }
+.tj-cr-cocoon .geo svg { -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  animation: tj-auraSpin 80s linear infinite reverse; }
+.tj-cr-cocoon .geo svg g { stroke: #ffd27a; stroke-width: .9; }
+.tj-cr-cocoon .glow { opacity: .3; animation: tj-flyGlow2 5s ease-in-out infinite; } .tj-cr-cocoon .geo { opacity: .2; }
+@keyframes tj-flyGlow2 { 0%, 100% { opacity: .28; } 50% { opacity: .42; } }
+.tj-cr-cocoon .flash { position: absolute; left: 20%; top: 25%; width: 60%; height: 65%; border-radius: 50%; opacity: 0;
+  background: radial-gradient(closest-side, #fffbe8, rgba(255,226,150,.8) 40%, transparent); }
+.tj-cr-cocoon.hatching .pod { animation: tj-podShake .08s linear 7, tj-podGo .9s ease-in .6s forwards; }
+.tj-cr-cocoon.hatching .flash { animation: tj-podFlash 1.4s ease-out .3s forwards; }
+.tj-cr-cocoon.hatching .glow { animation: none; opacity: .9; transition: opacity .3s; }
+@keyframes tj-podShake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+@keyframes tj-podGo { to { opacity: 0; transform: scale(1.15); filter: brightness(1.8); } }
+@keyframes tj-podFlash { 0% { opacity: 0; transform: scale(.4); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(2.4); } }
+/* the moth: resting wings breathe; flying they beat; unfolding they open as light sweeps across them */
+.tj-cr-butterfly.landed .tj-crBody { aspect-ratio: 1; }
+.tj-cr-butterfly .moth { position: absolute; inset: 0; }
+.tj-cr-butterfly .moth img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tj-cr-butterfly .moth .raised { opacity: 0; animation: tj-mothRest 3.6s ease-in-out infinite; }
+.tj-cr-butterfly .moth .open { animation: tj-mothRestB 3.6s ease-in-out infinite; }
+@keyframes tj-mothRest { 0%, 58%, 100% { opacity: 0; } 66%, 80% { opacity: 1; } }
+@keyframes tj-mothRestB { 0%, 58%, 100% { opacity: 1; } 66%, 80% { opacity: 0; } }
+.tj-cr-butterfly.landed.flying .moth .raised { animation: tj-flapA2 .16s steps(1, end) infinite; }
+.tj-cr-butterfly.landed.flying .moth .open { animation: tj-flapB2 .16s steps(1, end) infinite; }
+@keyframes tj-flapA2 { 0% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes tj-flapB2 { 0% { opacity: 0; } 50%, 100% { opacity: 1; } }
+.tj-cr-butterfly.unfolding .moth { animation: tj-unfold 1.3s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes tj-unfold { 0% { transform: scale(.12, .7); opacity: 0; } 15% { opacity: 1; } 100% { transform: none; opacity: 1; } }
+.tj-cr-butterfly .moth .sweep { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,250,235,.85) 50%, transparent 65%) 0 0 / 300% 100% no-repeat;
+  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+}
+.tj-cr-butterfly.unfolding .moth .sweep { animation: tj-sweep2 1.2s ease-in-out .6s both; }
+@keyframes tj-sweep2 { 0% { opacity: 0; background-position: 100% 0; } 20%, 80% { opacity: 1; } 100% { opacity: 0; background-position: 0% 0; } }
+.tj-cr-butterfly.landed .aura { position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; pointer-events: none; }
+/* night: its beauty is only in the light */
+.tj.night .tj-cr-butterfly.landed .moth img { filter: brightness(.3) saturate(.15); }
