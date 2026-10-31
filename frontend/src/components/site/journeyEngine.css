@@ -566,5 +566,14 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-roarwave .geo { position: absolute; inset: 0; }
 .tj-cr-roarwave .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tj-cr-roarwave .geo svg g { stroke: #ffe2a0; stroke-width: .7; }
-.tj.roaring .tj-cr-roarwave .wave { animation: tj-roarWave 1.45s cubic-bezier(.2,.6,.3,1) calc(var(--i) * .15s) both; }   /* all gone by ~1.9s */
+.tj.roaring .tj-cr-roarwave .wave { animation: tj-roarWave 1.35s cubic-bezier(.2,.6,.3,1) calc(.35s + var(--i) * .13s) both; }   /* once his head is up; gone by ~2.1s */
+.tj-cr-roarwave.over .tj-crBody { opacity: .35; }   /* over the lion: he stays clear through his own rings */
 @keyframes tj-roarWave { 0% { opacity: 0; transform: scale(.25) rotate(0deg); } 12% { opacity: .95; } 100% { opacity: 0; transform: scale(5.5) rotate(30deg); } }
+
+/* the lion's focus: the vignette closes in around him, harder as he charges, released by the roar */
+.tj-vignette .lionFocus { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease;
+  background: radial-gradient(ellipse 60vmax 52vmax at var(--lx, 50%) var(--ly, 60%), transparent 18%, rgba(8,5,3,.45) 50%, rgba(5,3,2,.88) 100%); }
+.tj.focus .tj-vignette .lionFocus { opacity: .7; }
+.tj.charging .tj-vignette .lionFocus { opacity: 1; transition-duration: .45s; }
+.tj.roaring .tj-vignette .lionFocus { opacity: 0; transition-duration: 1.6s; }
+.tj.charging .tj-cr-lion .aura { transform: scale(1.25); filter: brightness(1.6); transition: transform .6s ease, filter .6s ease; }

@@ -177,8 +177,9 @@ const CREATURES = [
   { kind: "owl", layer: "aspens", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) || t < (c.pushUntil || 0) }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 120, y: 800 }) },
+  { kind: "roarwave", layer: "bison", w: 150, pose: () => ({ x: 110, y: -2 }) },                // behind the lion
   { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
-  { kind: "roarwave", layer: "bison", top: true, w: 150, pose: () => ({ x: 110, y: -2 }) },
+  { kind: "roarwave", layer: "bison", top: true, over: true, w: 150, pose: () => ({ x: 110, y: -2 }) },   // faint, over him
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
   ...[[330, 880], [470, 900], [600, 870], [400, 1030], [540, 960]].map(([x, y], i) =>
     ({ kind: "ripple", layer: "river", w: 70, delay: i * 0.45, pose: () => ({ x, y }) })),
@@ -233,7 +234,7 @@ const BUBBLE_AFTER_MS = 10000;
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
-const FOCUS_MS = 1600, FINALE_AFTER_MS = 2000;
+const FOCUS_MS = 1600, FINALE_AFTER_MS = 2000, CHARGE_MS = 650;
 // simple line icons of each totem's face, drawn in gold
 const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "lizard": "<ellipse cx=\"12\" cy=\"5.3\" rx=\"1.5\" ry=\"2\"/><path d=\"M12 7.3c.9 2.2.9 5.3 0 8.2-.8 2.6-2.5 4.4-4.8 5\"/><path d=\"M11.8 9.6l-3-1.4-1 1.5M12.2 9.6l3-1.4 1 1.5M11.9 13.4l-3 1.5-.7 1.6M12.1 13.4l3 1.5.7 1.6\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<circle cx=\"12\" cy=\"12\" r=\"9.3\" stroke-dasharray=\"2.1 1.3\"/><path d=\"M8 9.6c0-2 1.8-3.6 4-3.6s4 1.6 4 3.6v2.6c0 2.6-1.8 4.8-4 4.8s-4-2.2-4-4.8z\"/><circle cx=\"10.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"13.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M11 13.3h2l-1 1.1z\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
@@ -298,7 +299,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
       <div class="tj-grade"></div>
     </div>` : ""}
-    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
+    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div><div class="lionFocus"></div></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
@@ -447,7 +448,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // The focus: every animal settles in a fixed place (so the finale's first frame always matches),
   // the birds and leaves leave the sky, the page glides to the bottom of the world and holds, the
   // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
-  let frozen = false, focusAt = 0;
+  let frozen = false, focusAt = 0, chargeAt = 0;
   function focus() {
     if (frozen) return;
     frozen = true; focusAt = performance.now();
@@ -456,13 +457,45 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
     later(() => scroller.classList.add("locked"), 900);
     root.classList.add("frozen", "focus");
+    later(aimFocus, 950);
+  }
+  // the focus vignette closes in around the lion
+  function aimFocus() {
+    if (!lion) return;
+    const r = lion.el.firstChild.getBoundingClientRect();
+    vignette.style.setProperty("--lx", `${(r.left + r.width / 2).toFixed(0)}px`);
+    vignette.style.setProperty("--ly", `${(r.top + r.height * 0.45).toFixed(0)}px`);
+  }
+  // a buzz: Android vibrates; on iPhone (no vibration for websites) a hidden switch toggle gives the
+  // light haptic tick iOS 18+ plays for switches
+  let hapticSwitch = null;
+  function haptic(pattern) {
+    try {
+      if (navigator.vibrate) { navigator.vibrate(pattern); return; }
+      if (!hapticSwitch) {
+        hapticSwitch = document.createElement("label");
+        hapticSwitch.setAttribute("aria-hidden", "true");
+        hapticSwitch.style.cssText = "position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;pointer-events:none";
+        hapticSwitch.innerHTML = `<input type="checkbox" switch tabindex="-1">`;
+        root.appendChild(hapticSwitch);
+      }
+      const ticks = Array.isArray(pattern) ? Math.ceil(pattern.length / 2) : 1;
+      for (let i = 0; i < ticks; i++) later(() => hapticSwitch.click(), i * 70);
+    } catch (e) { /* no haptics here */ }
   }
   function roar() {
     if (roaring) return;
     if (!frozen) { focus(); return later(roar, FOCUS_MS); }
     const wait = FOCUS_MS - (performance.now() - focusAt);
     if (wait > 0) return later(roar, wait);
-    roaring = true; root.classList.remove("focus"); root.classList.add("roaring");
+    // the charge: the vignette drops hard around the lion at once, then he roars
+    if (!root.classList.contains("charging")) {
+      aimFocus(); root.classList.add("charging"); haptic(25); chargeAt = performance.now();
+      return later(roar, CHARGE_MS);
+    }
+    if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
+    roaring = true; root.classList.remove("focus", "charging"); root.classList.add("roaring");
+    haptic([70, 30, 90, 30, 120, 40, 180]);
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
     later(() => {
       root.classList.remove("roaring"); roaring = false;
@@ -557,7 +590,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function creatureEl(c) {
     const el = document.createElement("div");
     c.t0 = 0;
-    el.className = `tj-cr tj-cr-${c.kind}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
+    el.className = `tj-cr tj-cr-${c.kind}${c.over ? " over" : ""}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
     if (c.kind === "aspen") body.innerHTML = sacredAura();
