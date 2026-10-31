@@ -91,6 +91,9 @@
 .tj-enter.show { opacity: 1; pointer-events: auto; filter: blur(0); }
 .tj-enter.show > span:not(.halo) { letter-spacing: .32em; margin-right: -.32em; }
 .tj-enter.leave { opacity: 0 !important; transition: opacity .5s ease; pointer-events: none; }
+/* tapped on a slow connection: it breathes while the transition finishes loading */
+.tj-enter.waiting { pointer-events: none; animation: tj-waiting 1.6s ease-in-out infinite; }
+@keyframes tj-waiting { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 .tj-enter:hover .glow { opacity: .62; }
 
 /* ---------- transition video ---------- */

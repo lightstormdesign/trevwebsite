@@ -52,6 +52,7 @@ const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
+const ENTER_WAIT_MS = 10000; // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
 const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357;
@@ -757,10 +758,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       buildWorld();
       const loadIt = () => { tv.preload = "auto"; tv.load(); };
       fetchAbort = typeof AbortController !== "undefined" ? new AbortController() : null;
+      fetching = true;
       fetch(transUrl, fetchAbort ? { signal: fetchAbort.signal } : undefined)
         .then((r) => (r.ok ? r.blob() : Promise.reject()))
-        .then((b) => { if (phase !== "hero" || started) return; blobUrl = URL.createObjectURL(b); tv.src = blobUrl; loadIt(); })
-        .catch(() => { if (phase === "hero" && !started && !tv.src) { tv.src = transUrl; loadIt(); } });
+        .then((b) => { if (phase !== "hero" || started) return; blobUrl = URL.createObjectURL(b); tv.src = blobUrl; loadIt(); inMemory = true; })
+        .catch(() => { if (phase === "hero" && !started && !tv.src) { tv.src = transUrl; loadIt(); } })
+        .finally(() => { fetching = false; sound.preload(); });   // then the song (the transition gets the line first)
     }
     later(warmUp, WARM_FALLBACK_MS);
     off.push(() => { if (fetchAbort) fetchAbort.abort(); if (blobUrl) URL.revokeObjectURL(blobUrl); });
@@ -897,6 +900,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       on(tv, "playing", () => afterFirstFrame(tv, () => {
         if (playing) return; playing = true;
         phase = "trans"; keep.hidden = false;
+        if (!fadeFrom) fadeFrom = performance.now();   // from the network: TREV fades once it's actually playing
         // the plate lifts off the identical first frame; TREV's real photo stays over the playing
         // video, fading (see fadeMe) — the artist is never in the AI video itself
         heroEl.classList.add("thru");
@@ -910,12 +914,35 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       begin();
       failsafe = setTimeout(() => { if (!playing) fallbackToWorld(); else enterWorld(); }, FAILSAFE_MS);
     }
+    // The tap: the song starts (inside the tap, so phones allow it) and, when the transition is in
+    // memory, it plays at once with TREV fading over it. On a slow connection it isn't yet: TREV and
+    // the portal stay up and "Tap to enter" breathes while the one download finishes (never a second,
+    // competing one). Still not there after ENTER_WAIT_MS: a cross-fade straight into the world. If the
+    // download failed outright, it plays from the network and TREV fades once a frame is on screen.
+    let inMemory = false, fetching = false;
     function onEnter() {
       if (leaving) return; leaving = true;
-      sound.enter();                                  // the song starts (or keeps playing), inside the tap so phones allow it
-      enter.classList.add("leave"); grade.style.opacity = 0;
+      sound.enter();
       if (!warm) warmUp();
-      fadeFrom = performance.now(); playTransition();   // at once (no motion prompt here)
+      const go = (fadeNow) => {
+        enter.classList.remove("waiting"); enter.classList.add("leave"); grade.style.opacity = 0;
+        if (fadeNow) fadeFrom = performance.now();
+        playTransition();
+      };
+      if (inMemory) return go(true);
+      enter.classList.add("waiting");
+      const t0 = performance.now();
+      const check = () => {
+        if (inMemory) return go(true);
+        if (!fetching) return go(false);                            // the download failed: from the network
+        if (performance.now() - t0 > ENTER_WAIT_MS) {               // too slow: straight into the world
+          if (fetchAbort) fetchAbort.abort();
+          enter.classList.remove("waiting"); enter.classList.add("leave");
+          return fallbackToWorld();
+        }
+        later(check, 100);
+      };
+      check();
     }
     wire(tv);
     on(enterLayer, "click", onEnter);   // anywhere on the hero, not just the words

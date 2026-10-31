@@ -34,7 +34,12 @@ export const sound = {
     const a = el();
     started = true;
     try { a.currentTime = 0; } catch (e) { /* not loaded yet: it starts at 0 anyway */ }
-    return a.play().catch(() => { started = false; emit(); });
+    return a.play().catch((err) => {
+      // refused by the browser: it stays off. Anything else is the network (a slow connection):
+      // the tap already unlocked it, so it comes in as soon as enough has loaded.
+      if (err && err.name === "NotAllowedError") { started = false; emit(); return; }
+      a.addEventListener("canplay", () => { if (started) a.play().catch(() => {}); }, { once: true });
+    });
   },
   // Tap to Enter: always ends up playing (from the start if it never has)
   enter() {
@@ -52,6 +57,8 @@ export const sound = {
     return Promise.resolve();
   },
   setBeckon(on) { beckoning = on; emit(); },
+  // start downloading the song ahead of the tap (after the transition has its turn)
+  preload() { el(); },
   // 0..1: how hard the bass is hitting right now (0 before the drop, or when it isn't playing)
   beat() {
     if (!audio || audio.paused || !beatMap || audio.currentTime < DROP_AT) return 0;
