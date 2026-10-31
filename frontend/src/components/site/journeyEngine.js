@@ -176,7 +176,7 @@ const CREATURES = [
   } },
   // the owl (rig, tap and art all kept) is off for now:
   // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
-  { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) }) },
+  { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) || t < (c.pushUntil || 0) }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 130, y: 470 }) },
   { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
@@ -333,7 +333,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
     <div class="tj-totems">${[["bison", "w3-bison-body.webp"], ["bluebird", "trev-world-bluebird-perched.webp"],
-      ["butterfly", "trev-world-butterfly.webp"], ["aspen", "trev-world-bleaf-4.webp"], ["cloud", "burnell-world-cloud-medium.webp"]]
+      ["butterfly", "trev-world-butterfly.webp"], ["lizard", "trev-world-lizard-a.webp"]]
       .map(([k, src]) => `<span class="tj-totem" data-k="${k}"><img src="${A + src}" alt=""></span>`).join("")}
       <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion"><img src="${A}trev-world-lion.webp" alt=""></button></div>
     <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
@@ -480,6 +480,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const tapFliers = (x, y) => {
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
     if (overBison(x, y, 30)) return;
+    const liz = CREATURES.find((c) => c.kind === "lizard");
+    if (liz && liz.el.style.opacity !== "0") {
+      const r = liz.el.firstChild.getBoundingClientRect(), pad = 26;
+      if (x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad) {
+        liz.pushUntil = performance.now() / 1000 + 1.3; wake("lizard"); return;
+      }
+    }
     if (tapAspens(x, y)) return;
     tapClouds(x, y);
   };
@@ -715,18 +722,19 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ---------- the living world: totems, aspens, clouds and rain, night ----------
   // Every sacred thing is a totem: waking one fills its gold icon in the row at the top. Wake them all
   // and the Kingdom awakens (for now a gold flare; the lion, the roar and the eye come next).
-  const TOTEMS = ["bison", "bluebird", "butterfly", "aspen", "cloud"];
+  // (the aspens and the sky answer a tap too, but they aren't totems: the totems are the animals)
+  const TOTEMS = ["bison", "bluebird", "butterfly", "lizard"];
   const totemRow = $(".tj-totems");
   let awake = new Set(), climaxed = false;
   try { awake = new Set(JSON.parse(localStorage.getItem("tj-totems") || "[]")); climaxed = localStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
   const paintTotems = () => TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k)));
   paintTotems();
   function wake(k) {
-    if (awake.has(k)) return;
+    if (!TOTEMS.includes(k) || awake.has(k)) return;
     awake.add(k); paintTotems();
     const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
     try { localStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
-    if (awake.size === TOTEMS.length && !climaxed) later(awaken, 900);
+    if (TOTEMS.every((t) => awake.has(t)) && !climaxed) later(awaken, 900);
   }
   function awaken() {
     climaxed = true; root.classList.add("awakening");
@@ -749,7 +757,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (lx < 0 || lx > 270 || ly < 0 || ly > 1150) return false;
     const now = performance.now() / 1000;
     if (now - aspenAt < 1.2) return true;
-    aspenAt = now; wake("aspen");
+    aspenAt = now;
     const asp = CREATURES.find((c) => c.kind === "aspen"); asp.el.classList.add("is-on"); later(() => asp.el.classList.remove("is-on"), 2500);
     const ref = layerOf.aspens.el.nextSibling;
     for (let i = 0; i < 9; i++) {
@@ -772,7 +780,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the clouds are painted into the sky, so the whole sky above the ridge answers (below the header)
     const [, my] = toLayer(x, y, "mountains");
     if (y < 110 || my > RIDGE_Y - 40) return;
-    raining = true; wake("cloud");
+    raining = true;
     root.classList.add("raining");
     later(() => { root.classList.remove("raining"); root.classList.add("rainbow"); }, RAIN_MS);
     later(() => { root.classList.remove("rainbow"); raining = false; }, RAIN_MS + RAINBOW_MS);
