@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
-// Shown in place of a form right after it attempts a mailto: submission.
+// Shown in place of the form when the Formspree request fails: says plainly that it didn't go
+// through, opens a pre-filled email, and offers the message to copy.
+// (Originally from Sierra's site, where it followed a mailto: submission.)
 // There is no backend here, so a mailto: is the only zero-infrastructure
 // way to send — but the browser gives no signal of whether it actually
 // opened a mail client (most visitors without one configured get nothing
@@ -26,9 +28,10 @@ export const MailtoFallback = ({ email, subject, body, onReset }) => {
   };
 
   return (
-    <div className="mt-8 rounded-xl border border-[var(--sm-gold)]/30 bg-black/30 px-5 py-6 text-left sm:px-6">
-      <p className="font-body text-sm text-white/80">
-        Your email app should have just opened with this inquiry ready to go — check for it and hit send there to
+    <div role="alert" data-testid="booking-error" className="mt-8 rounded-xl border border-red-400/40 bg-black/30 px-5 py-6 text-left sm:px-6">
+      <p className="font-body text-sm font-medium text-red-300">Sorry, your request didn't go through.</p>
+      <p className="font-body mt-2 text-sm text-white/80">
+        Nothing was sent yet. Your email app should have just opened with this inquiry ready to go — hit send there to
         complete it.
       </p>
       <p className="font-body mt-2 text-sm text-white/60">
