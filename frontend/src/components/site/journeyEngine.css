@@ -102,6 +102,7 @@
 .tj-keep { position: absolute; inset: 0; background: rgba(0,0,0,.012); } /* keeps iPhone off the direct video path that can freeze */
 .tj-transSide { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); }
 .tj-tv { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
+.tj-snap { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 
 /* ---------- world ---------- */
 .tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: var(--tj-bg); pointer-events: none; }

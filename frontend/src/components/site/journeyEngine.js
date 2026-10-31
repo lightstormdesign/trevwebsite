@@ -52,6 +52,7 @@ const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
+const DESK_GROW_S = 1.2;      // desktop: the phone video grows from the hero's framing to full screen over this long
 const ENTER_WAIT_MS = 10000; // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
@@ -802,12 +803,24 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         const hy = Math.min(0, Math.max(H0 - TRANS.h * k, H0 / 2 - set.fy * TRANS.h * k));
         const kw = wf.k * CANVAS.w / TRANS.w, e = smooth(u);
         v.style.transform = `translate(${(hx + (wf.ox - hx) * e).toFixed(1)}px, ${(hy + (wf.oy - hy) * e).toFixed(1)}px) scale(${(k + (kw - k) * e).toFixed(5)})`;
-      } else {                                       // desktop: the world's column, with its blurred sides
-        const k = wf.colW / TRANS.w;
-        v.style.transform = `translate(${((W - wf.colW) / 2).toFixed(1)}px, ${((H - TRANS.h * k) / 2).toFixed(1)}px) scale(${k.toFixed(5)})`;
+      } else {
+        // Desktop (until there's a 16:9 transition): the phone video starts exactly over the hero (its
+        // first frame is the phone plate, mapped onto the desktop plate through TREV's cutout), grows to
+        // fill the screen over DESK_GROW_S while a still of the hero around it fades, holds full-screen,
+        // and over the last stretch settles into the world's column, its landing frame.
+        const mob = HERO_SETS.mobile.cut, desk = set.cut, r = mob.w / desk.w;
+        const A = { k: fit.k / r, x: fit.ox + (desk.x - mob.x / r) * fit.k, y: fit.oy + (desk.y - mob.y / r) * fit.k };
+        const kc = Math.max(W / TRANS.w, H0 / TRANS.h);
+        const C = { k: kc, x: (W - TRANS.w * kc) / 2, y: Math.min(0, Math.max(H0 - TRANS.h * kc, H0 / 2 - HERO_SETS.mobile.fy * TRANS.h * kc)) };
+        const Wd = { k: wf.k * CANVAS.w / TRANS.w, x: wf.ox, y: wf.oy };
+        const g = smooth((v.currentTime || 0) / DESK_GROW_S), e = smooth((u - 0.55) / 0.45);
+        const lerp = (a, b, t) => a + (b - a) * t;
+        const P = { k: lerp(A.k, C.k, g), x: lerp(A.x, C.x, g), y: lerp(A.y, C.y, g) };
+        v.style.transform = `translate(${lerp(P.x, Wd.x, e).toFixed(1)}px, ${lerp(P.y, Wd.y, e).toFixed(1)}px) scale(${lerp(P.k, Wd.k, e).toFixed(5)})`;
+        if (snap) snap.style.opacity = (1 - g).toFixed(3);
       }
     }
-    let failsafe = 0, stallIv = 0, freezeIv = 0;
+    let failsafe = 0, stallIv = 0, freezeIv = 0, snap = null;
     function stopWatch() { clearTimeout(failsafe); clearInterval(stallIv); clearInterval(freezeIv); }
     off.push(stopWatch);
     function beginLanding(v) {                        // from LANDING_AT: veil the video exactly like the world's landing, raise the copy
@@ -903,6 +916,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         if (!fadeFrom) fadeFrom = performance.now();   // from the network: TREV fades once it's actually playing
         // the plate lifts off the identical first frame; TREV's real photo stays over the playing
         // video, fading (see fadeMe) — the artist is never in the AI video itself
+        if (set === HERO_SETS.desktop) {   // a still of the hero's current frame, under the growing video
+          snap = document.createElement("canvas"); snap.className = "tj-snap"; snap.width = set.w; snap.height = set.h;
+          try { snap.getContext("2d").drawImage(plate.readyState >= 2 ? plate : plateStill, 0, 0, set.w, set.h); } catch (err) { /* poster only */ }
+          snap.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${fit.k})`;
+          tv.parentNode.insertBefore(snap, tv);
+        }
         heroEl.classList.add("thru");
         plate.pause(); watchStall(); watchFreeze();
       }), { once: true });
