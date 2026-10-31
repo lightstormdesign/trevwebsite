@@ -53,7 +53,7 @@ const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy 
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
 const DESK_GROW_S = 1.2;      // desktop: the phone video grows from the hero's framing to full screen over this long
-const ENTER_WAIT_MS = 10000; // on a slow connection, how long a tap waits for the transition to be in memory
+const ENTER_WAIT_MS = 4000;  // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
 const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357;
@@ -654,7 +654,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     let readyAt = 0;
     const trans = $(".tj-trans"), keep = $(".tj-keep");
     const tv = $(".tj-tv");
-    const transUrl = A + (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
+    // HEVC (smaller) for phones; desktop browsers get H.264, which every one of them plays smoothly
+    const phone = matchMedia("(pointer: coarse)").matches;
+    const transUrl = A + (phone && tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
     docEl.classList.add("tj-face-grain");
     off.push(() => { docEl.classList.remove("tj-face-grain"); docEl.style.removeProperty("--tj-face"); });
@@ -936,7 +938,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // The tap: the song starts (inside the tap, so phones allow it) and, when the transition is in
     // memory, it plays at once with TREV fading over it. On a slow connection it isn't yet: TREV and
     // the portal stay up and "Tap to enter" breathes while the one download finishes (never a second,
-    // competing one). Still not there after ENTER_WAIT_MS: a cross-fade straight into the world. If the
+    // competing one) for up to ENTER_WAIT_MS; then it plays from the network (the stall watchdog and failsafe still cover a dead connection). If the
     // download failed outright, it plays from the network and TREV fades once a frame is on screen.
     let inMemory = false, fetching = false;
     function onEnter() {
@@ -954,11 +956,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const check = () => {
         if (inMemory) return go(true);
         if (!fetching) return go(false);                            // the download failed: from the network
-        if (performance.now() - t0 > ENTER_WAIT_MS) {               // too slow: straight into the world
-          if (fetchAbort) fetchAbort.abort();
-          enter.classList.remove("waiting"); enter.classList.add("leave");
-          return fallbackToWorld();
-        }
+        if (performance.now() - t0 > ENTER_WAIT_MS) return go(false);   // play it from the network (TREV fades once it's up)
         later(check, 100);
       };
       check();
