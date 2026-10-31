@@ -32,6 +32,7 @@
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
 import { sound, tilt } from "@/utils/sound";
+import { LAYLO_URL } from "@/data/site";
 
 const A = "/journey/";
 
@@ -201,7 +202,7 @@ const STORY = [
   { title: "The Leap", media: "story-04-the-leap.webp", body: [
     "Years later, a few videos took off: over a million views, opening for artists I idolized. Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
     "The net was a mirage. And maybe I was too."] },
-  { title: "Rise Free", media: "story-05-rise-free.webp", body: [
+  { title: "Rise Free", media: "story-05-kingdom-sign.webp", pos: "50% 30%", body: [
     "I gave up on music and ended up in my mom's basement, working night shifts at the post office. My dream was dead for a second time.",
     "In that basement I finally understood: no label, no manager, no miracle was coming. I was the one I'd been waiting for.",
     "So I wrote my way out."] },
@@ -214,8 +215,10 @@ const STORY = [
     "I stopped seeking a kingdom and started building my own. Now I tour internationally and live from my music."] },
   { title: "My Name Is TREV", media: "story-10-my-name.webp", body: [
     "I come with the infinite power of the spoken word. Every song is medicine made from my journey, a prayerformance for the man I needed during my own dark night of the soul."] },
-  { title: "The Kingdom Within", media: "story-08-sword.webp", pos: "50% 45%", lead: "The Kingdom of Heaven is within." },
+  { title: "The Kingdom Within", media: "story-08-sword.webp", pos: "50% 45%", lead: "The Kingdom of Heaven is within.",
+    cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
+const BUBBLE_AFTER_MS = 10000;
 const STORY_HOLD_SVH = 110, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
 
@@ -305,6 +308,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
+    <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
+      <span class="tj-bubbleIcon" aria-hidden="true">✦</span>
+      <span class="tj-bubbleText"><b>High-vibe texts from TREV</b><span>Unreleased music &amp; new shows, first</span></span>
+      <button class="tj-bubbleClose" type="button" aria-label="Close">&times;</button>
+    </a>
     <header class="tj-header">
       <div class="tj-headLeft">
         <span class="tj-soundSlot" aria-hidden="true"></span>
@@ -533,6 +541,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (c.title) t.insertAdjacentHTML("beforeend", `<h2 class="${c.cover ? "tj-gold" : ""}">${c.title}</h2>`);
       if (c.lead) t.insertAdjacentHTML("beforeend", `<p class="lead">${c.lead}</p>`);
       for (const b of c.body || []) t.insertAdjacentHTML("beforeend", `<p>${b}</p>`);
+      if (c.cta) t.insertAdjacentHTML("beforeend", `<a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a>`
+        + (c.ctaNote ? `<span class="tj-ctaNote">${c.ctaNote}</span>` : ""));
       el.append(m, t); storyEl.appendChild(el);
       slides.push({ el, m, video: !!c.video });
     }
@@ -629,8 +639,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   let vigShown = -1;
   const setVignette = (o) => { if (Math.abs(o - vigShown) > 0.004) { vigShown = o; vignette.style.opacity = o.toFixed(3); } };
   let worldAt = 0;   // when the world opened (s)
+  // the text-list bubble: rises in BUBBLE_AFTER_MS after the world opens; closed, it stays closed this visit
+  const bubble = $(".tj-bubble");
+  let bubbleClosed = false;
+  try { bubbleClosed = sessionStorage.getItem("tj-bubble-closed") === "1"; } catch (e) { /* private mode */ }
+  on($(".tj-bubbleClose"), "click", (e) => {
+    e.preventDefault(); e.stopPropagation(); bubble.classList.remove("show"); bubbleClosed = true;
+    try { sessionStorage.setItem("tj-bubble-closed", "1"); } catch (err) { /* private mode */ }
+  });
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
+    if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
     track.style.height = `${100 + STORY_START_SVH + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
