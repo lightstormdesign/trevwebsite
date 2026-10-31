@@ -244,7 +244,7 @@ const BUBBLE_AFTER_MS = 10000;
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
-const FOCUS_MS = 1120, FINALE_AFTER_MS = 2000, CHARGE_MS = 455, SETTLE_MS = 1050, RETURN_S = 0.95;
+const FOCUS_MS = 120, FINALE_AFTER_MS = 2000, CHARGE_MS = 380, SETTLE_MS = 450, RETURN_S = 1.6;
 // simple line icons of each totem's face, drawn in gold
 const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "lizard": "<ellipse cx=\"12\" cy=\"5.3\" rx=\"1.5\" ry=\"2\"/><path d=\"M12 7.3c.9 2.2.9 5.3 0 8.2-.8 2.6-2.5 4.4-4.8 5\"/><path d=\"M11.8 9.6l-3-1.4-1 1.5M12.2 9.6l3-1.4 1 1.5M11.9 13.4l-3 1.5-.7 1.6M12.1 13.4l3 1.5.7 1.6\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<path d=\"M12 2.8c.9 1 1.3 2 1.2 3M12 2.8c-.9 1-1.3 2-1.2 3M9.3 4.2c.4 1.2 1.1 2 2 2.4M14.7 4.2c-.4 1.2-1.1 2-2 2.4\"/><path d=\"M9 5.6C6.6 6 4.8 8 4.6 10.6c-.2 2.4.8 4.6 2.6 6.1l1.8 1.6L12 21.4l3-3.1 1.8-1.6c1.8-1.5 2.8-3.7 2.6-6.1C19.2 8 17.4 6 15 5.6\"/><path d=\"M8.4 9.2c1-1.1 2.2-1.6 3.6-1.6s2.6.5 3.6 1.6v3.2c0 2-1.6 3.8-3.6 3.8s-3.6-1.8-3.6-3.8z\"/><circle cx=\"12\" cy=\"9.3\" r=\".9\"/><path d=\"M9.7 11.3l1.2.3M14.3 11.3l-1.2.3\"/><path d=\"M11.1 13.2h1.8l-.9 1z\"/><path d=\"M12 14.2v.7M11 15.4c.3.3.6.4 1 .4s.7-.1 1-.4\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
@@ -453,6 +453,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function transform() {
     if (lionMode) return;
     lionMode = true; root.classList.add("transforming");
+    callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
     later(() => root.classList.remove("transforming"), 1900);
   }
@@ -461,10 +462,34 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
   let frozen = false, focusAt = 0, chargeAt = 0;
   // (all of this starts at the lion tap; until then the world carries on as ever)
-  function focus() {
-    if (frozen) return;
-    frozen = true; focusAt = performance.now();
-    const now = focusAt / 1000;
+  // The roar sets the world off: the bluebird takes flight, the butterfly lifts from its flower, the
+  // owl turns and opens its eyes, and a burst of leaves falls from the aspens. Each one runs on a fixed
+  // path timed from the roar, so the frame FINALE_AFTER_MS in is the same every time (the finale's
+  // first frame).
+  function scatter() {
+    const now = performance.now() / 1000;
+    // every looping animation in the world (wing beats, spinning auras, the falls) restarts with the
+    // roar, so nothing on its own clock changes that frame
+    try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
+    if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.el.classList.remove("is-on"); }
+    if (butterfly) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.el.classList.remove("is-on"); }
+    if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
+    const ref = layerOf.aspens.el.nextSibling;
+    for (let i = 0; i < 10; i++) {
+      const lx = 120 + (i * 53) % 150, ly = 300 + (i * 137) % 520;
+      const c = { kind: "leaf", src: `trev-world-bleaf-${1 + (i % 4)}.webp`, layer: "aspens", w: 30 + (i * 7) % 28, born: now + 0.1 + i * 0.05,
+        dx: 40 + (i * 37) % 140, ph: i * 1.3, burst: true };
+      c.pose = (t) => {
+        const d = t - c.born; if (d < 0) return null;
+        if (d > 7) { c.dead = true; return null; }
+        return { x: lx + c.dx * Math.min(1, d * 1.4) + 24 * Math.sin(d * 1.6 + c.ph), y: ly + 16 * d * d + 60 * d,
+          rot: 40 * Math.sin(d * 1.1 + c.ph) + c.ph * 30, flip: Math.cos(d * 2.2 + c.ph), op: d > 6 ? 7 - d : 1 };
+      };
+      c.el = creatureEl(c); world.insertBefore(c.el, ref); CREATURES.push(c);
+    }
+  }
+  function callHome() {
+    const now = performance.now() / 1000;
     for (const c of CREATURES) {
       c.pushUntil = 0;
       if (!c.flyAt) continue;
@@ -472,11 +497,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       c.flyAt = 0; c.returnAt = now;
     }
     if (owl) owl.classList.remove("look", "open");
+  }
+  function focus() {
+    if (frozen) return;
+    frozen = true; focusAt = performance.now();
+    callHome();   // (they're normally home already, since the lion formed)
     const H = Hs(), top = DESCENT_SVH / 100 * H;
     scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
     later(() => scroller.classList.add("locked"), 650);
     aimFocus(); root.classList.add("frozen", "focus");
-    later(() => { if (frozen) root.classList.add("settled"); }, SETTLE_MS);   // then the little animations hold too
     later(aimFocus, 700);   // again once the page has settled at the bottom
   }
   // the focus vignette closes in around the lion
@@ -517,11 +546,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
     roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
     haptic([70, 30, 90, 30, 120, 40, 180]);
+    scatter();
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
     later(() => {
       root.classList.remove("roaring"); roaring = false;
       // no finale clip yet: give the world back its life
-      root.classList.remove("frozen", "settled"); scroller.classList.remove("locked"); frozen = false;
+      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false;
     }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
@@ -764,12 +794,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the lion's moment: over SETTLE_MS the animals that roam fade out (the leaves quickest) while the
     // rest come home, then every pose holds at one fixed moment (the finale's first frame)
     const k = frozen ? clamp01((performance.now() - focusAt) / SETTLE_MS) : 0, settled = k >= 1;
-    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead || (settled && CREATURES[i].born)) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
+    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead || (settled && CREATURES[i].born && !CREATURES[i].burst)) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
     for (const c of CREATURES) {
-      const roams = GONE_WHEN_FROZEN.has(c.kind) || (c.kind === "butterfly" && !c.landed) || c.born;
+      const roams = !c.burst && (GONE_WHEN_FROZEN.has(c.kind) || (c.kind === "butterfly" && !c.landed) || c.born);
       if (settled && roams) { if (c.el.style.opacity !== "0") c.el.style.opacity = "0"; continue; }
       const fade = roams && frozen ? clamp01(1 - k * (c.kind === "leaf" ? 2.5 : 1.2)) : 1;
-      const T = settled ? 0 : t - worldAt, tt = settled ? 0 : t;
+      const live = c.burst || c.flyAt || c.returnAt;   // the roar's movers and anyone flying home keep real time
+      const T = settled && !live ? 0 : t - worldAt, tt = settled && !live ? 0 : t;
       const pose = c.pose(tt, p, c, T), el = c.el;
       if (pose && pose.pushing !== undefined && pose.pushing !== c.pushing) { c.pushing = pose.pushing; el.classList.toggle("pushing", pose.pushing); }
       if (pose && pose.flying !== undefined && pose.flying !== c.flying) { c.flying = pose.flying; el.classList.toggle("flying", pose.flying); }
