@@ -139,6 +139,9 @@ const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 19, SALMON_EVERY_S 
 const SALMON_X = [110, 300], SALMON_DEPTH = 40, SALMON_RISE = 640, SALMON_W = 150;
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
+// the roar makes the salmon leap once on its own clock (c.roarAt), peaking at the finale's first frame
+const leapU = (c, t, T) => (c.roarAt ? (t - c.roarAt) / SALMON_LEAP_S : salmonU(T));
+const ROAR_LEAP_S = 2.0 - SALMON_LEAP_S / 2;   // leap starts this long after the roar: top of the arc at 2s
 // the bison's abundance: flowers that bloom in the grass around its hooves when it's called
 // ([x %, y % of the ground ring, size, delay s, petal colour])
 const BLOOMS = [[0, 64, 1, .35, "#fff6e6"], [14, 26, .8, .5, "#ffe2a8"], [30, 84, 1.1, .2, "#fff6e6"], [46, 14, .75, .65, "#ffd9e4"],
@@ -222,7 +225,7 @@ const CREATURES = [
   { kind: "owl", layer: "aspens", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 120, y: 800 }) },
   { kind: "salmon", layer: "river", w: POOL.w, pose: (t, p, c, T) => {
-    const u = salmonU(T);
+    const u = leapU(c, t, T);
     if (u < -0.55 || u > 1) return null;
     return { x: POOL.x, y: POOL.y, u };
   } },
@@ -230,7 +233,7 @@ const CREATURES = [
   ...[[-0.5, SALMON_X[0]], [SALMON_SURF_U, SALMON_X[0] + (SALMON_X[1] - SALMON_X[0]) * SALMON_SURF_U],
     [1 - SALMON_SURF_U, SALMON_X[0] + (SALMON_X[1] - SALMON_X[0]) * (1 - SALMON_SURF_U)]].map(([at, x], i) =>
     ({ kind: "splash", layer: "river", w: i ? 120 : 70, glint: !i, pose: (t, p, c, T) => {
-      const r = (salmonU(T) - at) * SALMON_LEAP_S / (i ? 1.1 : 0.7);
+      const r = (leapU(c, t, T) - at) * SALMON_LEAP_S / (i ? 1.1 : 0.7);
       if (r < 0 || r > 1) return null;
       return { x: POOL.x + x, y: POOL.y + POOL.h, scale: i ? 0.25 + 0.95 * r : 0.6 + 0.6 * Math.sin(Math.PI * r), op: i ? (1 - r) * 0.9 : Math.sin(Math.PI * r) };
     } })),
@@ -528,6 +531,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.el.classList.remove("is-on"); }
     if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.el.classList.remove("is-on"); }
     if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
+    for (const c of CREATURES) if (c.kind === "salmon" || c.kind === "splash") { c.roarAt = now + ROAR_LEAP_S; c.burst = true; }
     const ref = layerOf.aspens.el.nextSibling;
     for (let i = 0; i < 10; i++) {
       const lx = 120 + (i * 53) % 150, ly = 300 + (i * 137) % 520;
