@@ -151,6 +151,11 @@ const CREATURES = [
   { kind: "butterfly", layer: "foreground", w: 115, pose: (t) => ({ x: 345 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)),
     y: 1125 + 1.2 * 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55) }) },
   { kind: "butterfly", landed: true, layer: "foreground", w: 84, pose: (t, p, c) => {
+    if (c.returnAt) {   // called home: drifts back down onto its flower from wherever it was
+      const u = (t - c.returnAt) / RETURN_S;
+      if (u >= 1 || u < 0) c.returnAt = 0;
+      else { const e = smooth(u); return { x: BUTTERFLY_AT[0] + c.fromDx * (1 - e), y: BUTTERFLY_AT[1] + c.fromDy * (1 - e), flying: true }; }
+    }
     const d = c.flyAt ? t - c.flyAt : -1;
     if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { x: BUTTERFLY_AT[0], y: BUTTERFLY_AT[1], flying: false }; }
     const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, wanders, comes back down
@@ -166,6 +171,11 @@ const CREATURES = [
       op: (depth < 0.5 ? 0.85 : 1) * smooth((p - 0.45) / 0.2),   // only once the trees have come in
     }) })),
   { kind: "perch", layer: "juniper", w: PERCH.w, pose: (t, p, c) => {
+    if (c.returnAt) {   // called home (the lion's moment): flies in from the right onto its branch
+      const u = (t - c.returnAt) / RETURN_S;
+      if (u >= 1 || u < 0) c.returnAt = 0;
+      else { const e = smooth(u); return { x: PERCH.x + 430 * (1 - e), y: PERCH.y - 170 * (1 - e) - 40 * Math.sin(Math.PI * e), flying: true, face: -1 }; }
+    }
     const d = c.flyAt ? t - c.flyAt : -1;
     if (d < 0) return { x: PERCH.x, y: PERCH.y, flying: false };
     if (d < 2.6) { const e = Math.pow(d / 2.6, 1.5);
@@ -234,7 +244,7 @@ const BUBBLE_AFTER_MS = 10000;
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
-const FOCUS_MS = 1600, FINALE_AFTER_MS = 2000, CHARGE_MS = 650;
+const FOCUS_MS = 1600, FINALE_AFTER_MS = 2000, CHARGE_MS = 650, SETTLE_MS = 1500, RETURN_S = 1.35;
 // simple line icons of each totem's face, drawn in gold
 const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "lizard": "<ellipse cx=\"12\" cy=\"5.3\" rx=\"1.5\" ry=\"2\"/><path d=\"M12 7.3c.9 2.2.9 5.3 0 8.2-.8 2.6-2.5 4.4-4.8 5\"/><path d=\"M11.8 9.6l-3-1.4-1 1.5M12.2 9.6l3-1.4 1 1.5M11.9 13.4l-3 1.5-.7 1.6M12.1 13.4l3 1.5.7 1.6\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<circle cx=\"12\" cy=\"12\" r=\"9.3\" stroke-dasharray=\"2.1 1.3\"/><path d=\"M8 9.6c0-2 1.8-3.6 4-3.6s4 1.6 4 3.6v2.6c0 2.6-1.8 4.8-4 4.8s-4-2.2-4-4.8z\"/><circle cx=\"10.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"13.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M11 13.3h2l-1 1.1z\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
@@ -450,14 +460,23 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // the birds and leaves leave the sky, the page glides to the bottom of the world and holds, the
   // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
   let frozen = false, focusAt = 0, chargeAt = 0;
+  // (all of this starts at the lion tap; until then the world carries on as ever)
   function focus() {
     if (frozen) return;
     frozen = true; focusAt = performance.now();
-    for (const c of CREATURES) { if (c.flyAt) c.flyAt = 0; c.pushUntil = 0; }
+    const now = focusAt / 1000;
+    for (const c of CREATURES) {
+      c.pushUntil = 0;
+      if (!c.flyAt) continue;
+      if (c.kind === "butterfly") { const q = c.pose(now, 1, c); c.fromDx = q.x - BUTTERFLY_AT[0]; c.fromDy = q.y - BUTTERFLY_AT[1]; }
+      c.flyAt = 0; c.returnAt = now;
+    }
+    if (owl) owl.classList.remove("look", "open");
     const H = Hs(), top = DESCENT_SVH / 100 * H;
     scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
     later(() => scroller.classList.add("locked"), 900);
     aimFocus(); root.classList.add("frozen", "focus");
+    later(() => { if (frozen) root.classList.add("settled"); }, SETTLE_MS);   // then the little animations hold too
     later(aimFocus, 950);   // again once the page has settled at the bottom
   }
   // the focus vignette closes in around the lion
@@ -502,7 +521,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => {
       root.classList.remove("roaring"); roaring = false;
       // no finale clip yet: give the world back its life
-      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false;
+      root.classList.remove("frozen", "settled"); scroller.classList.remove("locked"); frozen = false;
     }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
@@ -720,7 +739,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now() / 1000;
     CLOUDS.forEach((c, i) => {
       const t = Math.min(1, p / PART_RANGE), e = 1 - (1 - t) * (1 - t), kk = 1 + 0.3 * c.spd;
-      const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + (frozen ? 0 : 8 * Math.sin(now * 0.3 + i)) + tx * TILT_X * CLOUD_TILT * c.depth;
+      const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i) * (frozen ? clamp01(1 - (performance.now() - focusAt) / SETTLE_MS) : 1) + tx * TILT_X * CLOUD_TILT * c.depth;
       const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
       c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
       if (c.leaves && worldAt && !c.gone) {
@@ -742,10 +761,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
   const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "firefly"]);
   function placeCreatures(t, p) {
-    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead || (frozen && CREATURES[i].born)) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
+    // the lion's moment: over SETTLE_MS the animals that roam fade out (the leaves quickest) while the
+    // rest come home, then every pose holds at one fixed moment (the finale's first frame)
+    const k = frozen ? clamp01((performance.now() - focusAt) / SETTLE_MS) : 0, settled = k >= 1;
+    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead || (settled && CREATURES[i].born)) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
     for (const c of CREATURES) {
-      if (frozen && (GONE_WHEN_FROZEN.has(c.kind) || (c.kind === "butterfly" && !c.landed))) { if (c.el.style.opacity !== "0") c.el.style.opacity = "0"; continue; }
-      const T = frozen ? 0 : t - worldAt, tt = frozen ? 0 : t;   // frozen: every pose at one fixed moment
+      const roams = GONE_WHEN_FROZEN.has(c.kind) || (c.kind === "butterfly" && !c.landed) || c.born;
+      if (settled && roams) { if (c.el.style.opacity !== "0") c.el.style.opacity = "0"; continue; }
+      const fade = roams && frozen ? clamp01(1 - k * (c.kind === "leaf" ? 2.5 : 1.2)) : 1;
+      const T = settled ? 0 : t - worldAt, tt = settled ? 0 : t;
       const pose = c.pose(tt, p, c, T), el = c.el;
       if (pose && pose.pushing !== undefined && pose.pushing !== c.pushing) { c.pushing = pose.pushing; el.classList.toggle("pushing", pose.pushing); }
       if (pose && pose.flying !== undefined && pose.flying !== c.flying) { c.flying = pose.flying; el.classList.toggle("flying", pose.flying); }
@@ -753,7 +777,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       let x = pose.x, y = pose.y;
       if (c.layer) { const L = layerOf[c.layer]; x += L.cx; y += L.cy; }
       else { x += tx * TILT_X * CLOUD_TILT * c.depth; y += ty * TILT_Y * CLOUD_TILT * c.depth; }
-      const op = (pose.op ?? 1).toFixed(2);
+      const op = ((pose.op ?? 1) * fade).toFixed(2);
       if (el.style.opacity !== op) el.style.opacity = op;
       const sx = pose.flip != null ? pose.flip : pose.face;
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}`;
@@ -804,8 +828,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     climaxed = true; root.classList.add("awakening");
     try { localStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
     later(() => totemRow.classList.add("lion"), 1600);      // the totems leave; the lion takes the row
-    later(transform, 2200);                                  // ...as the bison becomes the lion
-    later(focus, 3200);                                      // and all the focus falls on the lion
+    later(transform, 2200);                                  // ...as the bison becomes the lion (the world stays alive)
     later(() => root.classList.remove("awakening"), 4800);
   }
   on($(".tj-lionTotem"), "click", () => { if (lionMode) roar(); });

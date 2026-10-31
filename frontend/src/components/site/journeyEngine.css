@@ -552,8 +552,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* ---------- the lion's moment: frozen, in focus, then the roar's geometry rippling out ---------- */
 .tj-scroller.locked { overflow-y: hidden; }
-.tj.frozen .tj-world * { animation-play-state: paused; }
-.tj.frozen .tj-cr-lion *, .tj.frozen .tj-cr-roarwave * { animation-play-state: running; }
+.tj.settled .tj-world * { animation-play-state: paused; }
+.tj.settled .tj-cr-lion *, .tj.settled .tj-cr-roarwave * { animation-play-state: running; }
 .tj.frozen .tj-bubble, .tj.frozen .tj-progress { opacity: 0 !important; pointer-events: none; }
 /* the focus: no filters over the world (they were heavy and too dramatic); the vignette closes in
    (journeyEngine.js) and the lion's aura glows a little brighter */
