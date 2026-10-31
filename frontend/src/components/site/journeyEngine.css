@@ -637,3 +637,11 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison:not(.is-on) .body { opacity: 0; }
 .tj-bison.is-on .awayImg { opacity: 0; }
 .tj-bison:not(.is-on) .pulse, .tj-bison:not(.is-on) .shadow, .tj-bison:not(.is-on) .outline { -webkit-mask-image: var(--silAway); mask-image: var(--silAway); }
+
+/* the bison's abundance: flowers bloom in the grass around its hooves, then fold back in */
+.tj-bison .groundRing u { position: absolute; width: calc(30px * var(--s)); height: calc(30px * var(--s)); margin: calc(-15px * var(--s)) 0 0 calc(-15px * var(--s));
+  opacity: 0; transform: scale(0) rotate(-40deg); }
+.tj-bison .groundRing u svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 3px rgba(255,226,150,.8)); }
+.tj-bison.blessing .groundRing u { animation: tj-bloom2 3.4s cubic-bezier(.2,.8,.3,1) var(--d) forwards; }
+@keyframes tj-bloom2 { 0% { opacity: 0; transform: scale(0) rotate(-40deg); } 22% { opacity: 1; transform: scale(1.12) rotate(4deg); }
+  30%, 72% { opacity: 1; transform: scale(1) rotate(0deg); } 100% { opacity: 0; transform: scale(.6) rotate(10deg); } }

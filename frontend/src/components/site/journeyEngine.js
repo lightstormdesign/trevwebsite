@@ -131,6 +131,15 @@ const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 19, SALMON_EVERY_S 
 const SALMON_X = [110, 300], SALMON_DEPTH = 40, SALMON_RISE = 640, SALMON_W = 150;
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
+// the bison's abundance: flowers that bloom in the grass around its hooves when it's called
+// ([x %, y % of the ground ring, size, delay s, petal colour])
+const BLOOMS = [[0, 64, 1, .35, "#fff6e6"], [14, 26, .8, .5, "#ffe2a8"], [30, 84, 1.1, .2, "#fff6e6"], [46, 14, .75, .65, "#ffd9e4"],
+  [60, 90, 1, .3, "#fff6e6"], [76, 28, .9, .55, "#ffe2a8"], [92, 74, 1.05, .25, "#ffd9e4"], [106, 42, .8, .7, "#fff6e6"],
+  [-16, 36, .75, .8, "#ffe2a8"], [118, 70, .75, .75, "#fff6e6"], [22, 56, .7, .9, "#ffd9e4"], [72, 60, .75, .95, "#ffe2a8"],
+  [-26, 74, .65, 1, "#fff6e6"], [128, 30, .65, 1.05, "#ffd9e4"]];
+const BLOOM_SVG = '<svg viewBox="-12 -12 24 24"><g>' + Array.from({ length: 5 }, (_, i) =>
+  `<ellipse rx="3.4" ry="6" cy="-5.6" transform="rotate(${i * 72})" fill="var(--c)" stroke="rgba(214,170,90,.7)" stroke-width=".5"/>`).join("")
+  + '</g><circle r="2.6" fill="#f2b84a"/><circle r="1.2" fill="#fff3c4"/></svg>';
 const FLOWER_TILE = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-30 -26 60 52\"><g fill=\"none\" stroke=\"#ffd27a\" stroke-width=\".6\"><circle r=\"10\"/><circle r=\"10\" cx=\"10\"/><circle r=\"10\" cx=\"-10\"/><circle r=\"10\" cx=\"5\" cy=\"8.66\"/><circle r=\"10\" cx=\"-5\" cy=\"8.66\"/><circle r=\"10\" cx=\"5\" cy=\"-8.66\"/><circle r=\"10\" cx=\"-5\" cy=\"-8.66\"/></g></svg>";   // the owl's sight: a tiling Flower of Life
 const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
 const CREATURES = [
@@ -443,7 +452,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     rig.innerHTML = `
       ${sacredAura()}
       <div class="pulse" aria-hidden="true"></div><div class="pulse" aria-hidden="true" style="animation-delay:2s"></div>
-      <div class="groundRing" aria-hidden="true"><i></i><i></i><div class="flat">${Array.from({ length: 9 }, (_, i) => `<b style="--a:${i * 40}deg;--d:${(0.15 + (i % 3) * 0.12).toFixed(2)}s"></b>`).join("")}</div></div>
+      <div class="groundRing" aria-hidden="true"><i></i><i></i><div class="flat">${Array.from({ length: 9 }, (_, i) => `<b style="--a:${i * 40}deg;--d:${(0.15 + (i % 3) * 0.12).toFixed(2)}s"></b>`).join("")}</div>
+        ${BLOOMS.map(([x, y, s, d, c]) => `<u style="left:${x}%;top:${y}%;--s:${s};--d:${d}s;--c:${c}">${BLOOM_SVG}</u>`).join("")}</div>
       <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
       <div class="tail" aria-hidden="true"><div class="tailOutline"></div><img class="tailImg" src="${tail}" alt="" decoding="async"></div>
       <img class="body" alt="The white bison" decoding="async">
@@ -590,7 +600,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonTapAt = now; bison.classList.add("is-on"); wake("bison");
     // its gift: a ring of gold light across the ground from its hooves, flowers glinting along it
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
-    later(() => bison.classList.remove("blessing"), 2600);
+    later(() => bison.classList.remove("blessing"), 4600);
     clearTimeout(bisonOnTimer);
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
