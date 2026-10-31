@@ -392,3 +392,100 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
 }
+
+/* ---------- the living world: aspens, rain and rainbow, night, totems, gold dust (journeyEngine.js) ---------- */
+/* the aspens' aura: a glow and Flower of Life over the grove; a tap sheds a burst of leaves */
+.tj-cr-aspen .tj-crBody { aspect-ratio: 1; }
+.tj-cr-aspen .aura { position: absolute; inset: -40%; pointer-events: none; transition: transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.tj-cr-aspen .glow, .tj-cr-aspen .geo { position: absolute; inset: 0; transition: opacity .6s ease; }
+.tj-cr-aspen .glow i, .tj-cr-aspen .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tj-cr-aspen .glow i { border-radius: 50%; background: radial-gradient(closest-side, rgba(255,226,150,.55), rgba(240,190,100,.18) 60%, transparent 100%); }
+.tj-cr-aspen .geo svg { -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  animation: tj-auraSpin 80s linear infinite reverse; }
+.tj-cr-aspen .geo svg g { stroke: #ffd27a; stroke-width: .9; }
+.tj-cr-aspen .glow { opacity: .45; animation: tj-aspGlow 5s ease-in-out infinite; }
+.tj-cr-aspen .geo { opacity: .3; animation: tj-aspGeo 5s ease-in-out infinite; }
+@keyframes tj-aspGlow { 0%, 100% { opacity: .45; } 50% { opacity: .58; } }
+@keyframes tj-aspGeo { 0%, 100% { opacity: .3; } 50% { opacity: .42; } }
+.tj-cr-aspen.is-on .aura { filter: brightness(1.35); transform: scale(1.18); }
+.tj-cr-aspen.is-on .glow { animation: none; opacity: .75; }
+.tj-cr-aspen.is-on .geo { animation: none; opacity: .6; }
+
+/* rain: the world darkens and drops fall (opacity and transform only) */
+.tj-rain { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.6s ease; overflow: hidden; }
+.tj.raining .tj-rain { opacity: 1; }
+.tj-rain .dark { position: absolute; inset: 0; background: rgba(12,14,26,.48); }
+.tj-rain .drops { position: absolute; left: -15%; right: -15%; top: -340px; bottom: 0; background-repeat: repeat; background-size: 160px 320px;
+  will-change: transform; animation: tj-rainFall .55s linear infinite; opacity: .8; }
+.tj-rain .drops.b { background-size: 240px 480px; opacity: .45; animation-name: tj-rainFallB; animation-duration: .9s; top: -500px; }
+@keyframes tj-rainFall { from { transform: rotate(8deg) translate3d(0, 0, 0); } to { transform: rotate(8deg) translate3d(0, 320px, 0); } }
+@keyframes tj-rainFallB { from { transform: rotate(8deg) translate3d(0, 0, 0); } to { transform: rotate(8deg) translate3d(0, 480px, 0); } }
+/* the pool ripples while it rains */
+.tj-cr-ripple .tj-crBody { aspect-ratio: 2.6 / 1; opacity: 0; transition: opacity 1.2s ease; }
+.tj.raining .tj-cr-ripple .tj-crBody { opacity: 1; }
+.tj-cr-ripple span { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(235,245,255,.75);
+  animation: tj-ripple 1.6s ease-out var(--delay, 0s) infinite; }
+@keyframes tj-ripple { from { transform: scale(.15); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+/* ...and clears into a rainbow over the falls */
+.tj-cr-rainbow .tj-crBody { aspect-ratio: 2 / 1; opacity: 0; transition: opacity 3s ease; }
+.tj.rainbow .tj-cr-rainbow .tj-crBody { opacity: .7; }
+.tj-cr-rainbow i { position: absolute; inset: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background: radial-gradient(ellipse 50% 100% at 50% 100%, transparent 66%, rgba(170,120,255,.5) 69%, rgba(90,150,255,.5) 72%, rgba(90,220,170,.5) 75%,
+    rgba(255,240,120,.55) 78%, rgba(255,170,90,.5) 81%, rgba(255,100,110,.45) 84%, transparent 88%);
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 35%); mask-image: linear-gradient(to top, transparent 0%, #000 35%); }
+
+/* night: moonlight over the world, stars, fireflies, and every aura brighter */
+.tj-night { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 3s ease; }
+.tj.night .tj-night { opacity: 1; }
+.tj-night .tint { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(6,10,34,.72), rgba(10,16,44,.55) 45%, rgba(8,12,30,.5)); }
+.tj-night .stars { position: absolute; left: 0; right: 0; top: 0; height: 55%;
+  background-image: radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 33% 8%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 58% 22%, #fff, transparent), radial-gradient(1px 1px at 76% 12%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 88% 30%, #fff, transparent), radial-gradient(1px 1px at 22% 40%, #fff, transparent),
+    radial-gradient(1px 1px at 46% 36%, #fff, transparent), radial-gradient(1.3px 1.3px at 67% 44%, #fff, transparent);
+  background-size: 260px 220px; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent); mask-image: linear-gradient(to bottom, #000 40%, transparent);
+  animation: tj-twinkle 4s ease-in-out infinite; }
+.tj-night .stars.b { background-size: 190px 170px; background-position: 70px 40px; animation-delay: -2s; }
+@keyframes tj-twinkle { 0%, 100% { opacity: .9; } 50% { opacity: .45; } }
+.tj-cr-firefly { display: none; }
+.tj.night .tj-cr-firefly { display: block; }
+.tj-cr-firefly .tj-crBody { aspect-ratio: 1; }
+.tj-cr-firefly span { position: absolute; inset: -60%; border-radius: 50%;
+  background: radial-gradient(closest-side, #fffbd0, rgba(255,236,140,.7) 35%, rgba(255,220,100,0)); animation: tj-firefly 3.2s ease-in-out var(--delay, 0s) infinite; }
+@keyframes tj-firefly { 0%, 100% { opacity: .1; } 45%, 60% { opacity: 1; } }
+.tj.night .tj-bison .glow { opacity: 1; } .tj.night .tj-bison .geo { opacity: .8; }
+.tj.night .tj-cr-perch .glow, .tj.night .tj-cr-aspen .glow { opacity: .8; } .tj.night .tj-cr-perch .geo, .tj.night .tj-cr-aspen .geo { opacity: .6; }
+.tj.night .tj-cr-butterfly .glow { opacity: .6; } .tj.night .tj-cr-butterfly .geo { opacity: .45; }
+
+/* the totem row: one gold icon per sacred thing, lit as you wake it */
+.tj-totems { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 41; transform: translateX(-50%);
+  display: flex; gap: 9px; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
+.tj-totems.show { opacity: 1; }
+.tj-totem { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(231,201,143,.35);
+  background: rgba(10,8,6,.55); transition: border-color .8s ease, box-shadow .8s ease, transform .5s cubic-bezier(.16,1,.3,1); }
+.tj-totem img { width: 72%; height: 72%; object-fit: contain; opacity: .28; filter: grayscale(1) brightness(1.4); transition: opacity .8s ease, filter .8s ease; }
+.tj-totem.on { border-color: rgba(246,220,150,.9); box-shadow: 0 0 12px rgba(240,200,110,.6), inset 0 0 8px rgba(240,200,110,.35); }
+.tj-totem.on img { opacity: 1; filter: none; }
+.tj-totem.pop { transform: scale(1.35); }
+
+/* the Kingdom awakens: a gold sweep down the world and the words */
+.tj-awaken { position: fixed; inset: 0; z-index: 42; pointer-events: none; opacity: 0; display: grid; place-items: center; }
+.tj.awakening .tj-awaken { animation: tj-awakenIn 6.5s ease forwards; }
+.tj-awaken .sweep { position: absolute; left: 0; right: 0; top: -60%; height: 60%;
+  background: linear-gradient(to bottom, transparent, rgba(255,226,150,.55) 60%, rgba(255,246,220,.85) 80%, transparent); }
+.tj.awakening .tj-awaken .sweep { animation: tj-sweep 2.6s cubic-bezier(.45,0,.2,1) forwards; }
+.tj-awaken p { margin: 0; font: 500 clamp(24px, 7vw, 40px)/1.2 var(--tj-display); letter-spacing: .14em; text-transform: uppercase; color: var(--tj-fg);
+  text-shadow: 0 2px 30px rgba(0,0,0,.8); text-align: center; padding: 0 24px; }
+@keyframes tj-awakenIn { 0% { opacity: 0; } 12%, 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes tj-sweep { from { transform: translateY(0); } to { transform: translateY(270%); } }
+
+/* gold dust trailing the pointer (desktop) */
+.tj-dust { position: fixed; inset: 0; z-index: 46; pointer-events: none; }
+.tj-dust i { position: absolute; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%;
+  background: radial-gradient(circle, #fff6d8, rgba(240,200,110,.8) 45%, transparent 70%); box-shadow: 0 0 6px rgba(246,220,150,.8);
+  animation: tj-dust .95s ease-out forwards; }
+@keyframes tj-dust { from { opacity: .95; transform: translate3d(0, 0, 0) scale(1); } to { opacity: 0; transform: translate3d(var(--dx), 26px, 0) scale(.3); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tj-rain .drops, .tj-night .stars, .tj-cr-firefly span, .tj-cr-ripple span, .tj-cr-aspen .glow, .tj-cr-aspen .geo, .tj-cr-aspen .geo svg { animation: none; }
+}

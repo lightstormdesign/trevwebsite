@@ -52,7 +52,8 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
-const TRANS = { hevc: "trev-transition-mobile-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
+// phones that play HEVC get the lighter 720p copy (Burnell's phone size); everyone else the 1080p H.264
+const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
@@ -176,6 +177,12 @@ const CREATURES = [
   // the owl (rig, tap and art all kept) is off for now:
   // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) }) },
+  { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 130, y: 470 }) },
+  { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
+  ...[[330, 880], [470, 900], [600, 870], [400, 1030], [540, 960]].map(([x, y], i) =>
+    ({ kind: "ripple", layer: "river", w: 70, delay: i * 0.45, pose: () => ({ x, y }) })),
+  ...Array.from({ length: 9 }, (_, i) => ({ kind: "firefly", after: "foreground", depth: 0.7, w: 9, delay: i * 0.7,
+    pose: (t) => ({ x: 120 + ((i * 271) % 700) + 40 * Math.sin(t * 0.37 + i * 1.7), y: 900 + ((i * 193) % 520) + 30 * Math.sin(t * 0.53 + i) }) })),
   ...Array.from({ length: 5 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
@@ -222,6 +229,7 @@ const STORY = [
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
+const RAIN_MS = 6500, RAINBOW_MS = 9000, NIGHT_AFTER_MS = 2500;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
@@ -268,6 +276,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-side"></div>
       <div class="tj-world"></div>
       <div class="tj-shade"></div>
+      <div class="tj-night" aria-hidden="true"><i class="tint"></i><i class="stars"></i><i class="stars b"></i></div>
+      <div class="tj-rain" aria-hidden="true"><i class="dark"></i><i class="drops" style="background-image:url(${A}trev-world-rain.webp)"></i><i class="drops b" style="background-image:url(${A}trev-world-rain.webp)"></i></div>
     </div>
     ${phase === "hero" ? `
     <div class="tj-trans"><div class="tj-transSide"></div><video class="tj-tv" muted playsinline preload="none" tabindex="-1"></video><div class="tj-keep" hidden></div></div>
@@ -320,6 +330,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
+    <div class="tj-totems" aria-hidden="true">${[["bison", "w3-bison-body.webp"], ["bluebird", "trev-world-bluebird-perched.webp"],
+      ["butterfly", "trev-world-butterfly.webp"], ["aspen", "trev-world-bleaf-4.webp"], ["cloud", "burnell-world-cloud-medium.webp"]]
+      .map(([k, src]) => `<span class="tj-totem" data-k="${k}"><img src="${A + src}" alt=""></span>`).join("")}</div>
+    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span></p></div>
+    <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
       <div class="tj-headLeft">
         <span class="tj-soundSlot" aria-hidden="true"></span>
@@ -408,7 +423,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const lightBison = () => {
     const now = performance.now();
     if (now - bisonTapAt < BISON_TAP_S * 1000) return;
-    bisonTapAt = now; bison.classList.add("is-on");
+    bisonTapAt = now; bison.classList.add("is-on"); wake("bison");
     clearTimeout(bisonOnTimer);
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
@@ -430,9 +445,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const pad = Math.max(22, r.width * 0.4);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
-  const fly = (c) => { c.flyAt = performance.now() / 1000; c.el.classList.remove("is-on"); };
+  const fly = (c) => { c.flyAt = performance.now() / 1000; c.el.classList.remove("is-on"); wake(c === perch ? "bluebird" : "butterfly"); };
   const fliers = () => [perch, butterfly];
-  const tapFliers = (x, y) => { for (const c of fliers()) if (overFlier(c, x, y)) fly(c); };
+  const tapFliers = (x, y) => {
+    for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
+    if (overBison(x, y, 30)) return;
+    if (tapAspens(x, y)) return;
+    tapClouds(x, y);
+  };
   const hovering = new Set();
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
     for (const c of fliers()) {
@@ -479,7 +499,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     el.className = `tj-cr tj-cr-${c.kind}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
-    if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
+    if (c.kind === "aspen") body.innerHTML = sacredAura();
+    else if (c.kind === "rainbow") body.innerHTML = `<i></i>`;
+    else if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
       + (c.bird === "swallow"   // Burnell's two frames, each centred
         ? `<img class="up mid" src="${A}trev-world-swallow-up.webp" alt=""><img class="down mid" src="${A}trev-world-swallow-down.webp" alt=""></div>`
         : `<img class="up" src="${A}trev-world-${c.bird}-a.webp" alt=""><img class="down" src="${A}trev-world-${c.bird}-b.webp" alt=""></div>`);
@@ -616,6 +638,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
   function placeCreatures(t, p) {
+    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
     for (const c of CREATURES) {
       const pose = c.pose(t, p, c, t - worldAt), el = c.el;
       if (pose && pose.pushing !== undefined && pose.pushing !== c.pushing) { c.pushing = pose.pushing; el.classList.toggle("pushing", pose.pushing); }
@@ -654,8 +677,82 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     e.preventDefault(); e.stopPropagation(); bubble.classList.remove("show"); bubbleClosed = true;
     try { sessionStorage.setItem("tj-bubble-closed", "1"); } catch (err) { /* private mode */ }
   });
+  // ---------- the living world: totems, aspens, clouds and rain, night ----------
+  // Every sacred thing is a totem: waking one fills its gold icon in the row at the top. Wake them all
+  // and the Kingdom awakens (for now a gold flare; the lion, the roar and the eye come next).
+  const TOTEMS = ["bison", "bluebird", "butterfly", "aspen", "cloud"];
+  const totemRow = $(".tj-totems");
+  let awake = new Set(), climaxed = false;
+  try { awake = new Set(JSON.parse(localStorage.getItem("tj-totems") || "[]")); climaxed = localStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
+  const paintTotems = () => TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k)));
+  paintTotems();
+  function wake(k) {
+    if (awake.has(k)) return;
+    awake.add(k); paintTotems();
+    const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
+    try { localStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
+    if (awake.size === TOTEMS.length && !climaxed) later(awaken, 900);
+  }
+  function awaken() {
+    climaxed = true; root.classList.add("awakening");
+    try { localStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
+    later(() => root.classList.remove("awakening"), 6500);
+  }
+  // the screen point -> a layer's own coordinates
+  const toLayer = (x, y, key) => {
+    const r = world.getBoundingClientRect(), k = r.width / CANVAS.w, L = layerOf[key];
+    return [(x - r.left) / k - L.cx, (y - r.top) / k - L.cy];
+  };
+  // a tapped aspen sheds a burst of leaves from where you touched it
+  let aspenAt = -1e9;
+  function tapAspens(x, y) {
+    if (phase !== "world" || !worldBuilt) return false;
+    const [lx, ly] = toLayer(x, y, "aspens");
+    if (lx < 0 || lx > 270 || ly < 0 || ly > 1150) return false;
+    const now = performance.now() / 1000;
+    if (now - aspenAt < 1.2) return true;
+    aspenAt = now; wake("aspen");
+    const asp = CREATURES.find((c) => c.kind === "aspen"); asp.el.classList.add("is-on"); later(() => asp.el.classList.remove("is-on"), 2500);
+    const ref = layerOf.aspens.el.nextSibling;
+    for (let i = 0; i < 9; i++) {
+      const c = { kind: "leaf", src: `trev-world-bleaf-${1 + (i % 4)}.webp`, layer: "aspens", w: 34 + (i * 7) % 30, born: now + i * 0.06,
+        dx: (i % 2 ? 1 : -1) * (30 + (i * 37) % 120), ph: i * 1.3 };
+      c.pose = (t) => {
+        const d = t - c.born; if (d < 0) return null;
+        if (d > 7) { c.dead = true; return null; }
+        return { x: lx + c.dx * Math.min(1, d) + 26 * Math.sin(d * 1.6 + c.ph), y: ly + 18 * d * d + 70 * d,
+          rot: 40 * Math.sin(d * 1.1 + c.ph) + c.ph * 30, flip: Math.cos(d * 2.2 + c.ph), op: d > 6 ? 7 - d : 1 };
+      };
+      c.el = creatureEl(c); world.insertBefore(c.el, ref); CREATURES.push(c);
+    }
+    return true;
+  }
+  // a tapped sky: the world darkens, it rains (and the pool ripples), it clears into a rainbow
+  let raining = false;
+  function tapClouds(x, y) {
+    if (phase !== "world" || raining || !landing.classList.contains("is-gone")) return;
+    // the clouds are painted into the sky, so the whole sky above the ridge answers (below the header)
+    const [, my] = toLayer(x, y, "mountains");
+    if (y < 110 || my > RIDGE_Y - 40) return;
+    raining = true; wake("cloud");
+    root.classList.add("raining");
+    later(() => { root.classList.remove("raining"); root.classList.add("rainbow"); }, RAIN_MS);
+    later(() => { root.classList.remove("rainbow"); raining = false; }, RAIN_MS + RAINBOW_MS);
+  }
+  // night: after sunset in the visitor's own time zone (or ?night), the world drifts into moonlight
+  const isNight = (() => {
+    const q = new URLSearchParams(location.search);
+    if (q.has("night")) return true;
+    if (q.has("day")) return false;
+    const d = new Date(), h = d.getHours() + d.getMinutes() / 60;
+    const sunset = [17.2, 17.8, 18.4, 19.9, 20.4, 20.9, 21, 20.6, 19.8, 18.9, 17.3, 16.9][d.getMonth()];
+    return h >= sunset + 0.5 || h < 6;
+  })();
+
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
+    later(() => totemRow.classList.add("show"), 3500);
+    if (isNight) later(() => root.classList.add("night"), NIGHT_AFTER_MS);
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
@@ -1029,8 +1126,22 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // one loop drives everything
   // ======================================================================================
   let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1, mouseX = 0, mouseY = 0;
-  if (matchMedia("(hover: hover) and (pointer: fine)").matches)
-    on(window, "mousemove", (e) => { mouseX = e.clientX / innerWidth * 2 - 1; mouseY = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+  if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    // and a trail of gold dust follows the pointer (desktop's answer to Burnell's water cursor)
+    const dust = $(".tj-dust");
+    let dustAt = 0;
+    on(window, "mousemove", (e) => {
+      mouseX = e.clientX / innerWidth * 2 - 1; mouseY = e.clientY / innerHeight * 2 - 1;
+      const now = performance.now();
+      if (still || now - dustAt < 38 || dust.childElementCount > 28) return;
+      dustAt = now;
+      const d = document.createElement("i");
+      d.style.left = e.clientX + "px"; d.style.top = e.clientY + "px";
+      d.style.setProperty("--dx", `${(Math.random() * 30 - 15).toFixed(0)}px`);
+      d.addEventListener("animationend", () => d.remove(), { once: true });
+      dust.appendChild(d);
+    }, { passive: true });
+  }
 
   // Burnell's scroll guide: a thin line along the bottom fills as you go, a glowing drop riding its
   // edge; stop partway and "Keep scrolling" rises above it
@@ -1077,8 +1188,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     target = scrolled();
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
     if (Math.abs(target - cur) < 0.03) cur = target;
-    worldLayout(Math.min(1, cur / DESCENT_SVH));
-    storyLayout((cur - STORY_START_SVH) / STEP_SVH);
+    const s = (cur - STORY_START_SVH) / STEP_SVH;
+    if (s < 0.35) worldLayout(Math.min(1, cur / DESCENT_SVH));   // once a chapter covers it, the world holds still
+    storyLayout(s);
   }
   raf = requestAnimationFrame(loop);
   on(window, "resize", () => { if (phase === "world") worldLayout(Math.min(1, cur / DESCENT_SVH)); });
