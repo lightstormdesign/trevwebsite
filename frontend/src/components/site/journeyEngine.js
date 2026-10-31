@@ -44,7 +44,6 @@ const HERO_SETS = {
              face: [470, 1380, 215, 320] },
 };
 const ENTER_AFTER_MS = 1800;   // "Tap to enter" rises this long after the portal is up
-const ENTER_LIFT = 0.04;       // and sits this much of the screen above the middle of the header-to-head gap
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
@@ -84,12 +83,11 @@ const CLOUD_LEAVE_S = [1.5, 3];
 const VIG_LANDED = 0.85, VIG_BOTTOM = 0.15;   // the leaving cloud starts to go this long after the world opens, over this long
 const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - lo));
 
-// Alive (as on Burnell's world): Burnell's two flocks of swallows, then TREV's doves;
-// a bluebird still on the juniper's lower limb until it's tapped (then it flies off, and is back a
-// while later); a sacred owl on its upper branch (tap: it turns its head to you, opens its eyes, and its
-// aura grows, 65% as much as the bison's); a hummingbird feeding at the white lily, a lizard
-// doing push-ups on a boulder, Burnell's butterflies over the flowers, TREV's golden aspen leaves
-// tumbling down, the falls running, mist breathing at their feet, glints on the pool and motes of
+// Alive (as on Burnell's world): Burnell's swallows (his far flock, a second group, a near pair),
+// then TREV's doves; a bluebird still on the juniper's lower limb until it's tapped (then it flies
+// off, and is back a while later); a lizard doing a push-up on a boulder; Burnell's butterfly
+// wandering over the flowers, one landed on the cactus flower (tap: it flutters about) and a small
+// one far off; Burnell's golden aspen leaves tumbling down (once the trees are in); the falls running, mist breathing at their feet, glints on the pool and motes of
 // light drifting up through the sun. Each lives in the coordinates
 // of the layer it's part of (so it rides with that layer through the descent and the tilt), or, for
 // `free` ones, in the canvas at its own depth. pose(t, p): where it is at time t (s) and descent p,
@@ -103,7 +101,7 @@ const NEAR_FLOCK = [[0, 0], [95, -34]];
 const DOVE_FLOCK = [[0, 0], [-62, -26], [-70, 30]];
 const DOVES_AT_S = 12, DOVES_EVERY_S = 45, DOVES_CROSS_S = 14;
 // flap pairs (two frames drawn eye on eye) and their sizes
-const FLYER = { swallow: [1, 0.75], dove: [260, 213], bluebird: [240, 218], hummingbird: [300, 215] };
+const FLYER = { swallow: [1, 0.75], dove: [260, 213], bluebird: [240, 218] };
 // Burnell's falling aspen leaves, exactly (his LEAVES: leaf, layer it falls behind, depth, width, x,
 // start offset, phase); his meadow / forest-far are TREV's foreground / forest
 const LEAVES = [
@@ -115,40 +113,10 @@ const OWL = { x: 530, y: 341, w: 95 };   // on the juniper's upper branch (junip
 const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
 const BUTTERFLY_AT = [818, 1294], BUTTERFLY_FLY_S = 9;   // landed on the cactus flower (foreground coordinates)
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
-// the hummingbird feeds at the lily; now and then (and when tapped) it hops: flies, stops, flies,
-// stops, and flies back (foreground coordinates)
-const HUM_AT = [250, 1052];
-const HUM_HOPS = [[0, 0], [150, -95], [300, -30], [0, 0]], HUM_FLY_S = 0.7, HUM_STOP_S = 1.0;
-const HUM_SEQ_S = (HUM_HOPS.length - 1) * HUM_FLY_S + (HUM_HOPS.length - 2) * HUM_STOP_S;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
-// flock crosses (every other beat), then the hummingbird darts out and back, then the lizard does
-// its push-up.
-const BEAT_S = 15, FLOCK_S = [0, 11], DART_S = [11.5, 11.5 + HUM_SEQ_S], PUSHUP_S = [1, 2.2];
+// flock crosses (every other beat), then the lizard does its push-up.
+const BEAT_S = 15, FLOCK_S = [0, 11], PUSHUP_S = [12, 13.2];
 const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; return s >= a && s < b; };
-function hummingbird(t, p, c, T) {
-  const bobX = 6 * Math.sin(t * 2.3), bobY = 5 * Math.sin(t * 3.1);
-  let d = -1;
-  if (c.flyAt) { d = t - c.flyAt; if (d > HUM_SEQ_S) { c.flyAt = 0; d = -1; } }   // tapped
-  if (d < 0 && inBeat(T, DART_S)) d = (((T % BEAT_S) + BEAT_S) % BEAT_S) - DART_S[0];
-  c.busy = d >= 0;   // mid-flight: a tap doesn't restart it
-  if (d < 0) return { x: HUM_AT[0] + bobX, y: HUM_AT[1] + bobY, face: c.face = 1 };
-  // which leg: fly (eased), then stop (hovering in place), ...
-  let s = d;
-  for (let i = 0; i < HUM_HOPS.length - 1; i++) {
-    const [a, b] = [HUM_HOPS[i], HUM_HOPS[i + 1]];
-    if (s < HUM_FLY_S) {
-      const e = smooth(s / HUM_FLY_S);
-      c.face = b[0] > a[0] ? -1 : 1;   // it faces where it's going (the frames face left)
-      return { x: HUM_AT[0] + a[0] + (b[0] - a[0]) * e + bobX * 0.3, y: HUM_AT[1] + a[1] + (b[1] - a[1]) * e - 18 * Math.sin(Math.PI * e), face: c.face };
-    }
-    s -= HUM_FLY_S;
-    if (i < HUM_HOPS.length - 2) {
-      if (s < HUM_STOP_S) return { x: HUM_AT[0] + b[0] + bobX, y: HUM_AT[1] + b[1] + bobY, face: c.face };
-      s -= HUM_STOP_S;
-    }
-  }
-  return { x: HUM_AT[0] + bobX, y: HUM_AT[1] + bobY, face: c.face = 1 };
-}
 const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
 const CREATURES = [
   // Burnell's far flock, exactly as on his world
@@ -173,6 +141,8 @@ const CREATURES = [
   ...GLINTS.map(([x, y], i) => ({ kind: "glint", layer: "river", w: 16 + (i % 3) * 5, delay: (i * 0.77) % 3.4, pose: () => ({ x, y }) })),
   { kind: "butterfly", layer: "forest", w: 30, pose: (t) => ({ x: 650 + 70 * Math.sin(t * 0.55 + 2.1) + 20 * Math.sin(t * 1.7 + 2.1),
     y: 1000 + 30 * Math.sin(t * 0.85 + 4.2), rot: 10 * Math.cos(t * 0.55 + 2.1) }) },
+  { kind: "butterfly", layer: "foreground", w: 115, pose: (t) => ({ x: 345 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)),
+    y: 1125 + 1.2 * 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55) }) },
   { kind: "butterfly", landed: true, layer: "foreground", w: 84, pose: (t, p, c) => {
     const d = c.flyAt ? t - c.flyAt : -1;
     if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { x: BUTTERFLY_AT[0], y: BUTTERFLY_AT[1], flying: false }; }
@@ -200,7 +170,6 @@ const CREATURES = [
   // the owl (rig, tap and art all kept) is off for now:
   // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) }) },
-  { kind: "bird", bird: "hummingbird", layer: "foreground", w: 124, flap: 0.1, pose: hummingbird },
   ...Array.from({ length: 5 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
@@ -302,7 +271,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
       <div class="tj-grade"></div>
     </div>` : ""}
-    ${phase === "hero" ? `<div class="tj-bars" aria-hidden="true"><i class="t"></i><i class="b"></i></div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
@@ -437,17 +405,16 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
   // closes them and looks back out over the world.
-  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null, hummer = null;
-  // the bluebird, the landed butterfly and the hummingbird: a tap sends it flying (hover on desktop
-  // lights the first two a touch)
+  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null;
+  // the bluebird and the landed butterfly: a tap sends it flying (hover on desktop lights it a touch)
   const overFlier = (c, x, y) => {
-    if (!c || c.flyAt || c.busy || phase !== "world" || c.el.style.opacity === "0") return false;
+    if (!c || c.flyAt || phase !== "world" || c.el.style.opacity === "0") return false;
     const r = c.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
     const pad = Math.max(22, r.width * 0.4);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
   const fly = (c) => { c.flyAt = performance.now() / 1000; c.el.classList.remove("is-on"); };
-  const fliers = () => [perch, butterfly, hummer];
+  const fliers = () => [perch, butterfly];
   const tapFliers = (x, y) => { for (const c of fliers()) if (overFlier(c, x, y)) fly(c); };
   const hovering = new Set();
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
@@ -495,11 +462,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     el.className = `tj-cr tj-cr-${c.kind}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
-    if (c.bird === "hummingbird") { c.flyAt = 0; c.face = 1; hummer = c; }
     if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
-      + (c.bird === "hummingbird"
-        ? `<img class="hA" src="${A}trev-world-hummingbird-a.webp" alt=""><img class="hBlur" src="${A}trev-world-hummingbird-blur.webp" alt=""><img class="hB" src="${A}trev-world-hummingbird-b.webp" alt=""></div>`
-        : c.bird === "swallow"   // Burnell's two frames, each centred
+      + (c.bird === "swallow"   // Burnell's two frames, each centred
         ? `<img class="up mid" src="${A}trev-world-swallow-up.webp" alt=""><img class="down mid" src="${A}trev-world-swallow-down.webp" alt=""></div>`
         : `<img class="up" src="${A}trev-world-${c.bird}-a.webp" alt=""><img class="down" src="${A}trev-world-${c.bird}-b.webp" alt=""></div>`);
     else if (c.kind === "perch") {
@@ -686,7 +650,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
     const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
     let readyAt = 0;
-    const trans = $(".tj-trans"), keep = $(".tj-keep"), bars = $(".tj-bars");
+    const trans = $(".tj-trans"), keep = $(".tj-keep");
     const tv = $(".tj-tv");
     const transUrl = A + (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264);
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
@@ -781,7 +745,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const headTop = fit.oy + set.cut.y * k, mid = (nameR.bottom + headTop) / 2;
       const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
       enter.style.left = Math.min(W - 16 - half, Math.max(16 + half, hx)).toFixed(1) + "px";
-      enter.style.top = (mid - ENTER_LIFT * H).toFixed(1) + "px";
+      enter.style.top = mid.toFixed(1) + "px";
       if (phase === "trans") placeVideo(recovered || tv);
     }
 
@@ -845,7 +809,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     off.push(stopWatch);
     function beginLanding(v) {                        // from LANDING_AT: veil the video exactly like the world's landing, raise the copy
       if (landingShown) return; landingShown = true;
-      bars.classList.add("off"); bars.classList.remove("on");   // the bars slide away as the landing comes up
       v.style.transition = "filter 2s ease";
       v.style.filter = "blur(6px) brightness(0.5)";
       showLanding();
@@ -871,7 +834,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (phase === "world") return;
       stopWatch(); buildWorld(); openWorld(); showLanding(); landingShown = true; later(beckon, 2400);
       docEl.classList.remove("tj-face-grain");
-      heroEl.classList.add("out"); enterLayer.hidden = true; trans.hidden = true; bars.classList.remove("on");
+      heroEl.classList.add("out"); enterLayer.hidden = true; trans.hidden = true;
       later(() => { heroEl.hidden = true; plate.pause(); }, 800);
     }
     function wire(v) {
@@ -952,7 +915,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       sound.enter();                                  // the song starts (or keeps playing), inside the tap so phones allow it
       enter.classList.add("leave"); grade.style.opacity = 0;
       if (!warm) warmUp();
-      fadeFrom = performance.now(); bars.classList.add("on"); playTransition();   // at once (no motion prompt here)
+      fadeFrom = performance.now(); playTransition();   // at once (no motion prompt here)
     }
     wire(tv);
     on(enterLayer, "click", onEnter);   // anywhere on the hero, not just the words

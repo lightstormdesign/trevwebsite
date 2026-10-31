@@ -82,7 +82,7 @@
   transform: translate(-50%, -50%); background: none; border: 0; padding: 14px 10px; cursor: pointer;
   opacity: 0; pointer-events: none; filter: blur(6px);
   transition: opacity 1.6s cubic-bezier(.2,.7,.2,1), filter 1.6s cubic-bezier(.2,.7,.2,1); }
-.tj-enter > span { grid-area: 1 / 1; font: 540 clamp(18px, 1.53vw, 21.5px)/1 var(--tj-display); text-transform: uppercase;
+.tj-enter > span { grid-area: 1 / 1; font: 620 clamp(18px, 1.53vw, 21.5px)/1 var(--tj-display); text-transform: uppercase;
   white-space: nowrap; letter-spacing: .5em; margin-right: -.5em;
   transition: letter-spacing 1.8s cubic-bezier(.2,.7,.2,1), margin-right 1.8s cubic-bezier(.2,.7,.2,1); }
 .tj-enter .halo { width: 190%; height: 640%; border-radius: 50%; z-index: -2; letter-spacing: 0; margin: 0;
@@ -106,15 +106,6 @@
 .tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
 .tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
 .tj-shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
-
-/* widescreen bars: thin black bands that slide in when the transition starts and away as the
-   landing comes up (transform only); the bottom one runs on under Safari's toolbar */
-.tj-bars > i { position: fixed; left: 0; right: 0; z-index: 32; background: #000; pointer-events: none; will-change: transform;
-  transition: transform 1.2s cubic-bezier(.65,0,.35,1); }
-.tj-bars .t { top: 0; height: 5svh; transform: translateY(-100%); }
-.tj-bars .b { top: 95svh; height: calc(5svh + max(100lvh, 100vh) - 100svh); transform: translateY(100%); }
-.tj-bars.on > i { transform: none; }
-.tj-bars.off > i { transition-duration: 1.8s; }
 
 /* the vignette, top and sides only: over the hero, the transition, the world and the story (under
    the landing copy); full on the landing, fading to 10% through the descent (journeyEngine.js) */
@@ -267,13 +258,6 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-cr-bird .frames, .tj-cr-lizard .frames { position: relative; width: 100%; }
 .tj-cr-bird .frames img, .tj-cr-lizard .frames img { position: absolute; left: 0; top: 0; width: 100%; }
 .tj-cr-bird .frames img.mid { top: 50%; transform: translateY(-50%); }
-/* the hummingbird's wings: stroke, blur, stroke, blur, ten times a second */
-.tj-cr-bird .hA { animation: tj-humA .1s steps(1, end) infinite; }
-.tj-cr-bird .hB { animation: tj-humB .1s steps(1, end) infinite; }
-.tj-cr-bird .hBlur { animation: tj-humBlur .1s steps(1, end) infinite; }
-@keyframes tj-humA { 0% { opacity: 1; } 25%, 100% { opacity: 0; } }
-@keyframes tj-humB { 0%, 50% { opacity: 0; } 50.01% { opacity: 1; } 75%, 100% { opacity: 0; } }
-@keyframes tj-humBlur { 0% { opacity: 0; } 25% { opacity: 1; } 50% { opacity: 0; } 75%, 100% { opacity: 1; } }
 .tj-cr-lizard .frames { aspect-ratio: 360 / 218; }
 /* the lizard does its push-ups now and then */
 /* one full push-up every 15s, right after the hummingbird's dart (journeyEngine.js): only ever one
