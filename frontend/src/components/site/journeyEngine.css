@@ -526,9 +526,9 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.transforming .tj-cr-lion .burst { animation: tj-burst 1.9s ease-out forwards; }
 @keyframes tj-burst { 0% { opacity: 0; transform: scale(.3); } 45% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.3); } }
 /* the roar: the world shakes and the sky flares gold */
-.tj.roaring .tj-worldStage { animation: tj-shake .07s linear 14 both; }   /* tight, fast tremor, ~1s */
-@keyframes tj-shake { 0% { transform: translate3d(0, 0, 0); } 25% { transform: translate3d(-2.5px, 1.5px, 0); } 50% { transform: translate3d(2px, -2px, 0); }
-  75% { transform: translate3d(-1.5px, -1px, 0); } 100% { transform: translate3d(0, 0, 0); } }
+.tj.roaring .tj-worldStage { animation: tj-shake .05s linear 22 both; }   /* tight, fast, strong tremor, ~1.1s */
+@keyframes tj-shake { 0% { transform: translate3d(0, 0, 0); } 25% { transform: translate3d(-4px, 2.5px, 0); } 50% { transform: translate3d(3.5px, -3px, 0); }
+  75% { transform: translate3d(-3px, -2px, 0); } 100% { transform: translate3d(0, 0, 0); } }
 .tj-worldStage::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 90% 60% at 50% 20%, rgba(255,226,150,.65), rgba(255,200,110,.2) 50%, transparent 80%); }
 .tj.roaring .tj-worldStage::after { animation: tj-flare 1.8s ease-out forwards; }
@@ -555,10 +555,9 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.frozen .tj-world * { animation-play-state: paused; }
 .tj.frozen .tj-cr-lion *, .tj.frozen .tj-cr-roarwave * { animation-play-state: running; }
 .tj.frozen .tj-bubble, .tj.frozen .tj-progress { opacity: 0 !important; pointer-events: none; }
-/* everything but the lion goes muted and soft (a still moment, so the filters don't cost a moving world) */
-.tj-world > img, .tj-world > .tj-cr, .tj-world > canvas { transition: filter 1.4s ease; }
-.tj.focus .tj-world > img, .tj.focus .tj-world > canvas, .tj.focus .tj-world > .tj-cr:not(.tj-cr-lion):not(.tj-cr-roarwave) { filter: saturate(.25) brightness(.72) blur(1.6px); }
-.tj.focus .tj-world > .tj-cr-lion .stand { filter: drop-shadow(0 0 14px rgba(255,226,150,.55)); transition: filter 1.4s ease; }
+/* the focus: no filters over the world (they were heavy and too dramatic); the vignette closes in
+   (journeyEngine.js) and the lion's aura glows a little brighter */
+.tj.focus .tj-cr-lion .glow { opacity: 1; } .tj.focus .tj-cr-lion .geo { opacity: .75; }
 /* the roar: Flower of Life rings ripple out from the lion's head, fading as they go */
 .tj-cr-roarwave .tj-crBody { aspect-ratio: 1; }
 .tj-cr-roarwave .wave { position: absolute; inset: 0; opacity: 0; }
