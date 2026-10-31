@@ -572,12 +572,12 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* the lion's focus: one soft circular vignette closing in around him (a single layer, faded as a
    whole, so it arrives evenly from every side), deeper as he charges, released by the roar */
-.tj-lionFocus { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: max(100lvh, 100vh); z-index: 31; pointer-events: none; opacity: 0; will-change: opacity; transition: opacity 1.1s ease;
+.tj-lionFocus { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: max(100lvh, 100vh); z-index: 31; pointer-events: none; opacity: 0; will-change: opacity; transition: opacity .8s ease;
   background: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), rgba(6,4,2,0) 0, rgba(6,4,2,0) 11vmax, rgba(6,4,2,.5) 24vmax,
     rgba(5,3,2,.8) 38vmax, rgba(4,2,1,.93) 56vmax); }
 .tj.focus .tj-lionFocus { opacity: .75; }
-.tj.charging .tj-lionFocus { opacity: 1; transition-duration: .5s; }
+.tj.charging .tj-lionFocus { opacity: 1; transition-duration: .35s; }
 .tj.roaring .tj-lionFocus { opacity: 0; transition-duration: 1.4s; }
 /* the charge: the lion draws in a breath (a slight crouch) before the roar; nothing else moves yet */
 .tj-cr-lion .stand { transform-origin: 50% 92%; }
-.tj.lion.charging .tj-cr-lion .stand { transform: scale(1.02, .965); transition: transform .5s cubic-bezier(.4,0,.2,1); }
+.tj.lion.charging .tj-cr-lion .stand { transform: scale(1.02, .965); transition: transform .35s cubic-bezier(.4,0,.2,1); }

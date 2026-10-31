@@ -244,7 +244,7 @@ const BUBBLE_AFTER_MS = 10000;
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
-const FOCUS_MS = 1600, FINALE_AFTER_MS = 2000, CHARGE_MS = 650, SETTLE_MS = 1500, RETURN_S = 1.35;
+const FOCUS_MS = 1120, FINALE_AFTER_MS = 2000, CHARGE_MS = 455, SETTLE_MS = 1050, RETURN_S = 0.95;
 // simple line icons of each totem's face, drawn in gold
 const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "lizard": "<ellipse cx=\"12\" cy=\"5.3\" rx=\"1.5\" ry=\"2\"/><path d=\"M12 7.3c.9 2.2.9 5.3 0 8.2-.8 2.6-2.5 4.4-4.8 5\"/><path d=\"M11.8 9.6l-3-1.4-1 1.5M12.2 9.6l3-1.4 1 1.5M11.9 13.4l-3 1.5-.7 1.6M12.1 13.4l3 1.5.7 1.6\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<path d=\"M12 2.8c.9 1 1.3 2 1.2 3M12 2.8c-.9 1-1.3 2-1.2 3M9.3 4.2c.4 1.2 1.1 2 2 2.4M14.7 4.2c-.4 1.2-1.1 2-2 2.4\"/><path d=\"M9 5.6C6.6 6 4.8 8 4.6 10.6c-.2 2.4.8 4.6 2.6 6.1l1.8 1.6L12 21.4l3-3.1 1.8-1.6c1.8-1.5 2.8-3.7 2.6-6.1C19.2 8 17.4 6 15 5.6\"/><path d=\"M8.4 9.2c1-1.1 2.2-1.6 3.6-1.6s2.6.5 3.6 1.6v3.2c0 2-1.6 3.8-3.6 3.8s-3.6-1.8-3.6-3.8z\"/><circle cx=\"12\" cy=\"9.3\" r=\".9\"/><path d=\"M9.7 11.3l1.2.3M14.3 11.3l-1.2.3\"/><path d=\"M11.1 13.2h1.8l-.9 1z\"/><path d=\"M12 14.2v.7M11 15.4c.3.3.6.4 1 .4s.7-.1 1-.4\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
@@ -474,10 +474,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (owl) owl.classList.remove("look", "open");
     const H = Hs(), top = DESCENT_SVH / 100 * H;
     scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
-    later(() => scroller.classList.add("locked"), 900);
+    later(() => scroller.classList.add("locked"), 650);
     aimFocus(); root.classList.add("frozen", "focus");
     later(() => { if (frozen) root.classList.add("settled"); }, SETTLE_MS);   // then the little animations hold too
-    later(aimFocus, 950);   // again once the page has settled at the bottom
+    later(aimFocus, 700);   // again once the page has settled at the bottom
   }
   // the focus vignette closes in around the lion
   function aimFocus() {
