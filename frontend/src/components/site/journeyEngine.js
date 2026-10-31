@@ -37,7 +37,7 @@ import { LAYLO_URL } from "@/data/site";
 const A = "/journey/";
 // Cache-buster for re-encoded media (Burnell's MEDIA_V): bump it whenever a video, the song or the
 // hero stills are replaced, or phones keep showing the old files.
-const MV = "?v=3";
+const MV = "?v=4";
 
 const HERO_SETS = {
   desktop: { w: 1920, h: 1740, video: "trev-hero-desktop.mp4", poster: "trev-hero-desktop-poster.jpg",
@@ -52,8 +52,8 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
-// phones that play HEVC get the lighter 720p copy (Burnell's phone size); everyone else the 1080p H.264
-const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
+// phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
+const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
@@ -779,7 +779,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const tv = $(".tj-tv");
     // HEVC (smaller) for phones; desktop browsers get H.264, which every one of them plays smoothly
     const phone = matchMedia("(pointer: coarse)").matches;
-    const transUrl = A + (phone && tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264) + MV;
+    const transUrl = A + (phone ? (tv.canPlayType('video/mp4; codecs="hvc1"') ? TRANS.hevc : TRANS.h264Phone) : TRANS.h264) + MV;
     let set = null, fit = { k: 1, ox: 0, oy: 0 }, gl = null, prog = null, nIdx = 0, uOff, uBreath;
     docEl.classList.add("tj-face-grain");
     off.push(() => { docEl.classList.remove("tj-face-grain"); docEl.style.removeProperty("--tj-face"); });
@@ -1127,20 +1127,31 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ======================================================================================
   let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1, mouseX = 0, mouseY = 0;
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    // and a trail of gold dust follows the pointer (desktop's answer to Burnell's water cursor)
+    // and a faint trail of gold dust follows the pointer, now and then a Flower of Life drifting off
+    // it, and a click sends one thin gold ripple out (desktop's answer to Burnell's water cursor)
     const dust = $(".tj-dust");
-    let dustAt = 0;
+    const bloom = `<svg viewBox="-30 -30 60 60"><g fill="none" stroke="#f3d48e" stroke-width=".8">`
+      + [[0, 0], ...Array.from({ length: 6 }, (_, i) => [10 * Math.cos(i * Math.PI / 3), 10 * Math.sin(i * Math.PI / 3)])]
+        .map(([x, y]) => `<circle r="10" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}"/>`).join("") + `<circle r="20"/></g></svg>`;
+    let dustAt = 0, dustN = 0;
+    const spawn = (cls, x, y, html) => {
+      const d = document.createElement(cls === "bloom" ? "b" : "i");
+      if (cls !== "dust") d.className = cls;
+      d.style.left = x + "px"; d.style.top = y + "px";
+      d.style.setProperty("--dx", `${(Math.random() * 24 - 12).toFixed(0)}px`);
+      if (html) d.innerHTML = html;
+      d.addEventListener("animationend", () => d.remove(), { once: true });
+      dust.appendChild(d);
+    };
     on(window, "mousemove", (e) => {
       mouseX = e.clientX / innerWidth * 2 - 1; mouseY = e.clientY / innerHeight * 2 - 1;
       const now = performance.now();
-      if (still || now - dustAt < 38 || dust.childElementCount > 28) return;
+      if (still || now - dustAt < 70 || dust.childElementCount > 16) return;
       dustAt = now;
-      const d = document.createElement("i");
-      d.style.left = e.clientX + "px"; d.style.top = e.clientY + "px";
-      d.style.setProperty("--dx", `${(Math.random() * 30 - 15).toFixed(0)}px`);
-      d.addEventListener("animationend", () => d.remove(), { once: true });
-      dust.appendChild(d);
+      spawn("dust", e.clientX, e.clientY);
+      if (++dustN % 14 === 0) spawn("bloom", e.clientX, e.clientY, bloom);
     }, { passive: true });
+    on(window, "pointerdown", (e) => { if (!still && e.pointerType === "mouse") spawn("ring", e.clientX, e.clientY); }, { passive: true });
   }
 
   // Burnell's scroll guide: a thin line along the bottom fills as you go, a glowing drop riding its

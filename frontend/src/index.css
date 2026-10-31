@@ -312,6 +312,9 @@ body {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+/* over a form (the EPK / Contact booking form) the cursor's geometry fades away, so answers stay readable */
+.sacred-geometry-reveal { transition: opacity .35s ease; }
+body:has(form:hover) .sacred-geometry-reveal { opacity: 0; }
 .sacred-geometry-reveal {
   mix-blend-mode: screen;
   /* Was 190px site-wide, then 95px Home-only (a --sacred-reveal-radius
