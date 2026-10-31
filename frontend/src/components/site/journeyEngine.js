@@ -230,7 +230,7 @@ const STORY = [
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
-const LION_HOLD_MS = 14000, ROAR_MS = 3200;
+const ROAR_MS = 3200;
 const RAIN_MS = 6500, RAINBOW_MS = 9000, NIGHT_AFTER_MS = 2500;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -332,10 +332,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
-    <div class="tj-totems" aria-hidden="true">${[["bison", "w3-bison-body.webp"], ["bluebird", "trev-world-bluebird-perched.webp"],
+    <div class="tj-totems">${[["bison", "w3-bison-body.webp"], ["bluebird", "trev-world-bluebird-perched.webp"],
       ["butterfly", "trev-world-butterfly.webp"], ["aspen", "trev-world-bleaf-4.webp"], ["cloud", "burnell-world-cloud-medium.webp"]]
-      .map(([k, src]) => `<span class="tj-totem" data-k="${k}"><img src="${A + src}" alt=""></span>`).join("")}</div>
-    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>Call on the white bison</small></p></div>
+      .map(([k, src]) => `<span class="tj-totem" data-k="${k}"><img src="${A + src}" alt=""></span>`).join("")}
+      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion"><img src="${A}trev-world-lion.webp" alt=""></button></div>
+    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
       <div class="tj-headLeft">
@@ -423,28 +424,27 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const pad = Math.max(margin, r.width * 0.25);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
-  // Once the Kingdom is awake: tap the bison (its aura flares), tap again and it transforms into the
-  // white lion; tap the lion and it roars to the sky, the world shakes and the sky flares gold. The
-  // lion holds a while, then gives the world back to the bison.
-  let lion = null, lionMode = false, roaring = false, lionTimer = 0;
+  // Once every totem is awake the world lights up, the totems leave the row, the bison transforms into
+  // the white lion and the lion alone takes the row, twice the size. Tap the lion (in the world or in
+  // the row): it roars to the sky, the world shakes and the sky flares gold, and (once it's made) the
+  // finale into the lion's eye begins.
+  let lion = null, lionMode = false, roaring = false;
   const overLion = (x, y) => {
     if (!lion || !lionMode) return false;
     const r = lion.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
     return x > r.left && x < r.right && y > r.top + r.height * 0.1 && y < r.bottom;
   };
-  const lionHold = () => { clearTimeout(lionTimer); lionTimer = later(() => { if (!roaring) { root.classList.remove("lion"); lionMode = false; } }, LION_HOLD_MS); };
   function transform() {
     if (lionMode) return;
     lionMode = true; root.classList.add("transforming");
     later(() => root.classList.add("lion"), 900);
     later(() => root.classList.remove("transforming"), 1900);
-    lionHold();
   }
   function roar() {
     if (roaring) return;
     roaring = true; root.classList.add("roaring");
     // (the roar sound and, once it's made, the finale clip into the lion's eye start here)
-    later(() => { root.classList.remove("roaring"); roaring = false; lionHold(); }, ROAR_MS);
+    later(() => { root.classList.remove("roaring"); roaring = false; }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
   const lightBison = () => {
@@ -452,8 +452,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (now - bisonCallAt < 350) return;   // one tap sends both a touch and a pointer event
     bisonCallAt = now;
     if (lionMode) return roar();
-    if (climaxed && now - bisonTapAt < BISON_TAP_S * 1000) return transform();
-    if (now - bisonTapAt < BISON_TAP_S * 1000 && !climaxed) return;
+    if (now - bisonTapAt < BISON_TAP_S * 1000) return;
     bisonTapAt = now; bison.classList.add("is-on"); wake("bison");
     clearTimeout(bisonOnTimer);
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
@@ -732,8 +731,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function awaken() {
     climaxed = true; root.classList.add("awakening");
     try { localStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
+    later(() => totemRow.classList.add("lion"), 1600);      // the totems leave; the lion takes the row
+    later(transform, 2200);                                  // ...as the bison becomes the lion
     later(() => root.classList.remove("awakening"), 6500);
   }
+  on($(".tj-lionTotem"), "click", () => { if (lionMode) roar(); });
   // the screen point -> a layer's own coordinates
   const toLayer = (x, y, key) => {
     const r = world.getBoundingClientRect(), k = r.width / CANVAS.w, L = layerOf[key];
@@ -788,6 +790,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
     later(() => totemRow.classList.add("show"), 3500);
+    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
     if (isNight) later(() => root.classList.add("night"), NIGHT_AFTER_MS);
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;

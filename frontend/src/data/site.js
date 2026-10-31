@@ -79,11 +79,11 @@ export const CAREER_HIGHLIGHTS = [
   "1.5M+ Views on Instagram",
 ];
 export const EPK_TOURED_WITH = ["SatSang", "Paul Izak", "Tubby Love"];
+// "Direct Support For" on the EPK
 export const SHARED_STAGE = [
   "Talib Kweli",
   "Ghostface Killah",
   "Living Legends",
-  "Nahko",
   "Sa-Roc",
   "Shanin Blake",
   "Hieroglyphics",

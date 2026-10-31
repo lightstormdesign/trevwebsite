@@ -59,13 +59,11 @@ export const Navbar = () => {
           {/* the speaker: "Kingdom" keeps playing from page to page */}
           <SoundButton />
           <Link to="/" data-testid="nav-link-wordmark">
-            {/* TREV logo (gold, sun above the letters, transparent PNG
-                ~788x484). Same asset on mobile and desktop, sized to the
-                nav bar height. */}
+            {/* The TREV letters (no sun), as in Home's header. */}
             <img
-              src="/trev-logo.png"
+              src="/journey/trev-logo-letters.webp"
               alt="TREV"
-              className={`${isMobile ? "animate-wordmark-float h-10" : "h-11"} w-auto object-contain`}
+              className="h-[19px] w-auto object-contain drop-shadow-[0_1px_10px_rgba(0,0,0,0.5)] lg:h-[22px]"
             />
           </Link>
           </div>

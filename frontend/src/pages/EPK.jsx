@@ -313,7 +313,7 @@ export default function EPK() {
               <span className="overline">Selected Performances</span>
               <p className="font-accent mt-4 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Toured With</p>
               <p className="font-body mt-2 text-sm leading-relaxed text-white/70">{EPK_TOURED_WITH.join(", ")}</p>
-              <p className="font-accent mt-6 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Shared the Stage With</p>
+              <p className="font-accent mt-6 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Direct Support For</p>
               <p className="font-body mt-2 text-sm leading-relaxed text-white/70">{SHARED_STAGE.join(" · ")}</p>
               <p className="font-accent mt-6 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Festivals</p>
               <p className="font-body mt-2 text-sm leading-loose text-white/55">{FESTIVALS.join(" · ")}</p>
