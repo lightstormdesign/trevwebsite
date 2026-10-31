@@ -207,21 +207,27 @@
 .tj-bison .geo svg, .tj-cr-perch .geo svg, .tj-cr-butterfly .geo svg {
   -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
   animation: tj-auraSpin 80s linear infinite reverse; }
-.tj-bison .glow { opacity: .4; animation: tj-bisonGlow 5s ease-in-out infinite; }
-.tj-bison .geo { opacity: .21; animation: tj-bisonGeo 5s ease-in-out infinite; }
-@keyframes tj-bisonGlow { 0%, 100% { opacity: .4; } 50% { opacity: .55; } }
-@keyframes tj-bisonGeo { 0%, 100% { opacity: .21; } 50% { opacity: .36; } }
+/* resting = what a tap used to give (the geometry plainly visible); a tap now goes beyond it. No
+   filter at rest: the glow is opacity only (a standing filter on the moving bison made scroll stutter) */
+.tj-bison .aura { transform: scale(1.15); }
+/* the Flower of Life drawn heavier and in deeper gold, so it reads against the bright canyon */
+.tj-bison .geo svg g, .tj-cr-perch .geo svg g, .tj-cr-butterfly .geo svg g { stroke: #ffd27a; stroke-width: .9; }
+.tj-bison .glow { opacity: .8; animation: tj-bisonGlow 5s ease-in-out infinite; }
+.tj-bison .geo { opacity: .56; animation: tj-bisonGeo 5s ease-in-out infinite; }
+@keyframes tj-bisonGlow { 0%, 100% { opacity: .8; } 50% { opacity: .95; } }
+@keyframes tj-bisonGeo { 0%, 100% { opacity: .56; } 50% { opacity: .71; } }
 @keyframes tj-auraSpin { to { transform: rotate(360deg); } }
 /* the bluebird's, a level below the bison's so the bison stays the one that stands out */
 .tj-cr-perch .aura { position: absolute; left: -50%; top: -70%; width: 200%; height: 240%; pointer-events: none;
   transition: opacity .4s ease, transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
-.tj-cr-perch .glow { opacity: .22; animation: tj-perchGlow 5s ease-in-out infinite; }
-.tj-cr-perch .geo { opacity: .12; animation: tj-perchGeo 5s ease-in-out infinite; }
-@keyframes tj-perchGlow { 0%, 100% { opacity: .22; } 50% { opacity: .31; } }
-@keyframes tj-perchGeo { 0%, 100% { opacity: .12; } 50% { opacity: .2; } }
-.tj-cr-perch.is-on .aura { filter: brightness(1.3); transform: scale(1.1); }
-.tj-cr-perch.is-on .glow { animation: none; opacity: .36; }
-.tj-cr-perch.is-on .geo { animation: none; opacity: .23; }
+.tj-cr-perch .aura { transform: scale(1.1); }
+.tj-cr-perch .glow { opacity: .5; animation: tj-perchGlow 5s ease-in-out infinite; }
+.tj-cr-perch .geo { opacity: .36; animation: tj-perchGeo 5s ease-in-out infinite; }
+@keyframes tj-perchGlow { 0%, 100% { opacity: .5; } 50% { opacity: .6; } }
+@keyframes tj-perchGeo { 0%, 100% { opacity: .36; } 50% { opacity: .46; } }
+.tj-cr-perch.is-on .aura { filter: brightness(1.3); transform: scale(1.22); }
+.tj-cr-perch.is-on .glow { animation: none; opacity: .72; }
+.tj-cr-perch.is-on .geo { animation: none; opacity: .56; }
 .tj-cr-perch.is-on .sit { filter: drop-shadow(0 0 6px rgba(255,214,140,.7)); }
 .tj-cr-perch.flying .aura { opacity: 0; }
 .tj-bison .pulse, .tj-bison .shadow, .tj-bison .outline { inset: 0;
@@ -244,9 +250,9 @@
   47% { transform: rotate(13deg); }
 }
 /* a tap (or hover): everything brighter, the aura wider, the pulse quicker */
-.tj-bison.is-on .aura { filter: brightness(1.5); transform: scale(1.15); }
-.tj-bison.is-on .glow { animation: none; opacity: .62; }
-.tj-bison.is-on .geo { animation: none; opacity: .38; }
+.tj-bison.is-on .aura { filter: brightness(1.5); transform: scale(1.32); }
+.tj-bison.is-on .glow { animation: none; opacity: 1; }
+.tj-bison.is-on .geo { animation: none; opacity: .85; }
 .tj-bison.is-on .body, .tj-bison.is-on .tailImg { filter: drop-shadow(0 0 1px rgba(255,240,190,1)) drop-shadow(0 0 8px rgba(255,210,120,.8)); }
 .tj-bison.is-on .pulse { animation-duration: 2.6s; }
 html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
@@ -304,13 +310,14 @@ html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 /* its aura: the faintest of the three (bison > bluebird > butterfly) */
 .tj-cr-butterfly .aura { position: absolute; left: -50%; top: -94%; width: 200%; height: 288%; pointer-events: none;
   transition: opacity .4s ease, transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
-.tj-cr-butterfly .glow { opacity: .14; animation: tj-flyGlow 5s ease-in-out infinite; }
-.tj-cr-butterfly .geo { opacity: .07; animation: tj-flyGeo 5s ease-in-out infinite; }
-@keyframes tj-flyGlow { 0%, 100% { opacity: .14; } 50% { opacity: .2; } }
-@keyframes tj-flyGeo { 0%, 100% { opacity: .07; } 50% { opacity: .12; } }
-.tj-cr-butterfly.is-on .aura { filter: brightness(1.2); transform: scale(1.08); }
-.tj-cr-butterfly.is-on .glow { animation: none; opacity: .24; }
-.tj-cr-butterfly.is-on .geo { animation: none; opacity: .14; }
+.tj-cr-butterfly .aura { transform: scale(1.08); }
+.tj-cr-butterfly .glow { opacity: .34; animation: tj-flyGlow 5s ease-in-out infinite; }
+.tj-cr-butterfly .geo { opacity: .24; animation: tj-flyGeo 5s ease-in-out infinite; }
+@keyframes tj-flyGlow { 0%, 100% { opacity: .34; } 50% { opacity: .42; } }
+@keyframes tj-flyGeo { 0%, 100% { opacity: .24; } 50% { opacity: .32; } }
+.tj-cr-butterfly.is-on .aura { filter: brightness(1.2); transform: scale(1.18); }
+.tj-cr-butterfly.is-on .glow { animation: none; opacity: .5; }
+.tj-cr-butterfly.is-on .geo { animation: none; opacity: .4; }
 .tj-cr-butterfly.flying .aura { opacity: 0; }
 html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @keyframes tj-flutter { from { transform: scaleX(1); } to { transform: scaleX(.26); } }
