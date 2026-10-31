@@ -178,6 +178,7 @@ const CREATURES = [
   // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 130, y: 470 }) },
+  { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
   ...[[330, 880], [470, 900], [600, 870], [400, 1030], [540, 960]].map(([x, y], i) =>
     ({ kind: "ripple", layer: "river", w: 70, delay: i * 0.45, pose: () => ({ x, y }) })),
@@ -229,6 +230,7 @@ const STORY = [
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
+const LION_HOLD_MS = 14000, ROAR_MS = 3200;
 const RAIN_MS = 6500, RAINBOW_MS = 9000, NIGHT_AFTER_MS = 2500;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -333,7 +335,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-totems" aria-hidden="true">${[["bison", "w3-bison-body.webp"], ["bluebird", "trev-world-bluebird-perched.webp"],
       ["butterfly", "trev-world-butterfly.webp"], ["aspen", "trev-world-bleaf-4.webp"], ["cloud", "burnell-world-cloud-medium.webp"]]
       .map(([k, src]) => `<span class="tj-totem" data-k="${k}"><img src="${A + src}" alt=""></span>`).join("")}</div>
-    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span></p></div>
+    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>Call on the white bison</small></p></div>
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
       <div class="tj-headLeft">
@@ -416,13 +418,42 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   let bisonTapAt = -1e9, bisonHover = false, bisonOnTimer = 0;
   const overBison = (x, y, margin) => {
     if (!bison || phase !== "world") return false;
+    if (lionMode) return overLion(x, y);
     const r = bison.getBoundingClientRect(); if (!r.width) return false;
     const pad = Math.max(margin, r.width * 0.25);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
+  // Once the Kingdom is awake: tap the bison (its aura flares), tap again and it transforms into the
+  // white lion; tap the lion and it roars to the sky, the world shakes and the sky flares gold. The
+  // lion holds a while, then gives the world back to the bison.
+  let lion = null, lionMode = false, roaring = false, lionTimer = 0;
+  const overLion = (x, y) => {
+    if (!lion || !lionMode) return false;
+    const r = lion.el.firstChild.getBoundingClientRect(); if (!r.width) return false;
+    return x > r.left && x < r.right && y > r.top + r.height * 0.1 && y < r.bottom;
+  };
+  const lionHold = () => { clearTimeout(lionTimer); lionTimer = later(() => { if (!roaring) { root.classList.remove("lion"); lionMode = false; } }, LION_HOLD_MS); };
+  function transform() {
+    if (lionMode) return;
+    lionMode = true; root.classList.add("transforming");
+    later(() => root.classList.add("lion"), 900);
+    later(() => root.classList.remove("transforming"), 1900);
+    lionHold();
+  }
+  function roar() {
+    if (roaring) return;
+    roaring = true; root.classList.add("roaring");
+    // (the roar sound and, once it's made, the finale clip into the lion's eye start here)
+    later(() => { root.classList.remove("roaring"); roaring = false; lionHold(); }, ROAR_MS);
+  }
+  let bisonCallAt = -1e9;
   const lightBison = () => {
     const now = performance.now();
-    if (now - bisonTapAt < BISON_TAP_S * 1000) return;
+    if (now - bisonCallAt < 350) return;   // one tap sends both a touch and a pointer event
+    bisonCallAt = now;
+    if (lionMode) return roar();
+    if (climaxed && now - bisonTapAt < BISON_TAP_S * 1000) return transform();
+    if (now - bisonTapAt < BISON_TAP_S * 1000 && !climaxed) return;
     bisonTapAt = now; bison.classList.add("is-on"); wake("bison");
     clearTimeout(bisonOnTimer);
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
@@ -500,6 +531,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
     if (c.kind === "aspen") body.innerHTML = sacredAura();
+    else if (c.kind === "lion") {
+      body.innerHTML = sacredAura() + `<i class="burst"></i><img class="stand" src="${A}trev-world-lion.webp" alt="The white lion">`
+        + `<img class="roar" src="${A}trev-world-lion-roar.webp" alt="">`;
+      lion = c;
+    }
     else if (c.kind === "rainbow") body.innerHTML = `<i></i>`;
     else if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
       + (c.bird === "swallow"   // Burnell's two frames, each centred

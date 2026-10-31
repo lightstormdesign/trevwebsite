@@ -495,3 +495,42 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .tj-rain .drops, .tj-night .stars, .tj-cr-firefly span, .tj-cr-ripple span, .tj-cr-aspen .glow, .tj-cr-aspen .geo, .tj-cr-aspen .geo svg { animation: none; }
 }
+
+/* ---------- the white lion: the bison transforms (once the Kingdom is awake), the lion roars to the sky ---------- */
+.tj-bison { transition: opacity .9s ease; }
+.tj.transforming .tj-bison .aura { transform: scale(1.75) rotate(25deg); filter: brightness(2); transition: transform 1s cubic-bezier(.5,0,.2,1), filter 1s ease; }
+.tj.lion .tj-bison { opacity: 0; pointer-events: none; }
+.tj-cr-lion .tj-crBody { aspect-ratio: 1122 / 1402; }
+.tj-cr-lion .aura, .tj-cr-lion img { opacity: 0; transform: scale(.92); transform-origin: 50% 90%; transition: opacity 1s ease, transform 1.4s cubic-bezier(.16,1,.3,1); }
+.tj.lion .tj-cr-lion .aura, .tj.lion .tj-cr-lion .stand { opacity: 1; transform: none; }
+.tj-cr-lion img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tj.lion .tj-cr-lion .roar { transform: none; transition: opacity .25s ease; }
+.tj.roaring .tj-cr-lion .roar { opacity: 1; }
+.tj.roaring .tj-cr-lion .stand { opacity: 0; transition: opacity .25s ease; }
+/* its aura: the bison's, lifted to the lion's size */
+.tj-cr-lion .aura { position: absolute; left: -45%; top: -30%; width: 190%; aspect-ratio: 1; pointer-events: none;
+  transition: transform 1s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.tj-cr-lion .glow, .tj-cr-lion .geo { position: absolute; inset: 0; }
+.tj-cr-lion .glow i, .tj-cr-lion .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tj-cr-lion .glow i { border-radius: 50%; animation: tj-auraSpin 30s linear infinite;
+  background: conic-gradient(from 0deg, rgba(255,236,190,.6), rgba(255,250,235,.55), rgba(240,200,120,.55), rgba(255,244,214,.5), rgba(228,182,96,.55), rgba(255,250,240,.55), rgba(255,236,190,.6));
+  -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); }
+.tj-cr-lion .geo svg { -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+  animation: tj-auraSpin 80s linear infinite reverse; }
+.tj-cr-lion .geo svg g { stroke: #ffd27a; stroke-width: .9; }
+.tj-cr-lion .glow { opacity: .8; } .tj-cr-lion .geo { opacity: .56; }
+.tj.lion.roaring .tj-cr-lion .aura { transform: scale(1.4); filter: brightness(1.8); }
+/* the burst of gold light the lion forms out of */
+.tj-cr-lion .burst { position: absolute; left: -60%; top: -40%; width: 220%; aspect-ratio: 1; border-radius: 50%; opacity: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255,250,230,.95), rgba(255,220,140,.6) 35%, rgba(240,190,90,0)); }
+.tj.transforming .tj-cr-lion .burst { animation: tj-burst 1.9s ease-out forwards; }
+@keyframes tj-burst { 0% { opacity: 0; transform: scale(.3); } 45% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.3); } }
+/* the roar: the world shakes and the sky flares gold */
+.tj.roaring .tj-worldStage { animation: tj-shake .75s cubic-bezier(.36,.07,.19,.97) 2 both; }
+@keyframes tj-shake { 0%, 100% { transform: translate3d(0, 0, 0); } 10%, 50%, 90% { transform: translate3d(-7px, 3px, 0); } 30%, 70% { transform: translate3d(7px, -3px, 0); } }
+.tj-worldStage::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse 90% 60% at 50% 20%, rgba(255,226,150,.65), rgba(255,200,110,.2) 50%, transparent 80%); }
+.tj.roaring .tj-worldStage::after { animation: tj-flare 3.2s ease-out forwards; }
+@keyframes tj-flare { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+.tj-awaken small { display: block; margin-top: 14px; font: 400 12px/1.4 var(--tj-display); letter-spacing: .32em; color: #f2dca5; }
+@media (prefers-reduced-motion: reduce) { .tj.roaring .tj-worldStage { animation: none; } }
