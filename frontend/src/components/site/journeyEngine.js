@@ -117,12 +117,16 @@ const LEAVES = [
   [4, "mountains", 0.35, 46, 700, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
 ];
 const OWL = { x: 166, y: 482, w: 71 };   // on the aspens' branch, halfway up the grove (aspens layer coordinates)
-const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
+const PERCH = { x: 572, y: 384, w: 106 }; // the bluebird, up on the juniper's high branch
 // The lolo (the Madagascan sunset moth, a totem): it begins as a cocoon hanging from the juniper's
 // upper branch; tapped, the cocoon pulses gold and splits, the moth unfolds its wings as light sweeps
 // across them, then settles on the branch (juniper coordinates). After that a tap sends it fluttering.
-const COCOON_AT = [540, 440], COCOON_W = 120;
-const BUTTERFLY_AT = [470, 398], BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 1.0];   // [unfolding, gliding to the branch]
+const COCOON_AT = [541, 661], COCOON_W = 120;   // hanging from the juniper's lower limb
+const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down to the water]
+// where Burnell's big butterfly used to wander, over the water (juniper coordinates), and its rest
+// on the cactus flower once the lion forms (the roar sends it up from there)
+const mothWander = (t) => ({ x: 135 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)), y: 1074 + 38 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55) });
+const MOTH_REST = [600, 1232];
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
 // flock crosses (every other beat).
@@ -169,28 +173,29 @@ const CREATURES = [
   ...GLINTS.map(([x, y], i) => ({ kind: "glint", layer: "river", w: 16 + (i % 3) * 5, delay: (i * 0.77) % 3.4, pose: () => ({ x, y }) })),
   { kind: "butterfly", layer: "forest", w: 30, pose: (t) => ({ x: 650 + 70 * Math.sin(t * 0.55 + 2.1) + 20 * Math.sin(t * 1.7 + 2.1),
     y: 1000 + 30 * Math.sin(t * 0.85 + 4.2), rot: 10 * Math.cos(t * 0.55 + 2.1) }) },
-  { kind: "butterfly", layer: "foreground", w: 115, pose: (t) => ({ x: 345 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)),
-    y: 1125 + 1.2 * 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55) }) },
   { kind: "cocoon", layer: "juniper", w: COCOON_W, pose: (t, p, c) => (c.gone ? null : { x: COCOON_AT[0], y: COCOON_AT[1] }) },
-  { kind: "butterfly", landed: true, layer: "juniper", w: 92, pose: (t, p, c) => {
+  { kind: "butterfly", landed: true, layer: "juniper", w: 100, pose: (t, p, c) => {
     if (!c.emerged) {
       if (!c.hatchAt) return null;
       const d = t - c.hatchAt;
       if (d < HATCH_S[0]) return { x: COCOON_AT[0], y: COCOON_AT[1] + 4, scale: 0.55 + 0.45 * smooth(d / HATCH_S[0]), flying: false };
-      const e = smooth((d - HATCH_S[0]) / HATCH_S[1]);
-      if (e >= 1) { c.emerged = true; c.el.classList.remove("unfolding"); }
-      return { x: COCOON_AT[0] + (BUTTERFLY_AT[0] - COCOON_AT[0]) * e, y: COCOON_AT[1] + 4 + (BUTTERFLY_AT[1] - COCOON_AT[1] - 4) * e - 26 * Math.sin(Math.PI * e), flying: e > 0 && e < 1 };
+      const u = (d - HATCH_S[0]) / HATCH_S[1], e = smooth(u), w = mothWander(t);
+      if (u >= 1) { c.emerged = true; c.el.classList.remove("unfolding"); return { ...w, flying: true }; }
+      return { x: COCOON_AT[0] + (w.x - COCOON_AT[0]) * e, y: COCOON_AT[1] + 4 + (w.y - COCOON_AT[1] - 4) * e - 60 * Math.sin(Math.PI * e),
+        rot: w.rot * e, flying: u > 0 };
     }
-    if (c.returnAt) {   // called home: drifts back down onto its flower from wherever it was
+    // free, it drifts over the water; once the lion forms it comes to rest on the cactus flower
+    const base = c.home ? { x: MOTH_REST[0], y: MOTH_REST[1], rot: 0 } : mothWander(t);
+    if (c.returnAt) {
       const u = (t - c.returnAt) / RETURN_S;
       if (u >= 1 || u < 0) c.returnAt = 0;
-      else { const e = smooth(u); return { x: BUTTERFLY_AT[0] + c.fromDx * (1 - e), y: BUTTERFLY_AT[1] + c.fromDy * (1 - e), flying: true }; }
+      else { const e = smooth(u); return { x: base.x + c.fromDx * (1 - e), y: base.y + c.fromDy * (1 - e), flying: true }; }
     }
     const d = c.flyAt ? t - c.flyAt : -1;
-    if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { x: BUTTERFLY_AT[0], y: BUTTERFLY_AT[1], flying: false }; }
-    const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, wanders, comes back down
-    return { x: BUTTERFLY_AT[0] + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
-      y: BUTTERFLY_AT[1] - e * (130 + 60 * Math.sin(d * 1.3)), rot: e * 12 * Math.cos(d * 0.9), flying: true };
+    if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { ...base, flying: !c.home }; }
+    const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, loops wide, comes back down
+    return { x: base.x + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
+      y: base.y - e * (130 + 60 * Math.sin(d * 1.3)), rot: base.rot + e * 12 * Math.cos(d * 0.9), flying: true };
   } },
   ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-bleaf-${n}.webp`, after, depth, w,
     pose: (t, p) => ({
@@ -541,8 +546,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now() / 1000;
     for (const c of CREATURES) {
       c.pushUntil = 0;
+      if (c === butterfly && c.emerged && !c.home) {   // the moth leaves the water for its flower
+        const q = c.pose(now, 1, c); c.home = true; c.flyAt = 0; c.fromDx = q.x - MOTH_REST[0]; c.fromDy = q.y - MOTH_REST[1]; c.returnAt = now; continue;
+      }
       if (!c.flyAt) continue;
-      if (c.kind === "butterfly") { const q = c.pose(now, 1, c); if (!q) { c.flyAt = 0; continue; } c.fromDx = q.x - BUTTERFLY_AT[0]; c.fromDy = q.y - BUTTERFLY_AT[1]; }
+      if (c.kind === "butterfly") { const q = c.pose(now, 1, c); if (!q) { c.flyAt = 0; continue; } c.fromDx = q.x - MOTH_REST[0]; c.fromDy = q.y - MOTH_REST[1]; }
       c.flyAt = 0; c.returnAt = now;
     }
     if (owl) owl.classList.remove("look", "open");
@@ -1040,6 +1048,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
+    if (climaxed && butterfly) butterfly.home = true;
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
     if (isNight) later(() => root.classList.add("night"), NIGHT_AFTER_MS);
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);

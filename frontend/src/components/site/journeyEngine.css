@@ -675,8 +675,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-butterfly .moth .open { animation: tj-mothRestB 3.6s ease-in-out infinite; }
 @keyframes tj-mothRest { 0%, 58%, 100% { opacity: 0; } 66%, 80% { opacity: 1; } }
 @keyframes tj-mothRestB { 0%, 58%, 100% { opacity: 1; } 66%, 80% { opacity: 0; } }
-.tj-cr-butterfly.landed.flying .moth .raised { animation: tj-flapA2 .16s steps(1, end) infinite; }
-.tj-cr-butterfly.landed.flying .moth .open { animation: tj-flapB2 .16s steps(1, end) infinite; }
+.tj-cr-butterfly.landed.flying .moth .raised { animation: tj-flapA2 .2s steps(1, end) infinite; }
+.tj-cr-butterfly.landed.flying .moth .open { animation: tj-flapB2 .2s steps(1, end) infinite; }
 @keyframes tj-flapA2 { 0% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @keyframes tj-flapB2 { 0% { opacity: 0; } 50%, 100% { opacity: 1; } }
 .tj-cr-butterfly.unfolding .moth { animation: tj-unfold 1.3s cubic-bezier(.2,.7,.2,1) both; }
