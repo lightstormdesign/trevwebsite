@@ -118,8 +118,8 @@ export const TOUR_DATES = [
   },
 ];
 export const TOUR_TICKETS_URL = null;
-export const TOUR_INTRO_LINE_1 = "Touring the U.S. full-time,";
-export const TOUR_INTRO_LINE_2 = "building community.";
+export const TOUR_INTRO_LINE_1 = "Building community,";
+export const TOUR_INTRO_LINE_2 = "one prayerformance at a time.";
 
 export const HERO_TAGLINE = SITE_TAGLINE;
 export const HERO_CTA = { label: "My Story", to: "/about" };
