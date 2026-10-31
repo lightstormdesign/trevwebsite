@@ -681,7 +681,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
   }
   const fliers = () => [perch, butterfly];
+  // one finger fires touchstart and pointerdown: the second must not fall through to the sky behind
+  let lastTap = { t: -1e9, x: 0, y: 0 };
   const tapFliers = (x, y) => {
+    const now = performance.now();
+    if (now - lastTap.t < 400 && Math.abs(x - lastTap.x) < 30 && Math.abs(y - lastTap.y) < 30) return;
+    lastTap = { t: now, x, y };
     if (overCocoon(x, y)) return hatch();
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
     if (overSalmon(x, y)) return catchSalmon();
@@ -1410,6 +1415,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // one loop drives everything
   // ======================================================================================
   let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1, mouseX = 0, mouseY = 0;
+  // About opens straight on the first chapter of the story (the world is still there above it)
+  if (start === "world") { scroller.scrollTop = STORY_START_SVH / 100 * Hs(); target = cur = Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100); }
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
     // and a faint trail of gold dust follows the pointer, now and then a Flower of Life drifting off
     // it, and a click sends one thin gold ripple out (desktop's answer to Burnell's water cursor)
