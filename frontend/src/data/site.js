@@ -102,12 +102,21 @@ export const FESTIVALS = [
 export const EPK_BANNER_TEXT = "Live prayerformance";
 
 // Booking — verbatim from trevworld.com/contact.
-export const BOOKING_STATUS = "Now Booking for 2026–2027";
+export const BOOKING_STATUS = "Now Booking for 2027";
 export const BOOKING_COPY = "Festivals, retreats, private events, and conscious gatherings worldwide.";
 
-// Tour — the live Tour page has no dates in its HTML (they're in a widget).
-// PLACEHOLDER: empty until TREV sends dates or a Bandsintown profile.
-export const TOUR_DATES = [];
+// Tour — the 2026 Kingdom Tour is over; one more show this year (from the Facebook event TREV sent).
+export const TOUR_STATUS = "The 2026 Kingdom Tour has ended";
+export const TOUR_DATES = [
+  {
+    date: "Nov 27",
+    event: "The Giving Room Experiment with Tubby Love & Friends",
+    location: "The Fox Theatre · Boulder, CO",
+    note: "Friday, November 27, 2026 · 7 PM · A benefit concert for the Four Winds Foundation & Lodge of the Great Spirit",
+    url: "https://www.facebook.com/events/2578814615875623/",
+    cta: "Event Details",
+  },
+];
 export const TOUR_TICKETS_URL = null;
 export const TOUR_INTRO_LINE_1 = "Touring the U.S. full-time,";
 export const TOUR_INTRO_LINE_2 = "building community.";

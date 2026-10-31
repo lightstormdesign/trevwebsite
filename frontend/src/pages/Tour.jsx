@@ -7,6 +7,7 @@ import { TourFlyer } from "@/components/site/TourFlyer";
 import { HeartIcon } from "@/components/site/HeartIcon";
 import {
   TOUR_DATES,
+  TOUR_STATUS,
   TOUR_INTRO_LINE_1,
   TOUR_INTRO_LINE_2,
   TOUR_TICKETS_URL,
@@ -42,7 +43,12 @@ export default function Tour() {
           <>
             <Reveal delay={0.2}>
               <div className="mt-16">
-                <TourFlyer title="Upcoming Dates" dates={TOUR_DATES} />
+                {TOUR_STATUS && (
+                  <p data-testid="tour-status" className="font-accent mb-8 text-sm uppercase tracking-[0.2em] text-white/60">
+                    {TOUR_STATUS}
+                  </p>
+                )}
+                <TourFlyer title="One More Night in 2026" dates={TOUR_DATES} />
               </div>
             </Reveal>
 

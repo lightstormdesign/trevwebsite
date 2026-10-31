@@ -1,8 +1,27 @@
 import { useIsMobile } from "@/hooks/useIsMobile";
 
-// Data-driven tour flyer — takes the TOUR_DATES array ({ date, event,
-// location }) and renders the layout automatically. Renders nothing when
+// Data-driven tour flyer — takes the TOUR_DATES array ({ date, event, location, and optionally
+// note, url, cta }) and renders the layout automatically. Renders nothing when
 // there are no dates (the Tour page shows its own "coming soon" state).
+// A date's extra line (time, cause) and its link, when it has them.
+const DateExtras = ({ d, className = "" }) =>
+  d.note || d.url ? (
+    <div className={className}>
+      {d.note && <p className="font-body mt-2 text-xs font-light leading-relaxed text-white/60">{d.note}</p>}
+      {d.url && (
+        <a
+          href={d.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="tour-date-link"
+          className="font-accent mt-3 inline-block text-xs uppercase tracking-[0.2em] text-[var(--sm-gold-light)] underline decoration-[var(--sm-gold)]/50 underline-offset-4 transition-colors hover:text-white"
+        >
+          {d.cta || "Details"}
+        </a>
+      )}
+    </div>
+  ) : null;
+
 export const TourFlyer = ({ title, intro, dates }) => {
   const isMobile = useIsMobile();
   if (!dates || dates.length === 0) return null;
@@ -34,6 +53,7 @@ export const TourFlyer = ({ title, intro, dates }) => {
                 <span className="font-display flex-1 text-sm text-white">{d.event}</span>
               </div>
               <p className="font-body mt-1 pl-16 text-xs text-white/50">{d.location}</p>
+              <DateExtras d={d} className="pl-16" />
             </li>
           ) : (
             <li
@@ -44,6 +64,7 @@ export const TourFlyer = ({ title, intro, dates }) => {
               <span className="font-accent w-16 shrink-0 text-sm text-[var(--sm-gold)]">{d.date}</span>
               <span className="font-display flex-1 text-base text-white sm:text-lg">{d.event}</span>
               <span className="font-body text-xs text-white/50 sm:text-sm">{d.location}</span>
+              <DateExtras d={d} className="basis-full pl-20" />
             </li>
           )
         )}
