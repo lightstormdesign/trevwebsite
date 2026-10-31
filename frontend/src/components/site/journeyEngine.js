@@ -299,7 +299,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
       <div class="tj-grade"></div>
     </div>` : ""}
-    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div><div class="lionFocus"></div></div>
+    <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
+    <div class="tj-lionFocus" aria-hidden="true"></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
@@ -456,15 +457,16 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const H = Hs(), top = DESCENT_SVH / 100 * H;
     scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
     later(() => scroller.classList.add("locked"), 900);
-    root.classList.add("frozen", "focus");
-    later(aimFocus, 950);
+    aimFocus(); root.classList.add("frozen", "focus");
+    later(aimFocus, 950);   // again once the page has settled at the bottom
   }
   // the focus vignette closes in around the lion
   function aimFocus() {
     if (!lion) return;
     const r = lion.el.firstChild.getBoundingClientRect();
-    vignette.style.setProperty("--lx", `${(r.left + r.width / 2).toFixed(0)}px`);
-    vignette.style.setProperty("--ly", `${(r.top + r.height * 0.45).toFixed(0)}px`);
+    const f = $(".tj-lionFocus");
+    f.style.setProperty("--lx", `${(r.left + r.width / 2).toFixed(0)}px`);
+    f.style.setProperty("--ly", `${(r.top + r.height * 0.45).toFixed(0)}px`);
   }
   // a buzz: Android vibrates; on iPhone (no vibration for websites) a hidden switch toggle gives the
   // light haptic tick iOS 18+ plays for switches
@@ -494,7 +496,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       return later(roar, CHARGE_MS);
     }
     if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
-    roaring = true; root.classList.remove("focus", "charging"); root.classList.add("roaring");
+    roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
     haptic([70, 30, 90, 30, 120, 40, 180]);
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
     later(() => {
@@ -693,7 +695,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
     // rises by that much, so at the bottom the whole painting is in view above the toolbar
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
-    setVignette(root.classList.contains("focus") ? 1 : VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom (full in the lion's focus)
+    setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
     $(".tj-side").style.display = narrow ? "none" : "block";
     world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
     world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
