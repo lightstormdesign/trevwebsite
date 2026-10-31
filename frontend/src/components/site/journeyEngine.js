@@ -351,7 +351,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
     <div class="tj-totems">${["bison", "bluebird", "butterfly", "lizard", "owl"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
-      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
+      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion"><img src="${A}trev-lion-emblem.webp" alt=""></button></div>
     <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
