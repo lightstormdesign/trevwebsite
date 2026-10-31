@@ -174,11 +174,11 @@ const CREATURES = [
     if (d > 19) c.flyAt = 0;                              // back on its branch
     return { x: PERCH.x, y: PERCH.y, flying: false, op: Math.min(1, d - 18) };
   } },
-  // the owl (rig, tap and art all kept) is off for now:
-  // { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
+  { kind: "owl", layer: "juniper", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) || t < (c.pushUntil || 0) }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 130, y: 470 }) },
   { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
+  { kind: "roarwave", layer: "bison", top: true, w: 150, pose: () => ({ x: 110, y: -2 }) },
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
   ...[[330, 880], [470, 900], [600, 870], [400, 1030], [540, 960]].map(([x, y], i) =>
     ({ kind: "ripple", layer: "river", w: 70, delay: i * 0.45, pose: () => ({ x, y }) })),
@@ -231,6 +231,12 @@ const STORY = [
 ];
 const BUBBLE_AFTER_MS = 10000;
 const ROAR_MS = 3200;
+// the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
+// FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
+const FOCUS_MS = 1600, FINALE_AFTER_MS = 2000;
+// simple line icons of each totem's face, drawn in gold
+const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "lizard": "<ellipse cx=\"12\" cy=\"5.3\" rx=\"1.5\" ry=\"2\"/><path d=\"M12 7.3c.9 2.2.9 5.3 0 8.2-.8 2.6-2.5 4.4-4.8 5\"/><path d=\"M11.8 9.6l-3-1.4-1 1.5M12.2 9.6l3-1.4 1 1.5M11.9 13.4l-3 1.5-.7 1.6M12.1 13.4l3 1.5.7 1.6\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<circle cx=\"12\" cy=\"12\" r=\"9.3\" stroke-dasharray=\"2.1 1.3\"/><path d=\"M8 9.6c0-2 1.8-3.6 4-3.6s4 1.6 4 3.6v2.6c0 2.6-1.8 4.8-4 4.8s-4-2.2-4-4.8z\"/><circle cx=\"10.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"13.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M11 13.3h2l-1 1.1z\"/>"}).map(([k, d]) =>
+  [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000, NIGHT_AFTER_MS = 2500;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -332,10 +338,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
-    <div class="tj-totems">${[["bison", "w3-bison-body.webp"], ["bluebird", "trev-world-bluebird-perched.webp"],
-      ["butterfly", "trev-world-butterfly.webp"], ["lizard", "trev-world-lizard-a.webp"]]
-      .map(([k, src]) => `<span class="tj-totem" data-k="${k}"><img src="${A + src}" alt=""></span>`).join("")}
-      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion"><img src="${A}trev-world-lion.webp" alt=""></button></div>
+    <div class="tj-totems">${["bison", "bluebird", "butterfly", "lizard", "owl"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
+      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
     <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
@@ -440,11 +444,31 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => root.classList.add("lion"), 900);
     later(() => root.classList.remove("transforming"), 1900);
   }
+  // The focus: every animal settles in a fixed place (so the finale's first frame always matches),
+  // the birds and leaves leave the sky, the page glides to the bottom of the world and holds, the
+  // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
+  let frozen = false, focusAt = 0;
+  function focus() {
+    if (frozen) return;
+    frozen = true; focusAt = performance.now();
+    for (const c of CREATURES) { if (c.flyAt) c.flyAt = 0; c.pushUntil = 0; }
+    const H = Hs(), top = DESCENT_SVH / 100 * H;
+    scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
+    later(() => scroller.classList.add("locked"), 900);
+    root.classList.add("frozen", "focus");
+  }
   function roar() {
     if (roaring) return;
-    roaring = true; root.classList.add("roaring");
-    // (the roar sound and, once it's made, the finale clip into the lion's eye start here)
-    later(() => { root.classList.remove("roaring"); roaring = false; }, ROAR_MS);
+    if (!frozen) { focus(); return later(roar, FOCUS_MS); }
+    const wait = FOCUS_MS - (performance.now() - focusAt);
+    if (wait > 0) return later(roar, wait);
+    roaring = true; root.classList.remove("focus"); root.classList.add("roaring");
+    // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
+    later(() => {
+      root.classList.remove("roaring"); roaring = false;
+      // no finale clip yet: give the world back its life
+      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false;
+    }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
   const lightBison = () => {
@@ -511,7 +535,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
   const owlLook = () => {
-    if (owlBusy) return; owlBusy = true;
+    if (owlBusy) return; owlBusy = true; wake("owl");
     owl.classList.add("look");
     later(() => owl.classList.add("open"), OWL_LOOK_MS);
     const rest = () => {
@@ -543,6 +567,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       lion = c;
     }
     else if (c.kind === "rainbow") body.innerHTML = `<i></i>`;
+    else if (c.kind === "roarwave") body.innerHTML = [0, 1, 2, 3].map((i) => `<div class="wave" style="--i:${i}">${sacredAura()}</div>`).join("");
     else if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
       + (c.bird === "swallow"   // Burnell's two frames, each centred
         ? `<img class="up mid" src="${A}trev-world-swallow-up.webp" alt=""><img class="down mid" src="${A}trev-world-swallow-down.webp" alt=""></div>`
@@ -589,9 +614,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (const c of CLOUDS) if (c.after === L.key) {
         c.el = img(A + c.src, c.w); c.el.style.opacity = c.op; world.appendChild(c.el);
       }
-      for (const c of CREATURES) if ((c.layer || c.after) === L.key) { c.el = creatureEl(c); world.appendChild(c.el); }
+      for (const c of CREATURES) if (!c.top && (c.layer || c.after) === L.key) { c.el = creatureEl(c); world.appendChild(c.el); }
     }
     world.appendChild(sunsetEl);
+    for (const c of CREATURES) if (c.top) { c.el = creatureEl(c); world.appendChild(c.el); }
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
     for (const c of STORY) {
       const el = document.createElement("section"); el.className = "tj-slide" + (c.cover ? " cover" : "");
@@ -634,7 +660,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
     // rises by that much, so at the bottom the whole painting is in view above the toolbar
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
-    setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
+    setVignette(root.classList.contains("focus") ? 1 : VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom (full in the lion's focus)
     $(".tj-side").style.display = narrow ? "none" : "block";
     world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
     world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
@@ -659,7 +685,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now() / 1000;
     CLOUDS.forEach((c, i) => {
       const t = Math.min(1, p / PART_RANGE), e = 1 - (1 - t) * (1 - t), kk = 1 + 0.3 * c.spd;
-      const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i) + tx * TILT_X * CLOUD_TILT * c.depth;
+      const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + (frozen ? 0 : 8 * Math.sin(now * 0.3 + i)) + tx * TILT_X * CLOUD_TILT * c.depth;
       const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
       c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
       if (c.leaves && worldAt && !c.gone) {
@@ -679,10 +705,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     landing.classList.toggle("is-gone", o < 0.05);
   }
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
+  const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "firefly"]);
   function placeCreatures(t, p) {
-    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
+    for (let i = CREATURES.length - 1; i >= 0; i--) if (CREATURES[i].dead || (frozen && CREATURES[i].born)) { CREATURES[i].el.remove(); CREATURES.splice(i, 1); }
     for (const c of CREATURES) {
-      const pose = c.pose(t, p, c, t - worldAt), el = c.el;
+      if (frozen && (GONE_WHEN_FROZEN.has(c.kind) || (c.kind === "butterfly" && !c.landed))) { if (c.el.style.opacity !== "0") c.el.style.opacity = "0"; continue; }
+      const T = frozen ? 0 : t - worldAt, tt = frozen ? 0 : t;   // frozen: every pose at one fixed moment
+      const pose = c.pose(tt, p, c, T), el = c.el;
       if (pose && pose.pushing !== undefined && pose.pushing !== c.pushing) { c.pushing = pose.pushing; el.classList.toggle("pushing", pose.pushing); }
       if (pose && pose.flying !== undefined && pose.flying !== c.flying) { c.flying = pose.flying; el.classList.toggle("flying", pose.flying); }
       if (!pose) { if (el.style.opacity !== "0") el.style.opacity = "0"; continue; }
@@ -723,7 +752,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // Every sacred thing is a totem: waking one fills its gold icon in the row at the top. Wake them all
   // and the Kingdom awakens (for now a gold flare; the lion, the roar and the eye come next).
   // (the aspens and the sky answer a tap too, but they aren't totems: the totems are the animals)
-  const TOTEMS = ["bison", "bluebird", "butterfly", "lizard"];
+  const TOTEMS = ["bison", "bluebird", "butterfly", "lizard", "owl"];
   const totemRow = $(".tj-totems");
   let awake = new Set(), climaxed = false;
   try { awake = new Set(JSON.parse(localStorage.getItem("tj-totems") || "[]")); climaxed = localStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
@@ -741,7 +770,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     try { localStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
     later(() => totemRow.classList.add("lion"), 1600);      // the totems leave; the lion takes the row
     later(transform, 2200);                                  // ...as the bison becomes the lion
-    later(() => root.classList.remove("awakening"), 6500);
+    later(focus, 3200);                                      // and all the focus falls on the lion
+    later(() => root.classList.remove("awakening"), 4800);
   }
   on($(".tj-lionTotem"), "click", () => { if (lionMode) roar(); });
   // the screen point -> a layer's own coordinates
@@ -797,7 +827,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
 
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
-    later(() => totemRow.classList.add("show"), 3500);
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
     if (isNight) later(() => root.classList.add("night"), NIGHT_AFTER_MS);
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
@@ -1227,7 +1256,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // on a computer the mouse leans the world instead (Burnell's desktop), easing in over the first
     // part of the descent so nothing shifts at the hand-off from the video
     const mlean = tilt.live ? 1 : MOUSE_LEAN * smooth(cur / DESCENT_SVH / 0.12);
-    const aimX = tilt.live ? tilt.x : mouseX * mlean, aimY = tilt.live ? tilt.y : mouseY * mlean;
+    const aimX = frozen ? 0 : tilt.live ? tilt.x : mouseX * mlean, aimY = frozen ? 0 : tilt.live ? tilt.y : mouseY * mlean;
     tx += (aimX - tx) * TILT_EASE; ty += (aimY - ty) * TILT_EASE;
     // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).
     // Opacity and transform only, on one small layer.
@@ -1242,6 +1271,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         : `rotateY(${(tx * 27 * SWORD_TILT).toFixed(2)}deg) rotateX(${(ty * -20 * SWORD_TILT).toFixed(2)}deg) scale(${(1 + 0.025 * beatShown).toFixed(4)})`;
     if (phase !== "world" || !worldBuilt) return;
     if (!prog.classList.contains("on")) prog.classList.add("on");
+    if (!totemRow.classList.contains("show") && landing.classList.contains("is-gone")) totemRow.classList.add("show");
     progress();
     target = scrolled();
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));

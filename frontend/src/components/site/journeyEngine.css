@@ -463,14 +463,14 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-totems.show { opacity: 1; }
 .tj-totem { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(231,201,143,.35);
   background: rgba(10,8,6,.55); transition: border-color .8s ease, box-shadow .8s ease, transform .5s cubic-bezier(.16,1,.3,1); }
-.tj-totem img { width: 72%; height: 72%; object-fit: contain; opacity: .28; filter: grayscale(1) brightness(1.4); transition: opacity .8s ease, filter .8s ease; }
+.tj-totem svg { width: 70%; height: 70%; color: rgba(239,230,214,.32); transition: color .8s ease; }
 .tj-totem.on { border-color: rgba(246,220,150,.9); box-shadow: 0 0 12px rgba(240,200,110,.6), inset 0 0 8px rgba(240,200,110,.35); }
-.tj-totem.on img { opacity: 1; filter: none; }
+.tj-totem.on svg { color: #f3d48e; filter: drop-shadow(0 0 3px rgba(240,200,110,.6)); }
 .tj-totem.pop { transform: scale(1.35); }
 
 /* the Kingdom awakens: a gold sweep down the world and the words */
 .tj-awaken { position: fixed; inset: 0; z-index: 42; pointer-events: none; opacity: 0; display: grid; place-items: center; }
-.tj.awakening .tj-awaken { animation: tj-awakenIn 6.5s ease forwards; }
+.tj.awakening .tj-awaken { animation: tj-awakenIn 4.8s ease forwards; }
 .tj-awaken .sweep { position: absolute; left: 0; right: 0; top: -60%; height: 60%;
   background: linear-gradient(to bottom, transparent, rgba(255,226,150,.55) 60%, rgba(255,246,220,.85) 80%, transparent); }
 .tj.awakening .tj-awaken .sweep { animation: tj-sweep 2.6s cubic-bezier(.45,0,.2,1) forwards; }
@@ -526,11 +526,12 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.transforming .tj-cr-lion .burst { animation: tj-burst 1.9s ease-out forwards; }
 @keyframes tj-burst { 0% { opacity: 0; transform: scale(.3); } 45% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.3); } }
 /* the roar: the world shakes and the sky flares gold */
-.tj.roaring .tj-worldStage { animation: tj-shake .75s cubic-bezier(.36,.07,.19,.97) 2 both; }
-@keyframes tj-shake { 0%, 100% { transform: translate3d(0, 0, 0); } 10%, 50%, 90% { transform: translate3d(-7px, 3px, 0); } 30%, 70% { transform: translate3d(7px, -3px, 0); } }
+.tj.roaring .tj-worldStage { animation: tj-shake .07s linear 14 both; }   /* tight, fast tremor, ~1s */
+@keyframes tj-shake { 0% { transform: translate3d(0, 0, 0); } 25% { transform: translate3d(-2.5px, 1.5px, 0); } 50% { transform: translate3d(2px, -2px, 0); }
+  75% { transform: translate3d(-1.5px, -1px, 0); } 100% { transform: translate3d(0, 0, 0); } }
 .tj-worldStage::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 90% 60% at 50% 20%, rgba(255,226,150,.65), rgba(255,200,110,.2) 50%, transparent 80%); }
-.tj.roaring .tj-worldStage::after { animation: tj-flare 3.2s ease-out forwards; }
+.tj.roaring .tj-worldStage::after { animation: tj-flare 1.8s ease-out forwards; }
 @keyframes tj-flare { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
 .tj-awaken small { display: block; margin-top: 14px; font: 400 12px/1.4 var(--tj-display); letter-spacing: .32em; color: #f2dca5; }
 @media (prefers-reduced-motion: reduce) { .tj.roaring .tj-worldStage { animation: none; } }
@@ -543,8 +544,28 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-totems.lion .tj-lionTotem { display: grid; width: 60px; height: 60px; padding: 0; cursor: pointer; pointer-events: auto;
   border-color: rgba(246,220,150,.95); box-shadow: 0 0 18px rgba(240,200,110,.7), inset 0 0 12px rgba(240,200,110,.4);
   animation: tj-lionIn 1.4s cubic-bezier(.16,1,.3,1) 1.2s both, tj-lionCall 3s ease-in-out 2.6s infinite; }
-.tj-lionTotem img { width: 82%; height: 82%; opacity: 1; filter: none; object-position: 50% 20%; }
+.tj-lionTotem svg { width: 76%; height: 76%; color: #f6dc9c; filter: drop-shadow(0 0 4px rgba(240,200,110,.7)); }
 @keyframes tj-lionIn { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: none; } }
 @keyframes tj-lionCall { 0%, 100% { box-shadow: 0 0 18px rgba(240,200,110,.7), inset 0 0 12px rgba(240,200,110,.4); }
   50% { box-shadow: 0 0 30px rgba(255,220,140,.95), inset 0 0 14px rgba(240,200,110,.5); } }
 .tj.roaring .tj-lionTotem { animation: none; transform: scale(1.12); }
+
+/* ---------- the lion's moment: frozen, in focus, then the roar's geometry rippling out ---------- */
+.tj-scroller.locked { overflow-y: hidden; }
+.tj.frozen .tj-world * { animation-play-state: paused; }
+.tj.frozen .tj-cr-lion *, .tj.frozen .tj-cr-roarwave * { animation-play-state: running; }
+.tj.frozen .tj-bubble, .tj.frozen .tj-progress { opacity: 0 !important; pointer-events: none; }
+/* everything but the lion goes muted and soft (a still moment, so the filters don't cost a moving world) */
+.tj-world > img, .tj-world > .tj-cr, .tj-world > canvas { transition: filter 1.4s ease; }
+.tj.focus .tj-world > img, .tj.focus .tj-world > canvas, .tj.focus .tj-world > .tj-cr:not(.tj-cr-lion):not(.tj-cr-roarwave) { filter: saturate(.25) brightness(.72) blur(1.6px); }
+.tj.focus .tj-world > .tj-cr-lion .stand { filter: drop-shadow(0 0 14px rgba(255,226,150,.55)); transition: filter 1.4s ease; }
+/* the roar: Flower of Life rings ripple out from the lion's head, fading as they go */
+.tj-cr-roarwave .tj-crBody { aspect-ratio: 1; }
+.tj-cr-roarwave .wave { position: absolute; inset: 0; opacity: 0; }
+.tj-cr-roarwave .wave .aura { position: absolute; inset: 0; }
+.tj-cr-roarwave .glow { display: none; }
+.tj-cr-roarwave .geo { position: absolute; inset: 0; }
+.tj-cr-roarwave .geo svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tj-cr-roarwave .geo svg g { stroke: #ffe2a0; stroke-width: .7; }
+.tj.roaring .tj-cr-roarwave .wave { animation: tj-roarWave 1.45s cubic-bezier(.2,.6,.3,1) calc(var(--i) * .15s) both; }   /* all gone by ~1.9s */
+@keyframes tj-roarWave { 0% { opacity: 0; transform: scale(.25) rotate(0deg); } 12% { opacity: .95; } 100% { opacity: 0; transform: scale(5.5) rotate(30deg); } }
