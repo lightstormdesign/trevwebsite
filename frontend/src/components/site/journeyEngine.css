@@ -581,3 +581,16 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* the charge: the lion draws in a breath (a slight crouch) before the roar; nothing else moves yet */
 .tj-cr-lion .stand { transform-origin: 50% 92%; }
 .tj.lion.charging .tj-cr-lion .stand { transform: scale(1.02, .965); transition: transform .35s cubic-bezier(.4,0,.2,1); }
+
+/* the salmon: leaping out of the pool, clipped at the water's surface (journeyEngine.js) */
+.tj-cr-salmon .tj-crBody { transform: none; overflow: hidden; }
+.tj-cr-salmon .fish { position: absolute; left: 0; top: 0; aspect-ratio: 1; will-change: transform; }
+.tj-cr-salmon .fish img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tj-cr-salmon .fish .peak, .tj-cr-salmon .fish .dive { opacity: 0; }
+.tj-cr-salmon.caught .fish { filter: brightness(1.6) drop-shadow(0 0 10px rgba(255,220,140,.95)); transition: filter .2s ease; }
+.tj-cr-splash .tj-crBody { aspect-ratio: 2.6 / 1; }
+.tj-cr-splash span { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(255,246,225,.9); box-shadow: 0 0 6px rgba(255,236,190,.6); }
+.tj-cr-splash span + span { transform: scale(.55); opacity: .8; }
+/* the glint: a soft sun-flash on the water where it's about to break the surface */
+.tj-cr-splash.glint span { border: 0; box-shadow: none;
+  background: radial-gradient(closest-side, rgba(255,250,230,.95), rgba(255,226,160,.45) 45%, transparent 100%); }

@@ -124,6 +124,13 @@ const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // flock crosses (every other beat).
 const BEAT_S = 15, FLOCK_S = [0, 11], PUSHUP_S = [12, 13.2];
 const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; return s >= a && s < b; };
+// The salmon (a totem): once every SALMON_EVERY_S, when the near flock isn't crossing, a glint on the
+// pool, then it leaps (rising, peak, diving poses) and is swallowed back under; tap it mid-leap to
+// catch it. It's drawn in a window whose bottom edge is the water's surface (river coordinates).
+const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 19, SALMON_EVERY_S = 30, SALMON_LEAP_S = 1.6;
+const SALMON_X = [110, 300], SALMON_DEPTH = 40, SALMON_RISE = 640, SALMON_W = 150;
+const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
+const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
 const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
 const CREATURES = [
   // Burnell's far flock, exactly as on his world
@@ -186,6 +193,19 @@ const CREATURES = [
   } },
   { kind: "owl", layer: "aspens", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 120, y: 800 }) },
+  { kind: "salmon", layer: "river", w: POOL.w, pose: (t, p, c, T) => {
+    const u = salmonU(T);
+    if (u < -0.55 || u > 1) return null;
+    return { x: POOL.x, y: POOL.y, u };
+  } },
+  // the glint before it breaks the surface, and the splash where it goes in and comes out
+  ...[[-0.5, SALMON_X[0]], [SALMON_SURF_U, SALMON_X[0] + (SALMON_X[1] - SALMON_X[0]) * SALMON_SURF_U],
+    [1 - SALMON_SURF_U, SALMON_X[0] + (SALMON_X[1] - SALMON_X[0]) * (1 - SALMON_SURF_U)]].map(([at, x], i) =>
+    ({ kind: "splash", layer: "river", w: i ? 120 : 70, glint: !i, pose: (t, p, c, T) => {
+      const r = (salmonU(T) - at) * SALMON_LEAP_S / (i ? 1.1 : 0.7);
+      if (r < 0 || r > 1) return null;
+      return { x: POOL.x + x, y: POOL.y + POOL.h, scale: i ? 0.25 + 0.95 * r : 0.6 + 0.6 * Math.sin(Math.PI * r), op: i ? (1 - r) * 0.9 : Math.sin(Math.PI * r) };
+    } })),
   { kind: "roarwave", layer: "bison", w: 150, pose: () => ({ x: 110, y: -2 }) },                // behind the lion
   { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
   { kind: "roarwave", layer: "bison", top: true, over: true, w: 150, pose: () => ({ x: 110, y: -2 }) },   // faint, over him
@@ -245,7 +265,7 @@ const ROAR_MS = 3200;
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
 const FOCUS_MS = 120, FINALE_AFTER_MS = 2000, CHARGE_MS = 380, SETTLE_MS = 450, RETURN_S = 1.6;
 // simple line icons of each totem's face, drawn in gold
-const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "lizard": "<ellipse cx=\"12\" cy=\"5.3\" rx=\"1.5\" ry=\"2\"/><path d=\"M12 7.3c.9 2.2.9 5.3 0 8.2-.8 2.6-2.5 4.4-4.8 5\"/><path d=\"M11.8 9.6l-3-1.4-1 1.5M12.2 9.6l3-1.4 1 1.5M11.9 13.4l-3 1.5-.7 1.6M12.1 13.4l3 1.5.7 1.6\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<path d=\"M12 2.8c.9 1 1.3 2 1.2 3M12 2.8c-.9 1-1.3 2-1.2 3M9.3 4.2c.4 1.2 1.1 2 2 2.4M14.7 4.2c-.4 1.2-1.1 2-2 2.4\"/><path d=\"M9 5.6C6.6 6 4.8 8 4.6 10.6c-.2 2.4.8 4.6 2.6 6.1l1.8 1.6L12 21.4l3-3.1 1.8-1.6c1.8-1.5 2.8-3.7 2.6-6.1C19.2 8 17.4 6 15 5.6\"/><path d=\"M8.4 9.2c1-1.1 2.2-1.6 3.6-1.6s2.6.5 3.6 1.6v3.2c0 2-1.6 3.8-3.6 3.8s-3.6-1.8-3.6-3.8z\"/><circle cx=\"12\" cy=\"9.3\" r=\".9\"/><path d=\"M9.7 11.3l1.2.3M14.3 11.3l-1.2.3\"/><path d=\"M11.1 13.2h1.8l-.9 1z\"/><path d=\"M12 14.2v.7M11 15.4c.3.3.6.4 1 .4s.7-.1 1-.4\"/>"}).map(([k, d]) =>
+const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<path d=\"M12 2.8c.9 1 1.3 2 1.2 3M12 2.8c-.9 1-1.3 2-1.2 3M9.3 4.2c.4 1.2 1.1 2 2 2.4M14.7 4.2c-.4 1.2-1.1 2-2 2.4\"/><path d=\"M9 5.6C6.6 6 4.8 8 4.6 10.6c-.2 2.4.8 4.6 2.6 6.1l1.8 1.6L12 21.4l3-3.1 1.8-1.6c1.8-1.5 2.8-3.7 2.6-6.1C19.2 8 17.4 6 15 5.6\"/><path d=\"M8.4 9.2c1-1.1 2.2-1.6 3.6-1.6s2.6.5 3.6 1.6v3.2c0 2-1.6 3.8-3.6 3.8s-3.6-1.8-3.6-3.8z\"/><circle cx=\"12\" cy=\"9.3\" r=\".9\"/><path d=\"M9.7 11.3l1.2.3M14.3 11.3l-1.2.3\"/><path d=\"M11.1 13.2h1.8l-.9 1z\"/><path d=\"M12 14.2v.7M11 15.4c.3.3.6.4 1 .4s.7-.1 1-.4\"/>", "salmon": "<path d=\"M3.5 12c2.4-3.4 6-5.2 10-5.2 2.8 0 4.9 1.4 6.5 3.2-1.6 1.8-3.7 3.2-6.5 3.2-1 0-2-.1-2.9-.4\"/><path d=\"M3.5 12c2.4 3.4 6 5.2 10 5.2 2.8 0 4.9-1.4 6.5-3.2\"/><path d=\"M3.5 12l-1.8-2.6M3.5 12l-1.8 2.6\"/><circle cx=\"16.6\" cy=\"10.8\" r=\".6\" fill=\"currentColor\"/><path d=\"M11 7.4l1.6-2.1M10 16.6l1.4 1.8\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000, NIGHT_AFTER_MS = 2500;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
@@ -349,7 +369,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
-    <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
+    <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl", "salmon"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
       <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
     <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
     <div class="tj-dust" aria-hidden="true"></div>
@@ -574,7 +594,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
   // closes them and looks back out over the world.
-  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null;
+  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null, salmon = null;
+  // a moving target: the leaping salmon is hit-tested where it is right now (with some forgiveness)
+  const overSalmon = (x, y) => {
+    if (!salmon || phase !== "world" || salmon.el.style.opacity === "0" || salmon.fish.style.opacity === "0") return false;
+    const r = salmon.fish.getBoundingClientRect(), pad = 34;
+    return r.width && x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
+  };
+  const catchSalmon = () => {
+    if (salmon.el.classList.contains("caught")) return;
+    salmon.el.classList.add("caught"); wake("salmon"); haptic(40);
+    later(() => salmon.el.classList.remove("caught"), 1400);
+  };
   // the bluebird and the landed butterfly: a tap sends it flying (hover on desktop lights it a touch)
   const overFlier = (c, x, y) => {
     if (!c || c.flyAt || phase !== "world" || c.el.style.opacity === "0") return false;
@@ -586,6 +617,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const fliers = () => [perch, butterfly];
   const tapFliers = (x, y) => {
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
+    if (overSalmon(x, y)) return catchSalmon();
     if (overBison(x, y, 30)) return;
     if (tapAspens(x, y)) return;
     tapClouds(x, y);
@@ -633,10 +665,26 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function creatureEl(c) {
     const el = document.createElement("div");
     c.t0 = 0;
-    el.className = `tj-cr tj-cr-${c.kind}${c.over ? " over" : ""}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
+    el.className = `tj-cr tj-cr-${c.kind}${c.over ? " over" : ""}${c.glint ? " glint" : ""}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
     if (c.kind === "aspen") body.innerHTML = sacredAura();
+    else if (c.kind === "salmon") {
+      body.style.height = POOL.h + "px";
+      body.innerHTML = `<div class="fish" style="width:${SALMON_W}px">` + ["rise", "peak", "dive"].map((k) =>
+        `<img class="${k}" src="${A}trev-world-salmon-${k}.webp" alt="">`).join("") + `</div>`;
+      salmon = c; c.fish = body.firstChild; c.imgs = [...c.fish.children];
+      c.update = (pose) => {
+        const u = pose.u, ok = u >= 0;
+        c.fish.style.opacity = ok ? "1" : "0";
+        if (!ok) return;
+        const x = SALMON_X[0] + (SALMON_X[1] - SALMON_X[0]) * u, y = POOL.h + SALMON_DEPTH - SALMON_RISE * u * (1 - u);
+        c.fish.style.transform = `translate3d(${(x - SALMON_W / 2).toFixed(1)}px, ${(y - SALMON_W / 2).toFixed(1)}px, 0) rotate(${(-8 + 16 * u).toFixed(1)}deg)`;
+        const k = u < 0.36 ? 0 : u < 0.64 ? 1 : 2;
+        if (k !== c.stage) { c.stage = k; c.imgs.forEach((im, i) => { im.style.opacity = i === k ? "1" : "0"; }); }
+      };
+    }
+    else if (c.kind === "splash") body.innerHTML = c.glint ? "<span></span>" : "<span></span><span></span>";
     else if (c.kind === "lion") {
       body.innerHTML = sacredAura() + `<i class="burst"></i><img class="stand" src="${A}trev-world-lion.webp" alt="The white lion">`
         + `<img class="roar" src="${A}trev-world-lion-roar.webp" alt="">`;
@@ -781,7 +829,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     landing.classList.toggle("is-gone", o < 0.05);
   }
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
-  const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "firefly"]);
+  const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "firefly", "salmon", "splash"]);
   function placeCreatures(t, p) {
     // the lion's moment: over SETTLE_MS the animals that roam fade out (the leaves quickest) while the
     // rest come home, then every pose holds at one fixed moment (the finale's first frame)
@@ -802,6 +850,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       else { x += tx * TILT_X * CLOUD_TILT * c.depth; y += ty * TILT_Y * CLOUD_TILT * c.depth; }
       const op = ((pose.op ?? 1) * fade).toFixed(2);
       if (el.style.opacity !== op) el.style.opacity = op;
+      if (c.update) c.update(pose);
       const sx = pose.flip != null ? pose.flip : pose.face;
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}`;
     }
@@ -834,7 +883,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // Every sacred thing is a totem: waking one fills its gold icon in the row at the top. Wake them all
   // and the Kingdom awakens (for now a gold flare; the lion, the roar and the eye come next).
   // (the aspens and the sky answer a tap too, but they aren't totems: the totems are the animals)
-  const TOTEMS = ["bison", "bluebird", "butterfly", "owl"];   // + the salmon, once its art is in
+  const TOTEMS = ["bison", "bluebird", "butterfly", "owl", "salmon"];
   const totemRow = $(".tj-totems");
   let awake = new Set(), climaxed = false;
   try { awake = new Set(JSON.parse(localStorage.getItem("tj-totems") || "[]")); climaxed = localStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
