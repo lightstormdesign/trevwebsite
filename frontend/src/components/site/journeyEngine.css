@@ -630,3 +630,10 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   30% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateX(120px); } }
 .tj-bison .groundRing .flat { position: absolute; inset: 0; transform: scaleY(.32); }
 @media (prefers-reduced-motion: reduce) { .tj.dawning .tj-dawn, .tj-homeward.run, .tj-homeward.run path, .tj-bison.blessing .groundRing i, .tj-bison.blessing .groundRing b { animation: none; } }
+
+/* the bison looks out over the world; tapped (or hovered) it turns its head to you */
+.tj-bison .awayImg { position: absolute; inset: 0; width: 100%; height: auto; pointer-events: none; transition: opacity .45s ease; }
+.tj-bison .body { transition: opacity .45s ease, filter .6s ease; }
+.tj-bison:not(.is-on) .body { opacity: 0; }
+.tj-bison.is-on .awayImg { opacity: 0; }
+.tj-bison:not(.is-on) .pulse, .tj-bison:not(.is-on) .shadow, .tj-bison:not(.is-on) .outline { -webkit-mask-image: var(--silAway); mask-image: var(--silAway); }

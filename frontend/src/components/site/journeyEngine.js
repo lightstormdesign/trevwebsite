@@ -439,13 +439,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const rig = document.createElement("div");
     rig.className = "tj-bison"; rig.style.width = L.w + "px";
     rig.style.setProperty("--sil", `url("${src}")`); rig.style.setProperty("--tail", `url("${tail}")`);
+    rig.style.setProperty("--silAway", `url("${A}w3-bison-away.webp")`);
     rig.innerHTML = `
       ${sacredAura()}
       <div class="pulse" aria-hidden="true"></div><div class="pulse" aria-hidden="true" style="animation-delay:2s"></div>
       <div class="groundRing" aria-hidden="true"><i></i><i></i><div class="flat">${Array.from({ length: 9 }, (_, i) => `<b style="--a:${i * 40}deg;--d:${(0.15 + (i % 3) * 0.12).toFixed(2)}s"></b>`).join("")}</div></div>
       <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
       <div class="tail" aria-hidden="true"><div class="tailOutline"></div><img class="tailImg" src="${tail}" alt="" decoding="async"></div>
-      <img class="body" alt="The white bison" decoding="async">`;
+      <img class="body" alt="The white bison" decoding="async">
+      <img class="awayImg" src="${A}w3-bison-away.webp" alt="" decoding="async">`;
     const body = rig.querySelector(".body");
     body.addEventListener("load", onLayer, { once: true }); body.addEventListener("error", onLayer, { once: true });
     body.src = src;
@@ -475,7 +477,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   function transform() {
     if (lionMode) return;
-    lionMode = true; root.classList.add("transforming");
+    lionMode = true; bison.classList.add("is-on");   // the bison turns to you, aura blazing, then...
+    root.classList.add("transforming");
     callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
     later(() => root.classList.remove("transforming"), 1900);
