@@ -219,7 +219,7 @@ const STORY = [
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
-const STORY_HOLD_SVH = 110, STEP_SVH = 70, TAIL_SVH = 40;
+const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
 
 const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Community", "/community"], ["Tour", "/tour"],
@@ -864,7 +864,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const fade = () => { if (faded) return; faded = true;
         v.style.transition = "opacity .9s ease, filter 1.2s ease"; v.style.filter = "blur(6px) brightness(0.5)"; trans.style.opacity = "0";
         later(() => { trans.hidden = true; try { v.pause(); } catch (e) { /* gone */ } }, 1000); };
-      const waitLayers = () => (layersReady ? fade() : later(waitLayers, 120));
+      // ...and only once every layer is decoded and the (now visible) world has actually been painted
+      // underneath it a couple of frames: fading over a world that's still being drawn showed a quick
+      // black flash (the whole stage, or a single layer)
+      const whenPainted = () => {
+        const decodes = [...world.querySelectorAll("img")].map((i) => (i.decode ? i.decode().catch(() => {}) : null));
+        Promise.all(decodes).then(() => requestAnimationFrame(() => requestAnimationFrame(() => later(fade, 60))));
+      };
+      const waitLayers = () => (layersReady ? whenPainted() : later(waitLayers, 120));
       later(fade, 6000); waitLayers();
     }
     function fallbackToWorld() {                      // the video can't play: cross-fade straight into the world

@@ -247,11 +247,13 @@
 .tj-cr-perch .geo { opacity: .36; animation: tj-perchGeo 5s ease-in-out infinite; }
 @keyframes tj-perchGlow { 0%, 100% { opacity: .5; } 50% { opacity: .6; } }
 @keyframes tj-perchGeo { 0%, 100% { opacity: .36; } 50% { opacity: .46; } }
-.tj-cr-perch.is-on .aura { filter: brightness(1.3); transform: scale(1.22); }
+.tj-cr-perch.is-on .aura, .tj-cr-perch.flying .aura { filter: brightness(1.4); transform: scale(1.24); }
 .tj-cr-perch.is-on .glow { animation: none; opacity: .72; }
 .tj-cr-perch.is-on .geo { animation: none; opacity: .56; }
 .tj-cr-perch.is-on .sit { filter: drop-shadow(0 0 6px rgba(255,214,140,.7)); }
-.tj-cr-perch.flying .aura { opacity: 0; }
+/* tapped: her aura flares and goes with her as she flies off (rides on the frames' box) */
+.tj-cr-perch.flying .glow { animation: none; opacity: .72; }
+.tj-cr-perch.flying .geo { animation: none; opacity: .56; }
 .tj-bison .pulse, .tj-bison .shadow, .tj-bison .outline { inset: 0;
   -webkit-mask-image: var(--sil); mask-image: var(--sil); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
 .tj-bison .pulse { background: radial-gradient(closest-side, rgba(255,240,200,.95), rgba(243,205,120,.8)); transform-origin: 50% 55%;
@@ -272,7 +274,7 @@
   47% { transform: rotate(13deg); }
 }
 /* a tap (or hover): everything brighter, the aura wider, the pulse quicker */
-.tj-bison.is-on .aura { filter: brightness(1.5); transform: scale(1.32); }
+.tj-bison.is-on .aura { filter: brightness(1.45); transform: scale(1.26); }
 .tj-bison.is-on .glow { animation: none; opacity: 1; }
 .tj-bison.is-on .geo { animation: none; opacity: .85; }
 .tj-bison.is-on .body, .tj-bison.is-on .tailImg { filter: drop-shadow(0 0 1px rgba(255,240,190,1)) drop-shadow(0 0 8px rgba(255,210,120,.8)); }
