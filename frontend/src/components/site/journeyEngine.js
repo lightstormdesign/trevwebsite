@@ -131,6 +131,7 @@ const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 19, SALMON_EVERY_S 
 const SALMON_X = [110, 300], SALMON_DEPTH = 40, SALMON_RISE = 640, SALMON_W = 150;
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
+const FLOWER_TILE = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-30 -26 60 52\"><g fill=\"none\" stroke=\"#ffd27a\" stroke-width=\".6\"><circle r=\"10\"/><circle r=\"10\" cx=\"10\"/><circle r=\"10\" cx=\"-10\"/><circle r=\"10\" cx=\"5\" cy=\"8.66\"/><circle r=\"10\" cx=\"-5\" cy=\"8.66\"/><circle r=\"10\" cx=\"5\" cy=\"-8.66\"/><circle r=\"10\" cx=\"-5\" cy=\"-8.66\"/></g></svg>";   // the owl's sight: a tiling Flower of Life
 const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
 const CREATURES = [
   // Burnell's far flock, exactly as on his world
@@ -315,6 +316,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-world"></div>
       <div class="tj-shade"></div>
       <div class="tj-night" aria-hidden="true"><i class="tint"></i><i class="stars"></i><i class="stars b"></i></div>
+      <div class="tj-dawn" aria-hidden="true"></div>
+      <div class="tj-sight" aria-hidden="true" style="background-image:url('data:image/svg+xml;utf8,${encodeURIComponent(FLOWER_TILE)}')"></div>
       <div class="tj-rain" aria-hidden="true"><i class="dark"></i><i class="drops" style="background-image:url(${A}trev-world-rain.webp)"></i><i class="drops b" style="background-image:url(${A}trev-world-rain.webp)"></i></div>
     </div>
     ${phase === "hero" ? `
@@ -439,6 +442,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     rig.innerHTML = `
       ${sacredAura()}
       <div class="pulse" aria-hidden="true"></div><div class="pulse" aria-hidden="true" style="animation-delay:2s"></div>
+      <div class="groundRing" aria-hidden="true"><i></i><i></i><div class="flat">${Array.from({ length: 9 }, (_, i) => `<b style="--a:${i * 40}deg;--d:${(0.15 + (i % 3) * 0.12).toFixed(2)}s"></b>`).join("")}</div></div>
       <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
       <div class="tail" aria-hidden="true"><div class="tailOutline"></div><img class="tailImg" src="${tail}" alt="" decoding="async"></div>
       <img class="body" alt="The white bison" decoding="async">`;
@@ -581,6 +585,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (lionMode) return roar();
     if (now - bisonTapAt < BISON_TAP_S * 1000) return;
     bisonTapAt = now; bison.classList.add("is-on"); wake("bison");
+    // its gift: a ring of gold light across the ground from its hooves, flowers glinting along it
+    bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
+    later(() => bison.classList.remove("blessing"), 2600);
     clearTimeout(bisonOnTimer);
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
@@ -594,7 +601,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
   // closes them and looks back out over the world.
-  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null, salmon = null;
+  let owl = null, owlBusy = false, owlHover = false, perch = null, butterfly = null, salmon = null, homeward = null;
   // a moving target: the leaping salmon is hit-tested where it is right now (with some forgiveness)
   const overSalmon = (x, y) => {
     if (!salmon || phase !== "world" || salmon.el.style.opacity === "0" || salmon.fish.style.opacity === "0") return false;
@@ -604,6 +611,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const catchSalmon = () => {
     if (salmon.el.classList.contains("caught")) return;
     salmon.el.classList.add("caught"); wake("salmon"); haptic(40);
+    homeward.classList.remove("run"); void homeward.getBoundingClientRect(); homeward.classList.add("run");
+    later(() => homeward.classList.remove("run"), 3600);
     later(() => salmon.el.classList.remove("caught"), 1400);
   };
   // the bluebird and the landed butterfly: a tap sends it flying (hover on desktop lights it a touch)
@@ -613,7 +622,25 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const pad = Math.max(22, r.width * 0.4);
     return x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad;
   };
-  const fly = (c) => { c.flyAt = performance.now() / 1000; c.el.classList.remove("is-on"); wake(c === perch ? "bluebird" : "butterfly"); };
+  const fly = (c) => {
+    c.flyAt = performance.now() / 1000; c.el.classList.remove("is-on"); wake(c === perch ? "bluebird" : "butterfly");
+    if (c === perch) dawn(c);
+  };
+  // the bluebird's gift: a breath of dawn over the world, and a song of gold motes rising from it
+  function dawn(c) {
+    root.classList.remove("dawning"); void root.offsetWidth; root.classList.add("dawning");
+    later(() => root.classList.remove("dawning"), 2800);
+    const now = performance.now() / 1000, ref = c.el.nextSibling;
+    for (let i = 0; i < 7; i++) {
+      const m = { kind: "note", layer: "juniper", w: 9 + (i % 3) * 3, born: now + i * 0.11, burst: true, ph: i * 1.7 };
+      m.pose = (t) => {
+        const d = t - m.born; if (d < 0) return null;
+        if (d > 2.4) { m.dead = true; return null; }
+        return { x: PERCH.x - 10 + 18 * Math.sin(d * 3 + m.ph) - 30 * d, y: PERCH.y - 40 - 70 * d, op: Math.sin(Math.PI * d / 2.4) };
+      };
+      m.el = creatureEl(m); world.insertBefore(m.el, ref); CREATURES.push(m);
+    }
+  }
   const fliers = () => [perch, butterfly];
   const tapFliers = (x, y) => {
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
@@ -644,6 +671,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   const owlLook = () => {
     if (owlBusy) return; owlBusy = true; wake("owl");
+    later(() => { root.classList.add("owlsight"); later(() => root.classList.remove("owlsight"), 3200); }, OWL_LOOK_MS);
     owl.classList.add("look");
     later(() => owl.classList.add("open"), OWL_LOOK_MS);
     const rest = () => {
@@ -741,6 +769,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (const c of CREATURES) if (!c.top && (c.layer || c.after) === L.key) { c.el = creatureEl(c); world.appendChild(c.el); }
     }
     world.appendChild(sunsetEl);
+    // the salmon's way home, drawn in canvas coordinates (pool -> cascades -> the falls)
+    world.insertAdjacentHTML("beforeend", `<svg class="tj-homeward" viewBox="0 0 941 1672" aria-hidden="true">`
+      + `<path pathLength="1" d="M300 1252 C 340 1215 380 1185 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/>`
+      + `<path class="core" pathLength="1" d="M300 1252 C 340 1215 380 1185 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/></svg>`);
+    homeward = world.lastChild;
     for (const c of CREATURES) if (c.top) { c.el = creatureEl(c); world.appendChild(c.el); }
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
     for (const c of STORY) {

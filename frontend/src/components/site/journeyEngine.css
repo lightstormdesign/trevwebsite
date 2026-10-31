@@ -594,3 +594,39 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* the glint: a soft sun-flash on the water where it's about to break the surface */
 .tj-cr-splash.glint span { border: 0; box-shadow: none;
   background: radial-gradient(closest-side, rgba(255,250,230,.95), rgba(255,226,160,.45) 45%, transparent 100%); }
+
+/* ---------- each totem's gift (journeyEngine.js) ---------- */
+/* bluebird: a breath of dawn over the world, and its song as rising gold motes */
+.tj-dawn { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse 120% 80% at 70% 15%, rgba(255,214,150,.55), rgba(255,190,120,.25) 45%, rgba(255,170,110,.08) 75%, transparent); }
+.tj.dawning .tj-dawn { animation: tj-dawn 2.8s ease-in-out forwards; }
+@keyframes tj-dawn { 0% { opacity: 0; } 35% { opacity: 1; } 100% { opacity: 0; } }
+.tj-cr-note .tj-crBody { aspect-ratio: 1; }
+.tj-cr-note span { position: absolute; inset: -40%; border-radius: 50%;
+  background: radial-gradient(closest-side, #fffbe8, rgba(255,226,150,.75) 40%, rgba(255,210,120,0)); }
+/* salmon: a thread of gold light running upstream, home */
+.tj-homeward { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; pointer-events: none; overflow: visible; opacity: 0; }
+.tj-homeward path { fill: none; stroke: rgba(255,214,140,.35); stroke-width: 9; stroke-linecap: round; stroke-dasharray: .22 1; stroke-dashoffset: .22; }
+.tj-homeward path.core { stroke: rgba(255,246,220,.95); stroke-width: 2.5; }
+.tj-homeward.run { animation: tj-homeFade 3.6s ease forwards; }
+.tj-homeward.run path { animation: tj-homeRun 2.6s cubic-bezier(.45,.05,.4,1) .15s forwards; }
+@keyframes tj-homeRun { to { stroke-dashoffset: -1; } }
+@keyframes tj-homeFade { 0% { opacity: 0; } 8%, 75% { opacity: 1; } 100% { opacity: 0; } }
+/* owl: the hidden geometry of the world, seen for a moment through its eyes */
+.tj-sight { position: absolute; inset: 0; pointer-events: none; opacity: 0; background-size: 120px 104px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 80%); mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 80%);
+  transition: opacity 1s ease; }
+.tj.owlsight .tj-sight { opacity: .42; }
+/* bison: a ring of gold across the ground from its hooves, glints along it */
+.tj-bison .groundRing { left: 50%; top: 93%; width: 100%; aspect-ratio: 3.2 / 1; transform: translate(-50%, -50%); pointer-events: none; }
+.tj-bison .groundRing i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(255,226,150,.9); box-shadow: 0 0 8px rgba(255,214,140,.7); opacity: 0; }
+.tj-bison .groundRing b { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, #fffbe8, rgba(255,226,150,.6) 50%, transparent 72%); }
+.tj-bison.blessing .groundRing i { animation: tj-groundRing 2s cubic-bezier(.2,.6,.3,1) forwards; }
+.tj-bison.blessing .groundRing i + i { animation-delay: .35s; }
+.tj-bison.blessing .groundRing b { animation: tj-groundGlint 1.8s ease-out var(--d) forwards; }
+@keyframes tj-groundRing { 0% { opacity: 0; transform: scale(.2); } 15% { opacity: 1; } 100% { opacity: 0; transform: scale(3.4); } }
+@keyframes tj-groundGlint { 0% { opacity: 0; transform: rotate(var(--a)) translateX(10px); }
+  30% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateX(120px); } }
+.tj-bison .groundRing .flat { position: absolute; inset: 0; transform: scaleY(.32); }
+@media (prefers-reduced-motion: reduce) { .tj.dawning .tj-dawn, .tj-homeward.run, .tj-homeward.run path, .tj-bison.blessing .groundRing i, .tj-bison.blessing .groundRing b { animation: none; } }
