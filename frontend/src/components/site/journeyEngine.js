@@ -92,7 +92,7 @@ const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - l
 
 // Alive (as on Burnell's world): Burnell's swallows (his far flock, a second group, a near pair),
 // then TREV's doves; a bluebird still on the juniper's lower limb until it's tapped (then it flies
-// off, and is back a while later); a lizard doing a push-up on a boulder; Burnell's butterfly
+// off, and is back a while later); Burnell's butterfly
 // wandering over the flowers, one landed on the cactus flower (tap: it flutters about) and a small
 // one far off; Burnell's golden aspen leaves tumbling down (once the trees are in); the falls running, mist breathing at their feet, glints on the pool and motes of
 // light drifting up through the sun. Each lives in the coordinates
@@ -121,7 +121,7 @@ const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on its lower limb
 const BUTTERFLY_AT = [818, 1294], BUTTERFLY_FLY_S = 9;   // landed on the cactus flower (foreground coordinates)
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
-// flock crosses (every other beat), then the lizard does its push-up.
+// flock crosses (every other beat).
 const BEAT_S = 15, FLOCK_S = [0, 11], PUSHUP_S = [12, 13.2];
 const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; return s >= a && s < b; };
 const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
@@ -185,7 +185,6 @@ const CREATURES = [
     return { x: PERCH.x, y: PERCH.y, flying: false, op: Math.min(1, d - 18) };
   } },
   { kind: "owl", layer: "aspens", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
-  { kind: "lizard", layer: "foreground", w: 104, pose: (t, p, c, T) => ({ x: 225, y: 1266, pushing: inBeat(T, PUSHUP_S) || t < (c.pushUntil || 0) }) },
   { kind: "aspen", layer: "aspens", w: 230, pose: () => ({ x: 120, y: 800 }) },
   { kind: "roarwave", layer: "bison", w: 150, pose: () => ({ x: 110, y: -2 }) },                // behind the lion
   { kind: "lion", layer: "bison", w: 156.5, pose: () => ({ x: 66, y: 54 }) },
@@ -350,7 +349,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
-    <div class="tj-totems">${["bison", "bluebird", "butterfly", "lizard", "owl"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
+    <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
       <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
     <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
     <div class="tj-dust" aria-hidden="true"></div>
@@ -588,13 +587,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const tapFliers = (x, y) => {
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
     if (overBison(x, y, 30)) return;
-    const liz = CREATURES.find((c) => c.kind === "lizard");
-    if (liz && liz.el.style.opacity !== "0") {
-      const r = liz.el.firstChild.getBoundingClientRect(), pad = 26;
-      if (x > r.left - pad && x < r.right + pad && y > r.top - pad && y < r.bottom + pad) {
-        liz.pushUntil = performance.now() / 1000 + 1.3; wake("lizard"); return;
-      }
-    }
     if (tapAspens(x, y)) return;
     tapClouds(x, y);
   };
@@ -842,7 +834,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // Every sacred thing is a totem: waking one fills its gold icon in the row at the top. Wake them all
   // and the Kingdom awakens (for now a gold flare; the lion, the roar and the eye come next).
   // (the aspens and the sky answer a tap too, but they aren't totems: the totems are the animals)
-  const TOTEMS = ["bison", "bluebird", "butterfly", "lizard", "owl"];
+  const TOTEMS = ["bison", "bluebird", "butterfly", "owl"];   // + the salmon, once its art is in
   const totemRow = $(".tj-totems");
   let awake = new Set(), climaxed = false;
   try { awake = new Set(JSON.parse(localStorage.getItem("tj-totems") || "[]")); climaxed = localStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
