@@ -762,3 +762,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison.bloomed.blessing .groundRing u { animation: none; }
 .tj.lion .tj-bison.bloomed { opacity: 1; }
 .tj.lion .tj-bison.bloomed > :not(.groundRing) { opacity: 0; transition: opacity .9s ease; }
+
+/* the foreground branch, nearest the camera: oversized from its corner so its edges never show as it moves */
+.tj-branch { position: absolute; pointer-events: none; transform-origin: 72% 12%; transform: scale(1.08); will-change: transform; transition: opacity .5s ease; }
+.tj-hero.thru .tj-branch, .tj-hero.out .tj-branch { opacity: 0; }
