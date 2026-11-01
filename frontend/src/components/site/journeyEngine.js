@@ -996,19 +996,22 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const TOTEMS = ["bison", "bluebird", "butterfly", "owl", "salmon"];
   const totemRow = $(".tj-totems");
   let awake = new Set(), climaxed = false;
-  try { awake = new Set(JSON.parse(localStorage.getItem("tj-totems") || "[]")); climaxed = localStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
+  // progress lasts one visit (this tab): every new visit starts with the bison and the cocoon. (It used to
+  // be kept forever in localStorage, which some browsers carry into private tabs; that's cleared here.)
+  try { localStorage.removeItem("tj-totems"); localStorage.removeItem("tj-awake"); } catch (e) { /* private mode */ }
+  try { awake = new Set(JSON.parse(sessionStorage.getItem("tj-totems") || "[]")); climaxed = sessionStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
   const paintTotems = () => TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k)));
   paintTotems();
   function wake(k) {
     if (!TOTEMS.includes(k) || awake.has(k)) return;
     awake.add(k); paintTotems();
     const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
-    try { localStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
+    try { sessionStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
     if (TOTEMS.every((t) => awake.has(t)) && !climaxed) later(awaken, 900);
   }
   function awaken() {
     climaxed = true; root.classList.add("awakening");
-    try { localStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
+    try { sessionStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
     later(() => totemRow.classList.add("lion"), 1600);      // the totems leave; the lion takes the row
     later(transform, 2200);                                  // ...as the bison becomes the lion (the world stays alive)
     later(() => root.classList.remove("awakening"), 4800);
