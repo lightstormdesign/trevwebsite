@@ -51,7 +51,7 @@ const ENTER_AFTER_MS = 1800;   // "Tap to enter" rises this long after the porta
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
-const ME_SCALE = 0.023;      // and grows up to this much (about his bottom edge) as he leans toward you
+const ME_SCALE = 0.08;      // and grows up to this much (about his bottom edge) as he leans toward you
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
 const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
@@ -1253,7 +1253,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const t = (now - t0) / 1000;
       if (tilt.live) { inX = tilt.x; inY = tilt.y; }
       const drift = tilt.live ? 0.18 : 0.6;
-      const dX = drift * (Math.sin(t * 0.53) * 0.6 + Math.sin(t * 0.21 + 1.3) * 0.4);
+      const dX = drift * (Math.sin(t * 0.52) * 0.75 + Math.sin(t * 1.04 + 0.6) * 0.25);   // an even sway, left and right alike (period ~12s), first to the right
       const dY = drift * (Math.sin(t * 0.37 + 0.7) * 0.6 + Math.sin(t * 0.17 + 2.1) * 0.4);
       const gx = Math.max(-1, Math.min(1, inX + dX)), gy = Math.max(-1, Math.min(1, inY + dY));
       vx += ((gx - px) * 26 - vx * 8.5) * dt; vy += ((gy - py) * 26 - vy * 8.5) * dt;
