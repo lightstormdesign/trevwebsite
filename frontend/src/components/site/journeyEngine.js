@@ -424,7 +424,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
     <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl", "salmon"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
       <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
-    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i><p>The Kingdom is <span class="tj-gold">awake</span><small>The white lion rises</small></p></div>
+    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i></div>
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
       <div class="tj-headLeft">
