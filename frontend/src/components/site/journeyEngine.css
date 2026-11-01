@@ -639,7 +639,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison .groundRing u svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 3px rgba(255,226,150,.8)); }
 .tj-bison.blessing .groundRing u { animation: tj-bloom2 3.4s cubic-bezier(.2,.8,.3,1) var(--d) forwards; }
 @keyframes tj-bloom2 { 0% { opacity: 0; transform: scale(0) rotate(-40deg); } 22% { opacity: 1; transform: scale(1.12) rotate(4deg); }
-  30%, 72% { opacity: 1; transform: scale(1) rotate(0deg); } 100% { opacity: 0; transform: scale(.6) rotate(10deg); } }
+  30%, 100% { opacity: 1; transform: scale(1) rotate(0deg); } }   /* they bloom and stay */
 
 /* ---------- the lolo: cocoon -> moth (journeyEngine.js) ---------- */
 .tj-cr-cocoon .tj-crBody { aspect-ratio: 1; }
@@ -753,3 +753,12 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* ready: the bison's aura breathes quicker and brighter, waiting for you */
 .tj-bison.ready .aura { filter: brightness(1.3); transform: scale(1.22); }
 .tj-bison.ready .pulse { animation-duration: 1.8s; }
+
+/* TREV's photo grows about its bottom edge (the screen's bottom), so it never lifts off it */
+.tj-me, .tj-meImg { transform-origin: 50% 100%; will-change: transform; }
+
+/* the bison's flowers stay for the rest of the visit, and still stand around the lion */
+.tj-bison.bloomed .groundRing u { opacity: 1; transform: none; }
+.tj-bison.bloomed.blessing .groundRing u { animation: none; }
+.tj.lion .tj-bison.bloomed { opacity: 1; }
+.tj.lion .tj-bison.bloomed > :not(.groundRing) { opacity: 0; transition: opacity .9s ease; }
