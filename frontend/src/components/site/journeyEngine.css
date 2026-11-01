@@ -154,7 +154,10 @@
 .tj-progressHint { position: absolute; left: 0; right: 0; bottom: 30px; display: flex; flex-direction: column; align-items: center; color: #f3dfb0;
   opacity: 0; transition: opacity .8s ease; text-shadow: 0 2px 18px rgba(0,0,0,.8), 0 1px 5px rgba(0,0,0,.7); }
 .tj-progressHint.show { opacity: 1; }
-.tj-progressHint span { font: 500 11px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em; }
+.tj-progressHint span { font: 600 12.5px/1 var(--tj-display); letter-spacing: .32em; text-transform: uppercase; margin-right: -.32em; }
+/* a soft pool of shade behind it, so it reads over the bright water without becoming a box */
+.tj-progressHint::before { content: ""; position: absolute; left: 50%; top: 50%; width: 240px; height: 74px; transform: translate(-50%, -50%); z-index: -1;
+  background: radial-gradient(closest-side, rgba(14,10,6,.55), rgba(14,10,6,.25) 60%, transparent); pointer-events: none; }
 .tj-progressHint svg { width: 15px; height: 15px; margin-top: 4px; animation: tj-chevron 1.9s ease-in-out infinite; }
 
 /* the text-list bubble, bottom left (Burnell's announcement bubble) */

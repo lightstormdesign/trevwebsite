@@ -1517,13 +1517,19 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
 
   // Burnell's scroll guide: a thin line along the bottom fills as you go, a glowing drop riding its
-  // edge; stop partway and "Keep scrolling" rises above it
+  // edge; stop partway and "My Story" (in the world) or "Keep scrolling" (in the story) rises above it
   const prog = $(".tj-progress"), progFill = $(".tj-progressFill"), progDrop = $(".tj-progressDrop"), progHint = $(".tj-progressHint");
+  const progHintLabel = progHint.querySelector("span");
   let progShown = -1, idleT = 0;
   on(scroller, "scroll", () => {
     progHint.classList.remove("show"); clearTimeout(idleT);
     const max = scroller.scrollHeight - scroller.clientHeight, p = max > 0 ? scroller.scrollTop / max : 0;
-    if (p > 0.02 && p < 0.97) idleT = later(() => progHint.classList.add("show"), PROGRESS_IDLE_MS);
+    if (p > 0.02 && p < 0.97) idleT = later(() => {
+      // in the world it names what's below; inside the story, between chapters, it just says to go on
+      const label = scrolled() < STORY_START_SVH - 20 ? "My Story" : "Keep scrolling";
+      if (progHintLabel.textContent !== label) progHintLabel.textContent = label;
+      progHint.classList.add("show");
+    }, PROGRESS_IDLE_MS);
   }, { passive: true });
   function progress() {
     const max = scroller.scrollHeight - scroller.clientHeight;
