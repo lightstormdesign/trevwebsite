@@ -545,21 +545,21 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* the lion's focus: one soft circular vignette closing in around him (a single layer, faded as a
    whole, so it arrives evenly from every side), deeper as he charges, released by the roar */
 /* the lion's vignette: from his tap it closes in from the corners, steadily, deepening, until it hugs him
-   tight (a clear circle ~9vmax round him) as he roars; then it opens out and lifts with the roar. One
+   tight (a clear circle ~5.5vmax round him, just past his outline) as he roars; then it opens out and lifts with the roar. One
    screen-sized layer; only the clear circle's radius animates (--tjR); grain textures its dark. (Without
    @property it simply fades in.) */
 @property --tjR { syntax: "<length>"; inherits: true; initial-value: 40vmax; }
 .tj-lionFocus { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: max(100lvh, 100vh); z-index: 31; pointer-events: none; opacity: 0;
-  --tjR: 9vmax; will-change: opacity;
-  background: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), rgba(6,4,2,0) 0, rgba(6,4,2,0) var(--tjR), rgba(6,4,2,.62) calc(var(--tjR) * 1.7),
-    rgba(5,3,2,.9) calc(var(--tjR) * 2.7), rgba(3,2,1,.97) calc(var(--tjR) * 4.2)); }
-.tj-lionFocus i { position: absolute; inset: 0; background-size: 220px; opacity: .45;
+  --tjR: 5.5vmax; will-change: opacity;
+  background: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), rgba(6,4,2,0) 0, rgba(6,4,2,0) var(--tjR), rgba(6,4,2,.5) calc(var(--tjR) * 1.7),
+    rgba(5,3,2,.72) calc(var(--tjR) * 2.7), rgba(3,2,1,.78) calc(var(--tjR) * 4.2)); }   /* 20% lighter than it was */
+.tj-lionFocus i { position: absolute; inset: 0; background-size: 220px; opacity: .36;
   -webkit-mask-image: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), transparent calc(var(--tjR) * 1.2), #000 calc(var(--tjR) * 3));
   mask-image: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), transparent calc(var(--tjR) * 1.2), #000 calc(var(--tjR) * 3)); }
 .tj.focus .tj-lionFocus, .tj.charging .tj-lionFocus { animation: tj-iris .5s cubic-bezier(.35,.05,.35,1) forwards; }
 .tj.roaring .tj-lionFocus { animation: tj-irisOut 1.4s cubic-bezier(.2,.6,.3,1) forwards; }
-@keyframes tj-iris { from { --tjR: 40vmax; opacity: 0; } 22% { opacity: 1; } to { --tjR: 9vmax; opacity: 1; } }
-@keyframes tj-irisOut { from { --tjR: 9vmax; opacity: 1; } to { --tjR: 30vmax; opacity: 0; } }
+@keyframes tj-iris { from { --tjR: 40vmax; opacity: 0; } 22% { opacity: 1; } to { --tjR: 5.5vmax; opacity: 1; } }
+@keyframes tj-irisOut { from { --tjR: 5.5vmax; opacity: 1; } to { --tjR: 30vmax; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .tj.focus .tj-lionFocus, .tj.charging .tj-lionFocus { animation: none; opacity: 1; } }
 /* the charge: the lion draws in a breath (a slight crouch) before the roar; nothing else moves yet */
 .tj-cr-lion .stand { transform-origin: 50% 92%; }
