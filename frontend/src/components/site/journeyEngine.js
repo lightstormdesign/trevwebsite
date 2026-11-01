@@ -31,7 +31,7 @@
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt, LION_DROP_S } from "@/utils/sound";
+import { sound, tilt } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 
 const A = "/journey/";
@@ -613,31 +613,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (let i = 0; i < ticks; i++) later(() => hapticSwitch.click(), i * 70);
     } catch (e) { /* no haptics here */ }
   }
-  // The lion's tap starts the song (just before "Welcome to my", rising through it). The roar itself is
-  // unchanged (focus, then charge, then roar: ROAR_LEAD_S); it begins ROAR_LEAD_S before "K-ingdom" and
-  // the bass (they land together, LION_DROP_S into the song), so he roars on them. Both the start and the
-  // roar go by the song's own clock (a slow start can't knock it off the beat); with the sound off, by
-  // the clock from the tap; if the song never starts, a moment later by the clock.
-  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000;
-  const PAINT_LEAD_S = 0.015;   // the roar is set this much early, so its first frame is drawn on the "K"
-  let summonAt = 0;
-  const songAt = () => { const lt = sound.lionTime(); return lt != null && lt > 0.05 ? lt : null; };
-  const clockAt = () => { const since = (performance.now() - summonAt) / 1000, lt = sound.lionTime(); return lt == null ? since : since - 0.6; };
-  function summon() {
-    if (summonAt || roaring || frozen) return;
-    summonAt = performance.now(); sound.lion(); haptic(15);
-    awaitStart();
-  }
-  function awaitStart() {
-    const t = songAt() ?? clockAt();
-    if (t >= LION_DROP_S - ROAR_LEAD_S) return roar();
-    later(awaitStart, 8);
-  }
-  function awaitDrop() {
-    const t = summonAt ? songAt() ?? clockAt() : Infinity;
-    if (t >= LION_DROP_S - PAINT_LEAD_S && performance.now() - chargeAt >= CHARGE_MS - 40) return roar();
-    later(awaitDrop, 8);
-  }
   function roar() {
     if (roaring) return;
     if (!frozen) { focus(); return later(roar, FOCUS_MS); }
@@ -646,7 +621,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the charge: the vignette drops hard around the lion at once, then he roars
     if (!root.classList.contains("charging")) {
       aimFocus(); root.classList.add("charging"); haptic(25); chargeAt = performance.now();
-      return awaitDrop();
+      return later(roar, CHARGE_MS);
     }
     if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
     roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
@@ -656,7 +631,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => {
       root.classList.remove("roaring"); roaring = false;
       // no finale clip yet: give the world back its life
-      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
+      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false;
     }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
@@ -664,7 +639,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now();
     if (now - bisonCallAt < 350) return;   // one tap sends both a touch and a pointer event
     bisonCallAt = now;
-    if (lionMode) return summon();
+    if (lionMode) return roar();
     // the last tap: every other totem is awake and the bison has lifted its head. It turns to you,
     // its totem fills, and the Kingdom awakens (it becomes the lion)
     if (bisonReady() && now - bisonTapAt > 600) return bisonMoment();
@@ -1079,7 +1054,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(transform, 2200);                                  // ...as the bison becomes the lion (the world stays alive)
     later(() => root.classList.remove("awakening"), 4800);
   }
-  on($(".tj-lionTotem"), "click", () => { if (lionMode) summon(); });
+  on($(".tj-lionTotem"), "click", () => { if (lionMode) roar(); });
   // the screen point -> a layer's own coordinates
   const toLayer = (x, y, key) => {
     const r = world.getBoundingClientRect(), k = r.width / CANVAS.w, L = layerOf[key];
