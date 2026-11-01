@@ -74,7 +74,7 @@
 /* once the video's first frame is up the plate goes; TREV's real photo stays over the playing video
    while it fades (journeyEngine.js fadeMe) */
 .tj-hero.thru { background: transparent; }
-.tj-hero.thru .tj-plate, .tj-hero.thru .tj-grade { visibility: hidden; }
+.tj-hero.thru .tj-plate, .tj-hero.thru .tj-grade, .tj-hero.thru .tj-tree { visibility: hidden; }
 .tj-grade { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s ease;
   background: linear-gradient(to bottom, rgba(6,5,4,.22) 0%, rgba(6,5,4,.14) 26%, rgba(6,5,4,.05) 44%, rgba(6,5,4,0) 58%); }
 .tj-enterLayer { position: fixed; left: 0; right: 0; top: 0; z-index: 36; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -766,3 +766,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.lion .tj-bison.bloomed { opacity: 1; }
 .tj.lion .tj-bison.bloomed > :not(.groundRing) { opacity: 0; transition: opacity .9s ease; }
 
+
+/* the portal's two trees, a middle plane: they spread from the frame's centre as TREV comes in */
+.tj-tree { position: absolute; left: 0; top: 0; pointer-events: none; transform-origin: 50% 50%; will-change: transform; }

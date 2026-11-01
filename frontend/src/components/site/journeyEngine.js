@@ -52,6 +52,7 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const ME_SCALE = 0.03;
+const TREE_K = 0.4, TREE_SCALE = 0.018;   // the portal trees: share of his sideways drift, and how far they spread as he comes in
 const ME_SIDE = 0.6, ME_MOVE_S = 20, ME_PAUSE_S = 5;   // sideways reach (x ME_PX) at his nearest, mostly toward you; each move 20s (left, then right), a 5s pause after each
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
@@ -372,6 +373,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-box">
         <img class="tj-plate tj-plateStill" alt="">
         <video class="tj-plate tj-hidden" muted loop playsinline autoplay preload="auto"></video>
+        <img class="tj-tree" src="${A}trev-portal-tree-left.webp${MV}" alt="" aria-hidden="true">
+        <img class="tj-tree" src="${A}trev-portal-tree-right.webp${MV}" alt="" aria-hidden="true">
         <canvas class="tj-me"></canvas>
         <img class="tj-meImg" alt="TREV" hidden>
       </div>
@@ -1121,6 +1124,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function initHero() {
     const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $("video.tj-plate"), plateStill = $(".tj-plateStill");
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
+    const trees = [...root.querySelectorAll(".tj-tree")];
     const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
     let readyAt = 0;
     const trans = $(".tj-trans"), keep = $(".tj-keep");
@@ -1191,6 +1195,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       Object.assign(plate.style, { width: set.w + "px", height: set.h + "px" });
       plateStill.src = A + set.poster + MV; plate.src = A + set.video + MV; showWhenPlaying(plate);
       Object.assign(plateStill.style, { width: set.w + "px", height: set.h + "px" });
+      // the two trees (cut from the phone plate, so on a phone only): the middle plane, between the
+      // still sky and TREV
+      trees.forEach((tr) => { tr.hidden = set.w > set.h; Object.assign(tr.style, { width: set.w + "px", height: set.h + "px" }); });
 
       plate.play().then(() => afterFirstFrame(plate, () => later(warmUp, WARM_DELAY_MS))).catch(() => {});  // Low Power Mode: the poster stays
       let loaded = 0; const done = () => { if (++loaded === 2) { box.classList.add("ready"); readyAt = readyAt || performance.now(); } };
@@ -1248,7 +1255,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     let inX = 0, inY = 0;
     on(window, "pointermove", (e) => { if (e.pointerType === "mouse") { inX = e.clientX / innerWidth * 2 - 1; inY = e.clientY / innerHeight * 2 - 1; } });
 
-    let px = 0, py = 0, vx = 0, vy = 0, t0 = null, last = 0, leaving = false; let meScale = "";
+    let px = 0, py = 0, vx = 0, vy = 0, t0 = null, last = 0, leaving = false; let meScale = "", treeT = "";
     function heroFrame(now) {
       if (t0 === null) { t0 = now; last = now; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -1274,6 +1281,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       drawMe(px * ME_PX * ME_SIDE * m / k, (1 - near) * ME_PX * 0.585 * m / k, 0);
       const sc = (1 + ME_SCALE * near * m).toFixed(4);
       if (sc !== meScale) { meScale = sc; (gl ? canvas : meImg).style.transform = `scale(${sc})`; }
+      // the trees: as he comes toward you they spread outward a little (a camera pushing in) and drift
+      // his way, by less than him: the sky still, the trees a little, TREV the most
+      const tt = `translate3d(${(px * ME_PX * ME_SIDE * TREE_K * m / k).toFixed(2)}px, 0, 0) scale(${(1 + TREE_SCALE * near * m).toFixed(4)})`;
+      if (tt !== treeT) { treeT = tt; trees.forEach((tr) => { tr.style.transform = tt; }); }
     }
 
     // ---------- the transition ----------
