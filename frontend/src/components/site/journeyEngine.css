@@ -787,3 +787,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison:not(.facing) > .pulse, .tj-bison.facing .pose .pulse { visibility: hidden; }   /* (their opacity is animated) */
 .tj-bison .body, .tj-bison .tail, .tj-bison > .shadow, .tj-bison > .outline { transition: opacity .45s ease, filter .6s ease; }
 .tj-bison.is-on .pose img { filter: drop-shadow(0 0 1px rgba(255,240,190,1)) drop-shadow(0 0 8px rgba(255,210,120,.8)); }
+
+/* the juniper's painting ends in a straight line at its top: dissolve it into the sky instead */
+.tj-lyr-juniper { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%); mask-image: linear-gradient(to bottom, transparent 0, #000 7%); }
