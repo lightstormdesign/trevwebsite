@@ -124,7 +124,8 @@ const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on the juniper's lowe
 // The lolo (the Madagascan sunset moth, a totem): it begins as a cocoon hanging from the juniper's
 // upper branch; tapped, the cocoon pulses gold and splits, the moth unfolds its wings as light sweeps
 // across them, then settles on the branch (juniper coordinates). After that a tap sends it fluttering.
-const COCOON_AT = [583, 1025], COCOON_W = 120;   // hanging from the juniper's lowest branch, over the water
+const COCOON_AT = [583, 1025], COCOON_W = 120;
+const HATCH_OFF = [-21, -17];   // the moth unfolds from the middle of the cocoon's body (measured on screen)   // hanging from the juniper's lowest branch, over the water
 const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down to the water]
 // where Burnell's big butterfly used to wander, over the water (juniper coordinates), and its rest
 // on the cactus flower once the lion forms (the roar sends it up from there)
@@ -189,10 +190,11 @@ const CREATURES = [
     if (!c.emerged) {
       if (!c.hatchAt) return null;
       const d = t - c.hatchAt;
-      if (d < HATCH_S[0]) return { x: COCOON_AT[0], y: COCOON_AT[1] + 4, scale: 0.55 + 0.45 * smooth(d / HATCH_S[0]), flying: false };
+      if (d < HATCH_S[0]) return { x: COCOON_AT[0] + HATCH_OFF[0], y: COCOON_AT[1] + HATCH_OFF[1], scale: 0.55 + 0.45 * smooth(d / HATCH_S[0]), flying: false };
       const u = (d - HATCH_S[0]) / HATCH_S[1], e = smooth(u), w = mothWander(t);
       if (u >= 1) { c.emerged = true; c.el.classList.remove("unfolding"); return { ...w, flying: true }; }
-      return { x: COCOON_AT[0] + (w.x - COCOON_AT[0]) * e, y: COCOON_AT[1] + 4 + (w.y - COCOON_AT[1] - 4) * e - 60 * Math.sin(Math.PI * e),
+      const hx = COCOON_AT[0] + HATCH_OFF[0], hy = COCOON_AT[1] + HATCH_OFF[1];
+      return { x: hx + (w.x - hx) * e, y: hy + (w.y - hy) * e - 60 * Math.sin(Math.PI * e),
         rot: w.rot * e, flying: u > 0 };
     }
     // free, it drifts over the water; once the lion forms it comes to rest on the cactus flower
