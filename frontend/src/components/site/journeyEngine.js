@@ -51,7 +51,8 @@ const ENTER_AFTER_MS = 1800;   // "Tap to enter" rises this long after the porta
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
-const ME_SCALE = 0.08;      // and grows up to this much (about his bottom edge) as he leans toward you
+const ME_SCALE = 0.08;
+const ME_SIDE = 1.5, ME_CYCLE_S = 7;   // sideways reach (x ME_PX) as he comes forward; one forward-and-back every 7s (alternating sides)      // and grows up to this much (about his bottom edge) as he leans toward you
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
 const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
@@ -1251,19 +1252,22 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (t0 === null) { t0 = now; last = now; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       const t = (now - t0) / 1000;
+      // One movement, in depth: he comes toward you on a diagonal (growing, rising off the bottom edge
+      // he sinks below when back) to one side, eases back to centre, then comes forward to the other side.
+      // On a phone with motion, or a mouse, you lead it: the side you tilt or point to, nearer the further.
       if (tilt.live) { inX = tilt.x; inY = tilt.y; }
-      const drift = tilt.live ? 0.18 : 0.6;
-      const dX = drift * (Math.sin(t * 0.52) * 0.75 + Math.sin(t * 1.04 + 0.6) * 0.25);   // an even sway, left and right alike (period ~12s), first to the right
-      const dY = drift * (Math.sin(t * 0.37 + 0.7) * 0.6 + Math.sin(t * 0.17 + 2.1) * 0.4);
-      const gx = Math.max(-1, Math.min(1, inX + dX)), gy = Math.max(-1, Math.min(1, inY + dY));
-      vx += ((gx - px) * 26 - vx * 8.5) * dt; vy += ((gy - py) * 26 - vy * 8.5) * dt;
+      const th = t * (2 * Math.PI / ME_CYCLE_S);
+      const autoNear = (1 - Math.cos(th)) / 2, autoSide = autoNear * Math.sin(th / 2);
+      const led = tilt.live || inX !== 0 || inY !== 0, w = led ? 0.45 : 1;   // led: the drift carries on beneath, smaller
+      const aSide = Math.max(-1, Math.min(1, autoSide * w + (led ? inX : 0)));
+      const aNear = Math.max(0, Math.min(1, autoNear * w + (led ? Math.abs(inX) * 0.85 + Math.max(0, -inY) * 0.4 : 0)));
+      vx += ((aSide - px) * 26 - vx * 8.5) * dt; vy += ((aNear - py) * 26 - vy * 8.5) * dt;
       px += vx * dt; py += vy * dt;
-      const m = still ? 0 : 1, k = fit.k;
+      const m = still ? 0 : 1, k = fit.k, near = Math.max(0, Math.min(1, py));
       if (readyAt && now - readyAt > (still ? 0 : ENTER_AFTER_MS) && !leaving) enter.classList.add("show");
-      // depth without ever lifting off the bottom edge: he only ever sinks a little below it (never up),
-      // and leaning toward you he grows a touch, from his bottom edge. One rigid photo: his face never warps
-      const down = (1 + py) / 2, near = 1 - down;   // 0..1
-      drawMe(px * ME_PX * m / k, down * ME_PX * 0.585 * m / k, 0);   // sinks up to ~7px (was ~11)
+      // never lifts off the bottom edge: back, he sinks a little below it; forward, he rises and grows
+      // (about his bottom edge). One rigid photo: his face never warps
+      drawMe(px * ME_PX * ME_SIDE * m / k, (1 - near) * ME_PX * 0.585 * m / k, 0);
       const sc = (1 + ME_SCALE * near * m).toFixed(4);
       if (sc !== meScale) { meScale = sc; (gl ? canvas : meImg).style.transform = `scale(${sc})`; }
     }
