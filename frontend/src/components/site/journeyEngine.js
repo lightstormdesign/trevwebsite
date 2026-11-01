@@ -125,7 +125,8 @@ const COCOON_AT = [541, 661], COCOON_W = 120;   // hanging from the juniper's lo
 const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down to the water]
 // where Burnell's big butterfly used to wander, over the water (juniper coordinates), and its rest
 // on the cactus flower once the lion forms (the roar sends it up from there)
-const mothWander = (t) => ({ x: 135 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)), y: 1074 + 38 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55),
+// (the right side of the river, clear of the salmon's pool on the left)
+const mothWander = (t) => ({ x: 440 + 55 * Math.sin(t * 0.55) + 16 * Math.sin(t * 1.7), y: 985 + 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55),
   scale: 1 + 0.16 * Math.sin(t * 0.37 + 1) });   // drifting nearer and farther
 const MOTH_REST = [565, 914];   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
@@ -136,7 +137,7 @@ const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; retu
 // The salmon (a totem): once every SALMON_EVERY_S, when the near flock isn't crossing, a glint on the
 // pool, then it leaps (rising, peak, diving poses) and is swallowed back under; tap it mid-leap to
 // catch it. It's drawn in a window whose bottom edge is the water's surface (river coordinates).
-const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 19, SALMON_EVERY_S = 30, SALMON_LEAP_S = 1.6;
+const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 12.5, SALMON_EVERY_S = 15,   /* leaps at 12.5s and 27.5s of each 30s: never while the near flock crosses (0-11s) */ SALMON_LEAP_S = 1.6;
 const SALMON_X = [30, 170], SALMON_DEPTH = 40, SALMON_RISE = 400, SALMON_W = 150;   // a low leap (60 above the surface), well left of the lion
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
@@ -522,7 +523,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   function transform() {
     if (lionMode) return;
-    lionMode = true; bison.classList.add("is-on");   // the bison turns to you, aura blazing, then...
+    lionMode = true; bison.classList.add("is-on", "facing");   // the bison turns to you, aura blazing, then...
     root.classList.add("transforming");
     callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
@@ -635,8 +636,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (now - bisonCallAt < 350) return;   // one tap sends both a touch and a pointer event
     bisonCallAt = now;
     if (lionMode) return roar();
+    // the last tap: every other totem is awake and the bison has lifted its head. It turns to you,
+    // its totem fills, and the Kingdom awakens (it becomes the lion)
+    if (bisonReady() && now - bisonTapAt > 600) return bisonMoment();
     if (now - bisonTapAt < BISON_TAP_S * 1000) return;
-    bisonTapAt = now; bison.classList.add("is-on"); wake("bison");
+    // the first tap: it lifts its head from the grass (its totem half lit) and gives its gift
+    bisonTapAt = now; bison.classList.add("is-on", "up"); wake("bison");
     // its gift: a ring of gold light across the ground from its hooves, flowers glinting along it
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
     later(() => bison.classList.remove("blessing"), 4600);
@@ -648,7 +653,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
     const h = overBison(e.clientX, e.clientY, 10);
     if (h === bisonHover) return;
-    bisonHover = h; bison.classList.toggle("is-on", h || performance.now() - bisonTapAt < BISON_TAP_S * 1000);
+    bisonHover = h; bison.classList.toggle("is-on", h || performance.now() - bisonTapAt < BISON_TAP_S * 1000 || bison.classList.contains("facing"));
     docEl.classList.toggle("tj-bison-hover", h);
   }, { passive: true });
   // The owl: a tap (or hover) turns its head to you, then it opens its eyes; a while later it
@@ -1010,17 +1015,32 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // be kept forever in localStorage, which some browsers carry into private tabs; that's cleared here.)
   try { localStorage.removeItem("tj-totems"); localStorage.removeItem("tj-awake"); } catch (e) { /* private mode */ }
   try { awake = new Set(JSON.parse(sessionStorage.getItem("tj-totems") || "[]")); climaxed = sessionStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
-  const paintTotems = () => TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k)));
+  // the bison's totem is only half lit by its first tap; it fills at its moment (the last tap)
+  const bisonReady = () => !climaxed && TOTEMS.every((t) => awake.has(t));
+  const paintTotems = () => {
+    TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k) && (k !== "bison" || climaxed)));
+    const b = totemRow.querySelector('[data-k="bison"]');
+    b.classList.toggle("half", awake.has("bison") && !climaxed);
+    b.classList.toggle("ready", bisonReady());
+    if (bison) { bison.classList.toggle("up", awake.has("bison")); bison.classList.toggle("ready", bisonReady()); }
+  };
   paintTotems();
+  function bisonMoment() {
+    bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
+    bison.classList.remove("ready"); bison.classList.add("is-on", "facing");
+    const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
+    haptic([40, 40, 80]);
+    bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
+    later(awaken, 1100);   // it holds your gaze a moment, then the Kingdom awakens
+  }
   function wake(k) {
     if (!TOTEMS.includes(k) || awake.has(k)) return;
     awake.add(k); paintTotems();
     const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
     try { sessionStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
-    if (TOTEMS.every((t) => awake.has(t)) && !climaxed) later(awaken, 900);
   }
   function awaken() {
-    climaxed = true; root.classList.add("awakening");
+    climaxed = true; paintTotems(); root.classList.add("awakening");
     try { sessionStorage.setItem("tj-awake", "1"); } catch (e) { /* private mode */ }
     later(() => totemRow.classList.add("lion"), 1600);      // the totems leave; the lion takes the row
     later(transform, 2200);                                  // ...as the bison becomes the lion (the world stays alive)
@@ -1075,6 +1095,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
+    paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
@@ -1185,7 +1206,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const W = heroW(), H = Math.min(heroH(), Hs()), k = Math.max(W / set.w, H / set.h);
       fit = { k,
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
-        oy: Math.min(0, Math.max(H - set.h * k, H / 2 - set.fy * set.h * k)) };
+        oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
       box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
       // where his face is on screen: the film grain is at half strength there (FilmGrain.jsx)
       const [fx, fy, rx, ry] = set.face;

@@ -630,8 +630,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison .awayImg { position: absolute; inset: 0; width: 100%; height: auto; pointer-events: none; transition: opacity .45s ease; }
 .tj-bison .body { transition: opacity .45s ease, filter .6s ease; }
 .tj-bison:not(.is-on) .body { opacity: 0; }
-.tj-bison.is-on .awayImg { opacity: 0; }
-.tj-bison:not(.is-on) .pulse, .tj-bison:not(.is-on) .shadow, .tj-bison:not(.is-on) .outline { -webkit-mask-image: var(--silAway); mask-image: var(--silAway); }
+.tj-bison.facing .awayImg { opacity: 0; }
+.tj-bison:not(.facing) .pulse, .tj-bison:not(.facing) .shadow, .tj-bison:not(.facing) .outline { -webkit-mask-image: var(--silAway); mask-image: var(--silAway); }
 
 /* the bison's abundance: flowers bloom in the grass around its hooves, then fold back in */
 .tj-bison .groundRing u { position: absolute; width: calc(30px * var(--s)); height: calc(30px * var(--s)); margin: calc(-15px * var(--s)) 0 0 calc(-15px * var(--s));
@@ -744,3 +744,12 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-owl.look .aura::after { animation: none; }
 .tj-cr-owl.look .glow { opacity: .95; }
 .tj-cr-owl.look .geo { opacity: .75; }
+
+/* the bison's totem: half lit by its first tap; once every other totem is awake it calls for the last tap */
+.tj-totem.half { border-color: rgba(246,220,150,.65); box-shadow: 0 0 6px rgba(240,200,110,.3); }
+.tj-totem.half svg { color: #d9b46a; opacity: .75; }
+.tj-totem.half.ready { animation: tj-totemCall 1.6s ease-in-out infinite; }
+@keyframes tj-totemCall { 0%, 100% { box-shadow: 0 0 6px rgba(240,200,110,.3); transform: scale(1); } 50% { box-shadow: 0 0 16px rgba(250,215,130,.85); transform: scale(1.12); } }
+/* ready: the bison's aura breathes quicker and brighter, waiting for you */
+.tj-bison.ready .aura { filter: brightness(1.3); transform: scale(1.22); }
+.tj-bison.ready .pulse { animation-duration: 1.8s; }
