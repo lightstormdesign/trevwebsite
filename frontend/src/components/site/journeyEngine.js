@@ -307,6 +307,16 @@ const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Communit
   ["Shop", "/shop"], ["EPK", "/epk"], ["Contact", "/contact"]];
 
 const clamp01 = (t) => Math.min(1, Math.max(0, t));
+// Burnell's portal Flower of Life (PortalFlower.jsx): 19 circles (1 + a ring of 6 + a ring of 12), each
+// radius equal to its spacing; a soft pre-blurred copy behind fine lines, so only opacity ever animates
+const PORTAL_FLOWER = (() => {
+  const pts = [[0, 0]];
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; pts.push([Math.cos(a), Math.sin(a)], [2 * Math.cos(a), 2 * Math.sin(a)]); }
+  for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; pts.push([Math.sqrt(3) * Math.cos(a), Math.sqrt(3) * Math.sin(a)]); }
+  const svg = (sw, cls) => `<svg class="${cls}" viewBox="-3 -3 6 6">${pts.map(([x, y]) =>
+    `<circle cx="${x.toFixed(4)}" cy="${y.toFixed(4)}" r="1" fill="none" stroke="#f1dcaa" stroke-width="${sw}"/>`).join("")}</svg>`;
+  return svg(0.05, "glow") + svg(0.012, "lines");
+})();
 const smooth = (t) => { t = clamp01(t); return t * t * (3 - 2 * t); };
 
 // A video stays invisible until it's actually playing, so iPhone's play button (shown when autoplay is
@@ -360,6 +370,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         <img class="tj-meImg" alt="TREV" hidden>
       </div>
       <div class="tj-grade"></div>
+      <div class="tj-flower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
     </div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-lionFocus" aria-hidden="true"></div>

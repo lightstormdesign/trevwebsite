@@ -690,3 +690,19 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-butterfly.landed .aura { position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; pointer-events: none; }
 /* night: its beauty is only in the light */
 .tj.night .tj-cr-butterfly.landed .moth img { filter: brightness(.3) saturate(.15); }
+
+/* ---------- the portal's Flower of Life, top right (Burnell's PortalFlower) ---------- */
+.tj-flower { position: absolute; left: 92%; top: 8%; width: 44vmax; aspect-ratio: 1; transform: translate(-50%, -50%); opacity: .4; pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 45%, transparent 78%); mask-image: radial-gradient(circle, #000 0%, #000 45%, transparent 78%);
+  transition: opacity .6s ease; }
+.tj-flower .in { width: 100%; height: 100%; animation: tj-flowerIn 3s ease-out 1.2s both; }
+.tj-flower .breathe { width: 100%; height: 100%; animation: tj-flowerBreathe 7s ease-in-out infinite; }
+.tj-flower .turn { position: relative; width: 100%; height: 100%; }
+.tj-flower svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tj-flower svg.glow { filter: blur(6px); opacity: .9; }
+@keyframes tj-flowerIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tj-flowerBreathe { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+@media (hover: hover) and (pointer: fine) { .tj-flower { top: 18%; } .tj-flower .turn { animation: tj-auraSpin 520s linear infinite; } }
+@media (prefers-reduced-motion: reduce) { .tj-flower .in, .tj-flower .breathe, .tj-flower .turn { animation: none !important; } }
+/* gone the moment the journey starts */
+.tj-hero.thru .tj-flower, .tj-hero.out .tj-flower { opacity: 0; }
