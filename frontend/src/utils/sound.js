@@ -8,12 +8,12 @@
 //    comes round again from its first beat (the intro's own "kingdom", the same beat: 16 bars at
 //    139.75 BPM) and fades slowly away
 //  - the lion (his final tap): from 26.55s, rising gradually through "Welcome to my" to full on
-//    "king-", so the drums (the drop) land LION_DROP_S after the tap: the roar
+//    "K-ingdom", which lands with the bass LION_DROP_S after the tap: the roar
 // Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
 // player's file makes iPhone start late).
 const SRC = "/journey/trev-kingdom-intro.m4a?v=2";   // bump with the file (phones cache it)
 const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=2", LION_FROM = 26.55;
-export const LION_DROP_S = 0.919;   // into the lion cut: the drop (the drums, "-dom"): the roar
+export const LION_DROP_S = 0.94;   // into the lion cut: "K-ingdom" and the bass, together (27.49s in the song): the roar
 const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
 const BEAT_FPS = 30;
 export const DROP_AT = 27.47; // seconds into the song: the first bass note (nothing reacts to the beat before it)
