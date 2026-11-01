@@ -393,7 +393,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
 }
 
-/* ---------- the living world: aspens, rain and rainbow, night, totems, gold dust (journeyEngine.js) ---------- */
+/* ---------- the living world: aspens, rain and rainbow, totems, gold dust (journeyEngine.js) ---------- */
 /* the aspens' aura: a glow and Flower of Life over the grove; a tap sheds a burst of leaves */
 .tj-cr-aspen .tj-crBody { aspect-ratio: 1; }
 .tj-cr-aspen .aura { position: absolute; inset: -40%; pointer-events: none; transition: transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
@@ -434,28 +434,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
     rgba(255,240,120,.55) 78%, rgba(255,170,90,.5) 81%, rgba(255,100,110,.45) 84%, transparent 88%);
   -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 35%); mask-image: linear-gradient(to top, transparent 0%, #000 35%); }
 
-/* night: moonlight over the world, stars, fireflies, and every aura brighter */
-.tj-night { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 3s ease; }
-.tj.night .tj-night { opacity: 1; }
-.tj-night .tint { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(10,16,52,.5), rgba(14,22,60,.3) 45%, rgba(12,18,48,.26)); }   /* moonlit, never blacked out: the animals and their auras still read */
-.tj-night .stars { position: absolute; left: 0; right: 0; top: 0; height: 55%;
-  background-image: radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 33% 8%, #fff, transparent),
-    radial-gradient(1.4px 1.4px at 58% 22%, #fff, transparent), radial-gradient(1px 1px at 76% 12%, #fff, transparent),
-    radial-gradient(1.2px 1.2px at 88% 30%, #fff, transparent), radial-gradient(1px 1px at 22% 40%, #fff, transparent),
-    radial-gradient(1px 1px at 46% 36%, #fff, transparent), radial-gradient(1.3px 1.3px at 67% 44%, #fff, transparent);
-  background-size: 260px 220px; -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent); mask-image: linear-gradient(to bottom, #000 40%, transparent);
-  animation: tj-twinkle 4s ease-in-out infinite; }
-.tj-night .stars.b { background-size: 190px 170px; background-position: 70px 40px; animation-delay: -2s; }
-@keyframes tj-twinkle { 0%, 100% { opacity: .9; } 50% { opacity: .45; } }
-.tj-cr-firefly { display: none; }
-.tj.night .tj-cr-firefly { display: block; }
-.tj-cr-firefly .tj-crBody { aspect-ratio: 1; }
-.tj-cr-firefly span { position: absolute; inset: -60%; border-radius: 50%;
-  background: radial-gradient(closest-side, #fffbd0, rgba(255,236,140,.7) 35%, rgba(255,220,100,0)); animation: tj-firefly 3.2s ease-in-out var(--delay, 0s) infinite; }
-@keyframes tj-firefly { 0%, 100% { opacity: .1; } 45%, 60% { opacity: 1; } }
-.tj.night .tj-bison .glow { opacity: 1; } .tj.night .tj-bison .geo { opacity: .8; }
-.tj.night .tj-cr-perch .glow, .tj.night .tj-cr-aspen .glow { opacity: .8; } .tj.night .tj-cr-perch .geo, .tj.night .tj-cr-aspen .geo { opacity: .6; }
-.tj.night .tj-cr-butterfly .glow { opacity: .6; } .tj.night .tj-cr-butterfly .geo { opacity: .45; }
 
 /* the totem row: one gold icon per sacred thing, lit as you wake it */
 .tj-totems { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 41; transform: translateX(-50%);
@@ -493,7 +471,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @keyframes tj-clickRing { from { opacity: .7; transform: scale(.1); } to { opacity: 0; transform: scale(1); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .tj-rain .drops, .tj-night .stars, .tj-cr-firefly span, .tj-cr-ripple span, .tj-cr-aspen .glow, .tj-cr-aspen .geo, .tj-cr-aspen .geo svg { animation: none; }
+  .tj-rain .drops, .tj-cr-ripple span, .tj-cr-aspen .glow, .tj-cr-aspen .geo, .tj-cr-aspen .geo svg { animation: none; }
 }
 
 /* ---------- the white lion: the bison transforms (once the Kingdom is awake), the lion roars to the sky ---------- */
@@ -688,8 +666,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-butterfly.unfolding .moth .sweep { animation: tj-sweep2 1.2s ease-in-out .6s both; }
 @keyframes tj-sweep2 { 0% { opacity: 0; background-position: 100% 0; } 20%, 80% { opacity: 1; } 100% { opacity: 0; background-position: 0% 0; } }
 .tj-cr-butterfly.landed .aura { position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; pointer-events: none; }
-/* night: its beauty is only in the light */
-.tj.night .tj-cr-butterfly.landed .moth img { filter: brightness(.3) saturate(.15); }
 
 /* ---------- the portal's Flower of Life, top right (Burnell's PortalFlower) ---------- */
 .tj-flower { position: absolute; left: 92%; top: 8%; width: 44vmax; aspect-ratio: 1; transform: translate(-50%, -50%); opacity: .4; pointer-events: none;

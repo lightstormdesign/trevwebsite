@@ -246,8 +246,6 @@ const CREATURES = [
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
   ...[[330, 880], [470, 900], [600, 870], [400, 1030], [540, 960]].map(([x, y], i) =>
     ({ kind: "ripple", layer: "river", w: 70, delay: i * 0.45, pose: () => ({ x, y }) })),
-  ...Array.from({ length: 9 }, (_, i) => ({ kind: "firefly", after: "foreground", depth: 0.7, w: 9, delay: i * 0.7,
-    pose: (t) => ({ x: 120 + ((i * 271) % 700) + 40 * Math.sin(t * 0.37 + i * 1.7), y: 900 + ((i * 193) % 520) + 30 * Math.sin(t * 0.53 + i) }) })),
   ...Array.from({ length: 5 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
@@ -301,7 +299,7 @@ const FOCUS_MS = 120, FINALE_AFTER_MS = 1350, CHARGE_MS = 380, SETTLE_MS = 450, 
 // simple line icons of each totem's face, drawn in gold
 const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<path d=\"M12 2.8c.9 1 1.3 2 1.2 3M12 2.8c-.9 1-1.3 2-1.2 3M9.3 4.2c.4 1.2 1.1 2 2 2.4M14.7 4.2c-.4 1.2-1.1 2-2 2.4\"/><path d=\"M9 5.6C6.6 6 4.8 8 4.6 10.6c-.2 2.4.8 4.6 2.6 6.1l1.8 1.6L12 21.4l3-3.1 1.8-1.6c1.8-1.5 2.8-3.7 2.6-6.1C19.2 8 17.4 6 15 5.6\"/><path d=\"M8.4 9.2c1-1.1 2.2-1.6 3.6-1.6s2.6.5 3.6 1.6v3.2c0 2-1.6 3.8-3.6 3.8s-3.6-1.8-3.6-3.8z\"/><circle cx=\"12\" cy=\"9.3\" r=\".9\"/><path d=\"M9.7 11.3l1.2.3M14.3 11.3l-1.2.3\"/><path d=\"M11.1 13.2h1.8l-.9 1z\"/><path d=\"M12 14.2v.7M11 15.4c.3.3.6.4 1 .4s.7-.1 1-.4\"/>", "salmon": "<path d=\"M3.5 12c2.4-3.4 6-5.2 10-5.2 2.8 0 4.9 1.4 6.5 3.2-1.6 1.8-3.7 3.2-6.5 3.2-1 0-2-.1-2.9-.4\"/><path d=\"M3.5 12c2.4 3.4 6 5.2 10 5.2 2.8 0 4.9-1.4 6.5-3.2\"/><path d=\"M3.5 12l-1.8-2.6M3.5 12l-1.8 2.6\"/><circle cx=\"16.6\" cy=\"10.8\" r=\".6\" fill=\"currentColor\"/><path d=\"M11 7.4l1.6-2.1M10 16.6l1.4 1.8\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
-const RAIN_MS = 6500, RAINBOW_MS = 9000, NIGHT_AFTER_MS = 2500;
+const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
@@ -358,7 +356,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-side"></div>
       <div class="tj-world"></div>
       <div class="tj-shade"></div>
-      <div class="tj-night" aria-hidden="true"><i class="tint"></i><i class="stars"></i><i class="stars b"></i></div>
       <div class="tj-dawn" aria-hidden="true"></div>
       <div class="tj-sight" aria-hidden="true" style="background-image:url('data:image/svg+xml;utf8,${encodeURIComponent(FLOWER_TILE)}')"></div>
       <div class="tj-rain" aria-hidden="true"><i class="dark"></i><i class="drops" style="background-image:url(${A}trev-world-rain.webp)"></i><i class="drops b" style="background-image:url(${A}trev-world-rain.webp)"></i></div>
@@ -936,7 +933,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     landing.classList.toggle("is-gone", o < 0.05);
   }
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
-  const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "firefly", "salmon", "splash"]);
+  const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "salmon", "splash"]);
   // a creature's own size change (depth) happens about its centre, not its top-left corner
   const scaleAbout = (c, k) => {
     if (!c.half || !c.half[0] || !c.half[1]) c.half = [c.el.offsetWidth / 2, c.el.offsetHeight / 2];
@@ -992,7 +989,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     e.preventDefault(); e.stopPropagation(); bubble.classList.remove("show"); bubbleClosed = true;
     try { sessionStorage.setItem("tj-bubble-closed", "1"); } catch (err) { /* private mode */ }
   });
-  // ---------- the living world: totems, aspens, clouds and rain, night ----------
+  // ---------- the living world: totems, aspens, clouds and rain ----------
   // Every sacred thing is a totem: waking one fills its gold icon in the row at the top. Wake them all
   // and the Kingdom awakens (for now a gold flare; the lion, the roar and the eye come next).
   // (the aspens and the sky answer a tap too, but they aren't totems: the totems are the animals)
@@ -1059,22 +1056,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => { root.classList.remove("raining"); root.classList.add("rainbow"); }, RAIN_MS);
     later(() => { root.classList.remove("rainbow"); raining = false; }, RAIN_MS + RAINBOW_MS);
   }
-  // night: after sunset in the visitor's own time zone (or ?night), the world drifts into moonlight
-  const isNight = (() => {
-    const q = new URLSearchParams(location.search);
-    if (q.has("night")) return true;
-    if (q.has("day")) return false;
-    const d = new Date(), h = d.getHours() + d.getMinutes() / 60;
-    const sunset = [17.2, 17.8, 18.4, 19.9, 20.4, 20.9, 21, 20.6, 19.8, 18.9, 17.3, 16.9][d.getMonth()];
-    return h >= sunset + 0.5 || h < 6;
-  })();
 
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
-    if (isNight) later(() => root.classList.add("night"), NIGHT_AFTER_MS);
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
