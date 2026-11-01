@@ -52,7 +52,7 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const ME_SCALE = 0.03;
-const ME_SIDE = 1.5, ME_MOVE_S = 10, ME_PAUSE_S = 5;   // sideways reach (x ME_PX) at his nearest; each move 10s (left, then right), a 5s pause after each
+const ME_SIDE = 0.6, ME_MOVE_S = 20, ME_PAUSE_S = 5;   // sideways reach (x ME_PX) at his nearest, mostly toward you; each move 20s (left, then right), a 5s pause after each
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
 const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
