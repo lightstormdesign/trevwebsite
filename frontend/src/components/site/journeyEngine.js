@@ -808,7 +808,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       lion = c;
     }
     else if (c.kind === "rainbow") body.innerHTML = `<i></i>`;
-    else if (c.kind === "roarwave") body.innerHTML = [0, 1, 2, 3].map((i) => `<div class="wave" style="--i:${i}">${sacredAura()}</div>`).join("");
+    // the roar's rings: one pre-drawn Flower of Life image each (the GPU just scales it), not live vector
+    // circles, which phones re-draw at every size as they grow (that's what made the line work stutter)
+    else if (c.kind === "roarwave") body.innerHTML = [0, 1, 2, 3].map((i) => `<div class="wave" style="--i:${i}"><img src="${A}trev-roar-ring.webp" alt="" decoding="async"></div>`).join("");
     else if (c.kind === "bird") body.innerHTML = `<div class="frames" style="--flap:${c.flap}s;aspect-ratio:${FLYER[c.bird].join(" / ")}${c.flip ? ";transform:scaleX(-1)" : ""}">`
       + (c.bird === "swallow"   // Burnell's two frames, each centred
         ? `<img class="up mid" src="${A}trev-world-swallow-up.webp" alt=""><img class="down mid" src="${A}trev-world-swallow-down.webp" alt=""></div>`
@@ -904,21 +906,25 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     return { W, H, narrow, colW, k, ox: (W - CANVAS.w * k) / 2, oy: (H - CANVAS.h * k) / 2 };
   }
   let tx = 0, ty = 0;   // the eased phone tilt (Burnell's: it glides rather than jitters)
+  // write a style only when its value changes (an unchanged write still makes the browser re-check)
+  const put = (el, prop, v) => { const k = "_" + prop; if (el[k] !== v) { el[k] = v; el.style[prop] = v; } };
+  let sideEl = null;
   function worldLayout(p) {
+    sideEl = sideEl || $(".tj-side");
     const { H, narrow, colW, k, ox, oy: oy0 } = worldFit();
     // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
     // rises by that much, so at the bottom the whole painting is in view above the toolbar
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
     setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
-    $(".tj-side").style.display = narrow ? "none" : "block";
-    world.style.transform = `translate(${ox}px, ${oy}px) scale(${k})`;
-    world.style.clipPath = narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`;
+    put(sideEl, "display", narrow ? "none" : "block");
+    put(world, "transform", `translate(${ox}px, ${oy}px) scale(${k})`);
+    put(world, "clipPath", narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`);
     const ty0 = (L) => L.y + L.from[1] * (1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0])));
     const gx = (L) => tx * (L.depth - 0.3) * TILT_X, gy = (L) => ty * Math.max(0, L.depth - 0.1) * TILT_Y;
     for (const L of LAYERS) {
       const t = 1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0]));
       L.cx = L.x + L.from[0] * t + gx(L); L.cy = L.y + L.from[1] * t + gy(L);
-      L.el.style.transform = `translate3d(${L.cx.toFixed(1)}px, ${L.cy.toFixed(1)}px, 0)`;
+      put(L.el, "transform", `translate3d(${L.cx.toFixed(1)}px, ${L.cy.toFixed(1)}px, 0)`);
     }
     const sunY = SUN_SKY_Y + ty0(LAYERS[0]), ridgeY = RIDGE_Y + ty0(LAYERS[1]);
     const hid = clamp01((sunY + SUN_R - ridgeY) / (2 * SUN_R));
@@ -936,8 +942,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       // they part with the same gentle ease as the rest of the world (they used to start at full speed)
       const t = Math.min(1, p / PART_RANGE), e = smooth(t), kk = 1 + 0.3 * c.spd;
       const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i) * (frozen ? clamp01(1 - (performance.now() - focusAt) / SETTLE_MS) : 1) + tx * TILT_X * CLOUD_TILT * c.depth;
-      const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
-      c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
+      const y = c.y0 - c.w * (c.ar || 0.438) / 2 - smooth(p) * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;   // eased, like the layers
+      put(c.el, "transform", `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`);
       if (c.leaves && worldAt && !c.gone) {
         const o = c.op * (1 - smooth((now - worldAt - CLOUD_LEAVE_S[0]) / CLOUD_LEAVE_S[1]));
         c.el.style.opacity = o.toFixed(3); if (o <= 0) c.gone = true;
@@ -946,12 +952,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (!still) placeCreatures(now, p);
     // landing: blurred + dimmed under the copy (the video ends in exactly this state), clearing as you descend
     const veil = 1 - smooth(p / 0.3);
-    world.style.filter = veil > 0.02 ? `blur(${(6 * veil).toFixed(1)}px)` : "none";
-    shade.style.opacity = (0.5 * veil).toFixed(3);
+    put(world, "filter", veil > 0.02 ? `blur(${(6 * veil).toFixed(1)}px)` : "none");
+    put(shade, "opacity", (0.5 * veil).toFixed(3));
     // the landing copy dissolves on the very first bit of scroll
     const o = 1 - Math.min(1, scroller.scrollTop / (Hs() * 0.14));
-    landing.style.opacity = o.toFixed(3);
-    landing.style.filter = o < 0.999 ? `blur(${((1 - o) * 8).toFixed(1)}px)` : "none";
+    put(landing, "opacity", o.toFixed(3));
+    put(landing, "filter", o < 0.999 ? `blur(${((1 - o) * 8).toFixed(1)}px)` : "none");
     landing.classList.toggle("is-gone", o < 0.05);
   }
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));

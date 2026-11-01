@@ -1,5 +1,5 @@
-# TREV favicon: the gold sword on white; a small dark-gold Flower of Life behind its hilt and the first
-# quarter of its blade; fainter Flowers of Life drifting off the corners (as on the portal)
+# TREV favicon: the gold sword on white, and two of the portal's open Flowers of Life (19 circles, no
+# ring around them, fading at their edges): one off the top right, a small one behind the hilt
 from PIL import Image, ImageDraw, ImageFilter
 import numpy as np, math
 S='/tmp/claude-0/-home-user-trevwebsite/d4d2ff2f-54ac-56c6-86b9-cd5baa7a52c6/scratchpad/'
@@ -7,11 +7,6 @@ def trim(im):
     a=np.asarray(im.getchannel('A')); ys,xs=np.where(a>20); return im.crop((xs.min(),ys.min(),xs.max()+1,ys.max()+1))
 Sw=trim(Image.open('journey/trev-sword.webp').convert('RGBA'))
 DARK_GOLD=(156,104,14)   # a rich dark gold (paler golds read as beige on white)
-def flower(L, cx, cy, r, alpha, width):
-    d=ImageDraw.Draw(L); col=DARK_GOLD+(alpha,)
-    pts=[(0,0)]+[(math.cos(k*math.pi/3),math.sin(k*math.pi/3)) for k in range(6)]+[(2*math.cos(k*math.pi/3),2*math.sin(k*math.pi/3)) for k in range(6)]+[(math.sqrt(3)*math.cos(math.pi/6+k*math.pi/3),math.sqrt(3)*math.sin(math.pi/6+k*math.pi/3)) for k in range(6)]
-    for px,py in pts: d.ellipse((cx+px*r-r,cy+py*r-r,cx+px*r+r,cy+py*r+r),outline=col,width=width)
-    d.ellipse((cx-3*r,cy-3*r,cx+3*r,cy+3*r),outline=col,width=width)
 def portal_flower(c, cx, cy, r, alpha, width, R):
     pts=[(0,0)]+[(math.cos(k*math.pi/3),math.sin(k*math.pi/3)) for k in range(6)]+[(2*math.cos(k*math.pi/3),2*math.sin(k*math.pi/3)) for k in range(6)]+[(math.sqrt(3)*math.cos(math.pi/6+k*math.pi/3),math.sqrt(3)*math.sin(math.pi/6+k*math.pi/3)) for k in range(6)]
     def lines(wd, a):
@@ -39,7 +34,7 @@ def icon(size, radius=0.22, pad=0.1):
     k = 0.4 if small else 1.0   # barely there
     portal_flower(geo, R*0.92, R*0.08, R*0.126, int(12*k), w, R)
     # behind the sword: only its hilt and the first quarter of the blade (the bottom 48% of the sword)
-    flower(geo, R/2, y+0.76*h, 0.08*h, int(25*(0.6 if small else 1)), w)
+    portal_flower(geo, R/2, y+0.76*h, 0.08*h, int(25*(0.6 if small else 1)), w, R)   # the same open geometry, behind the hilt
     mask=Image.new('L',(R,R),0); ImageDraw.Draw(mask).rounded_rectangle((0,0,R-1,R-1),radius=int(R*radius),fill=255)
     geo.putalpha(Image.fromarray(np.minimum(np.asarray(geo.getchannel('A')),np.asarray(mask)))); c.alpha_composite(geo)
     if small:

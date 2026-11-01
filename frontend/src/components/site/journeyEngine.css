@@ -542,7 +542,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.focus .tj-cr-lion .glow { opacity: 1; } .tj.focus .tj-cr-lion .geo { opacity: .75; }
 /* the roar: Flower of Life rings ripple out from the lion's head, fading as they go */
 .tj-cr-roarwave .tj-crBody { aspect-ratio: 1; }
-.tj-cr-roarwave .wave { position: absolute; inset: 0; opacity: 0; }
+.tj-cr-roarwave .wave { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; backface-visibility: hidden; }
+.tj-cr-roarwave .wave img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tj-cr-roarwave .wave .aura { position: absolute; inset: 0; }
 .tj-cr-roarwave .glow { display: none; }
 .tj-cr-roarwave .geo { position: absolute; inset: 0; }
