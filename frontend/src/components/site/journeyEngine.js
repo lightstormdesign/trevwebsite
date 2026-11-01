@@ -136,7 +136,7 @@ const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; retu
 // pool, then it leaps (rising, peak, diving poses) and is swallowed back under; tap it mid-leap to
 // catch it. It's drawn in a window whose bottom edge is the water's surface (river coordinates).
 const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 19, SALMON_EVERY_S = 30, SALMON_LEAP_S = 1.6;
-const SALMON_X = [110, 300], SALMON_DEPTH = 40, SALMON_RISE = 640, SALMON_W = 150;
+const SALMON_X = [30, 170], SALMON_DEPTH = 40, SALMON_RISE = 400, SALMON_W = 150;   // a low leap (60 above the surface), well left of the lion
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
 // the roar makes the salmon leap once on its own clock (c.roarAt), peaking at the finale's first frame
@@ -711,8 +711,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (now - lastTap.t < 400 && Math.abs(x - lastTap.x) < 30 && Math.abs(y - lastTap.y) < 30) return;
     lastTap = { t: now, x, y };
     if (overCocoon(x, y)) return hatch();
+    if (overSalmon(x, y)) return catchSalmon();   // first: it's only out of the water a moment, and the lolo wanders the same water
     for (const c of fliers()) if (overFlier(c, x, y)) return fly(c);
-    if (overSalmon(x, y)) return catchSalmon();
     if (overBison(x, y, 30)) return;
     if (tapAspens(x, y)) return;
     tapClouds(x, y);
