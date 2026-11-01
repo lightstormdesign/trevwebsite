@@ -22,13 +22,13 @@ def icon(size, radius=0.22, pad=0.1):
     h=int(R*(1-2*pad)); s=Sw.resize((max(1,int(Sw.width*h/Sw.height)),h),Image.LANCZOS); x=(R-s.width)//2; y=(R-s.height)//2
     geo=Image.new('RGBA',(R,R),DARK_GOLD+(0,))
     # the corners: fainter, larger, drifting off the edges
-    k = 0.5 if small else 1.0
-    flower(geo, R*0.93, R*0.08, R*0.12, int(30*k), w)    # off the top-right (as on the portal)
-    flower(geo, R*0.04, R*0.95, R*0.10, int(26*k), w)    # off the bottom-left
-    flower(geo, R*0.10, R*0.20, R*0.045, int(22*k), w)   # a small one, high on the left
-    flower(geo, R*0.95, R*0.70, R*0.05, int(20*k), w)    # and one low on the right
+    k = 0.4 if small else 1.0   # barely there: a whisper of geometry
+    flower(geo, R*0.93, R*0.08, R*0.12, int(13*k), w)    # off the top-right (as on the portal)
+    flower(geo, R*0.04, R*0.95, R*0.10, int(11*k), w)    # off the bottom-left
+    flower(geo, R*0.10, R*0.20, R*0.045, int(10*k), w)   # a small one, high on the left
+    flower(geo, R*0.95, R*0.70, R*0.05, int(9*k), w)    # and one low on the right
     # behind the sword: only its hilt and the first quarter of the blade (the bottom 48% of the sword)
-    flower(geo, R/2, y+0.76*h, 0.08*h, int(60*(0.6 if small else 1)), w)
+    flower(geo, R/2, y+0.76*h, 0.08*h, int(26*(0.6 if small else 1)), w)
     mask=Image.new('L',(R,R),0); ImageDraw.Draw(mask).rounded_rectangle((0,0,R-1,R-1),radius=int(R*radius),fill=255)
     geo.putalpha(Image.fromarray(np.minimum(np.asarray(geo.getchannel('A')),np.asarray(mask)))); c.alpha_composite(geo)
     if small:

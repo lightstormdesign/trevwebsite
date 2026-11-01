@@ -140,8 +140,8 @@ const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; retu
 // The salmon (a totem): once every SALMON_EVERY_S, when the near flock isn't crossing, a glint on the
 // pool, then it leaps (rising, peak, diving poses) and is swallowed back under; tap it mid-leap to
 // catch it. It's drawn in a window whose bottom edge is the water's surface (river coordinates).
-const POOL = { x: 180, y: 560, w: 520, h: 270 }, SALMON_AT = 12.5, SALMON_EVERY_S = 15,   /* leaps at 12.5s and 27.5s of each 30s: never while the near flock crosses (0-11s) */ SALMON_LEAP_S = 1.6;
-const SALMON_X = [30, 170], SALMON_DEPTH = 40, SALMON_RISE = 400, SALMON_W = 150;   // a low leap (60 above the surface), well left of the lion
+const POOL = { x: 180, y: 610, w: 520, h: 270 },   /* its surface (y + h, river coordinates) lies in the open pool */ SALMON_AT = 12.5, SALMON_EVERY_S = 15,   /* leaps at 12.5s and 27.5s of each 30s: never while the near flock crosses (0-11s) */ SALMON_LEAP_S = 1.6;
+const SALMON_X = [34, 174], SALMON_DEPTH = 40, SALMON_RISE = 400, SALMON_W = 150;   // a low leap (60 above the surface): out of open water, back into open water
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
 // the roar makes the salmon leap once on its own clock (c.roarAt), peaking at the finale's first frame
@@ -308,6 +308,7 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
+const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
 
@@ -862,8 +863,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     world.appendChild(sunsetEl);
     // the salmon's way home, drawn in canvas coordinates (pool -> cascades -> the falls)
     world.insertAdjacentHTML("beforeend", `<svg class="tj-homeward" viewBox="0 0 941 1672" aria-hidden="true">`
-      + `<path pathLength="1" d="M300 1252 C 340 1215 380 1185 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/>`
-      + `<path class="core" pathLength="1" d="M300 1252 C 340 1215 380 1185 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/></svg>`);
+      + `<path pathLength="1" d="M285 1302 C 330 1255 380 1190 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/>`
+      + `<path class="core" pathLength="1" d="M285 1302 C 330 1255 380 1190 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/></svg>`);
     homeward = world.lastChild;
     for (const c of CREATURES) if (c.top) { c.el = creatureEl(c); world.appendChild(c.el); }
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
@@ -1533,7 +1534,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const prog = $(".tj-progress"), progFill = $(".tj-progressFill"), progDrop = $(".tj-progressDrop"), progHint = $(".tj-progressHint");
   const progHintLabel = progHint.querySelector("span");
   let progShown = -1, idleT = 0;
+  // just before the world settles (the end of the descent, until the story comes up), "My Story" and its
+  // arrow rise on their own and breathe, so nobody thinks the world is the end
+  let hintNear = false;
+  function storyHint() {
+    const near = phase === "world" && cur / DESCENT_SVH > STORY_HINT_AT && cur < STORY_START_SVH - 20;
+    if (near === hintNear) return;
+    hintNear = near;
+    if (near) { progHintLabel.textContent = "My Story"; progHint.classList.add("show", "call"); clearTimeout(idleT); }
+    else progHint.classList.remove("show", "call");
+  }
   on(scroller, "scroll", () => {
+    if (hintNear) return;
     progHint.classList.remove("show"); clearTimeout(idleT);
     const max = scroller.scrollHeight - scroller.clientHeight, p = max > 0 ? scroller.scrollTop / max : 0;
     if (p > 0.02 && p < 0.97) idleT = later(() => {
@@ -1576,7 +1588,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (phase !== "world" || !worldBuilt) return;
     if (!prog.classList.contains("on")) prog.classList.add("on");
     if (!totemRow.classList.contains("show") && landing.classList.contains("is-gone")) totemRow.classList.add("show");
-    progress();
+    progress(); storyHint();
     target = scrolled();
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
     if (Math.abs(target - cur) < 0.03) cur = target;

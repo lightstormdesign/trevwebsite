@@ -792,3 +792,11 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* the juniper's painting ends in a straight line at its top: dissolve it into the sky instead */
 .tj-lyr-juniper { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%); mask-image: linear-gradient(to bottom, transparent 0, #000 7%); }
+
+/* "My Story", calling: a slow, slight swell and glow (no shake); the arrow keeps its gentle drop */
+.tj-progressHint.call span, .tj-progressHint.call svg { animation: tj-hintCall 2.6s ease-in-out infinite; }
+.tj-progressHint.call svg { animation: tj-chevron 1.9s ease-in-out infinite, tj-hintCall 2.6s ease-in-out infinite; }
+@keyframes tj-hintCall {
+  0%, 100% { transform: scale(1); text-shadow: 0 2px 18px rgba(0,0,0,.8), 0 1px 5px rgba(0,0,0,.7); filter: none; }
+  50% { transform: scale(1.06); text-shadow: 0 2px 18px rgba(0,0,0,.8), 0 0 14px rgba(246,214,140,.75); filter: drop-shadow(0 0 4px rgba(246,214,140,.55)); } }
+@media (prefers-reduced-motion: reduce) { .tj-progressHint.call span, .tj-progressHint.call svg { animation: none; } }
