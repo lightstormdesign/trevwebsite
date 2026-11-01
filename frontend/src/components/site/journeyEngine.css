@@ -450,16 +450,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-totem.on svg { color: #f3d48e; filter: drop-shadow(0 0 3px rgba(240,200,110,.6)); }
 .tj-totem.pop { transform: scale(1.35); }
 
-/* the Kingdom awakens: a gold sweep down the world and the words */
-.tj-awaken { position: fixed; inset: 0; z-index: 42; pointer-events: none; opacity: 0; display: grid; place-items: center; }
-.tj.awakening .tj-awaken { animation: tj-awakenIn 4.8s ease forwards; }
-.tj-awaken .sweep { position: absolute; left: 0; right: 0; top: -60%; height: 60%;
-  background: linear-gradient(to bottom, transparent, rgba(255,226,150,.55) 60%, rgba(255,246,220,.85) 80%, transparent); }
-.tj.awakening .tj-awaken .sweep { animation: tj-sweep 2.6s cubic-bezier(.45,0,.2,1) forwards; }
-.tj-awaken p { margin: 0; font: 500 clamp(24px, 7vw, 40px)/1.2 var(--tj-display); letter-spacing: .14em; text-transform: uppercase; color: var(--tj-fg);
-  text-shadow: 0 2px 30px rgba(0,0,0,.8); text-align: center; padding: 0 24px; }
-@keyframes tj-awakenIn { 0% { opacity: 0; } 12%, 80% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes tj-sweep { from { transform: translateY(0); } to { transform: translateY(270%); } }
 
 /* gold dust trailing the pointer (desktop): faint, fine, a Flower of Life now and then, a ripple on click */
 .tj-dust { position: fixed; inset: 0; z-index: 46; pointer-events: none; }
@@ -515,7 +505,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   background: radial-gradient(ellipse 90% 60% at 50% 20%, rgba(255,226,150,.65), rgba(255,200,110,.2) 50%, transparent 80%); }
 .tj.roaring .tj-worldStage::after { animation: tj-flare 1.3s ease-out forwards; }
 @keyframes tj-flare { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
-.tj-awaken small { display: block; margin-top: 14px; font: 400 12px/1.4 var(--tj-display); letter-spacing: .32em; color: #f2dca5; }
 @media (prefers-reduced-motion: reduce) { .tj.roaring .tj-worldStage { animation: none; } }
 
 /* the lion takes the row: the totems fold away, the lion icon (twice their size) rises in their place */
@@ -555,12 +544,23 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* the lion's focus: one soft circular vignette closing in around him (a single layer, faded as a
    whole, so it arrives evenly from every side), deeper as he charges, released by the roar */
-.tj-lionFocus { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: max(100lvh, 100vh); z-index: 31; pointer-events: none; opacity: 0; will-change: opacity; transition: opacity .8s ease;
-  background: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), rgba(6,4,2,0) 0, rgba(6,4,2,0) 11vmax, rgba(6,4,2,.5) 24vmax,
-    rgba(5,3,2,.8) 38vmax, rgba(4,2,1,.93) 56vmax); }
-.tj.focus .tj-lionFocus { opacity: .75; }
-.tj.charging .tj-lionFocus { opacity: 1; transition-duration: .35s; }
-.tj.roaring .tj-lionFocus { opacity: 0; transition-duration: 1.4s; }
+/* the lion's vignette: from his tap it closes in from the corners, steadily, deepening, until it hugs him
+   tight (a clear circle ~9vmax round him) as he roars; then it opens out and lifts with the roar. One
+   screen-sized layer; only the clear circle's radius animates (--tjR); grain textures its dark. (Without
+   @property it simply fades in.) */
+@property --tjR { syntax: "<length>"; inherits: true; initial-value: 40vmax; }
+.tj-lionFocus { position: fixed; left: 0; right: 0; top: 0; height: 100vh; height: max(100lvh, 100vh); z-index: 31; pointer-events: none; opacity: 0;
+  --tjR: 9vmax; will-change: opacity;
+  background: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), rgba(6,4,2,0) 0, rgba(6,4,2,0) var(--tjR), rgba(6,4,2,.62) calc(var(--tjR) * 1.7),
+    rgba(5,3,2,.9) calc(var(--tjR) * 2.7), rgba(3,2,1,.97) calc(var(--tjR) * 4.2)); }
+.tj-lionFocus i { position: absolute; inset: 0; background-size: 220px; opacity: .45;
+  -webkit-mask-image: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), transparent calc(var(--tjR) * 1.2), #000 calc(var(--tjR) * 3));
+  mask-image: radial-gradient(circle at var(--lx, 50%) var(--ly, 58%), transparent calc(var(--tjR) * 1.2), #000 calc(var(--tjR) * 3)); }
+.tj.focus .tj-lionFocus, .tj.charging .tj-lionFocus { animation: tj-iris .5s cubic-bezier(.35,.05,.35,1) forwards; }
+.tj.roaring .tj-lionFocus { animation: tj-irisOut 1.4s cubic-bezier(.2,.6,.3,1) forwards; }
+@keyframes tj-iris { from { --tjR: 40vmax; opacity: 0; } 22% { opacity: 1; } to { --tjR: 9vmax; opacity: 1; } }
+@keyframes tj-irisOut { from { --tjR: 9vmax; opacity: 1; } to { --tjR: 30vmax; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tj.focus .tj-lionFocus, .tj.charging .tj-lionFocus { animation: none; opacity: 1; } }
 /* the charge: the lion draws in a breath (a slight crouch) before the roar; nothing else moves yet */
 .tj-cr-lion .stand { transform-origin: 50% 92%; }
 .tj.lion.charging .tj-cr-lion .stand { transform: scale(1.02, .965); transition: transform .35s cubic-bezier(.4,0,.2,1); }

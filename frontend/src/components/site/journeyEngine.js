@@ -383,7 +383,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-flower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
     </div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
-    <div class="tj-lionFocus" aria-hidden="true"></div>
+    <div class="tj-lionFocus" aria-hidden="true"><i style="background-image:url(/trev-grain.webp)"></i></div>
     <div class="tj-story"><div class="tj-storyShade"></div></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
@@ -425,7 +425,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
     <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl", "salmon"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
       <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
-    <div class="tj-awaken" aria-hidden="true"><i class="sweep"></i></div>
+    
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
       <div class="tj-headLeft">
