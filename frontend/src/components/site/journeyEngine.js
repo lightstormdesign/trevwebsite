@@ -302,7 +302,7 @@ const BUBBLE_AFTER_MS = 10000;
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
-const FOCUS_MS = 120, FINALE_AFTER_MS = 900, SETTLE_MS = 450, RETURN_S = 1.6;   // (the charge lasts until the song's drop: LION_DROP_S)
+const FOCUS_MS = 120, FINALE_AFTER_MS = 900, CHARGE_MS = 380, SETTLE_MS = 450, RETURN_S = 1.6;
 // simple line icons of each totem's face, drawn in gold
 const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2C5 7.2 3.4 5.6 3.6 3.4M17 7.2c2 0 3.6-1.6 3.4-3.8\"/><path d=\"M7 7.2c1.5-.9 3-1.3 5-1.3s3.5.4 5 1.3c.8 2.5.5 5.1-1 7.5l-1.5 3.1c-.6 1.2-1.5 1.8-2.5 1.8s-1.9-.6-2.5-1.8L8 14.7C6.5 12.3 6.2 9.7 7 7.2z\"/><circle cx=\"9.6\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><circle cx=\"14.4\" cy=\"10.6\" r=\".6\" fill=\"currentColor\"/><path d=\"M10.6 17.2h2.8\"/>", "bluebird": "<path d=\"M4.5 14c2-4 6-6 9.8-5 1.9.5 3 1.9 3.5 3.3L21 12l-3.1 1.6c-.6 2.9-3.1 4.9-6.6 4.9-3.4 0-5.6-1.7-6.8-4.5z\"/><path d=\"M8.8 13.4c2-1.2 4.2-1.2 6 .1\"/><path d=\"M4.5 14l-2.3 2.4\"/><circle cx=\"16\" cy=\"11\" r=\".6\" fill=\"currentColor\"/>", "butterfly": "<path d=\"M12 8v10\"/><path d=\"M12 9.5C9.3 4.6 4.2 4.6 4.2 8.2c0 3 4 4.6 7.8 3.2\"/><path d=\"M12 9.5c2.7-4.9 7.8-4.9 7.8-1.3 0 3-4 4.6-7.8 3.2\"/><path d=\"M12 12.4c-2.8.7-5.5 2.6-4.8 5.1.7 2.4 3.6-.7 4.8-3.4\"/><path d=\"M12 12.4c2.8.7 5.5 2.6 4.8 5.1-.7 2.4-3.6-.7-4.8-3.4\"/><path d=\"M11.6 8.2L10 5.4M12.4 8.2L14 5.4\"/>", "owl": "<path d=\"M6.2 5.2l1.9 2.9M17.8 5.2l-1.9 2.9\"/><path d=\"M6 8.3c0-.8 2.6-1.7 6-1.7s6 .9 6 1.7v6c0 4-2.7 7-6 7s-6-3-6-7z\"/><circle cx=\"9.3\" cy=\"11.3\" r=\"2.1\"/><circle cx=\"14.7\" cy=\"11.3\" r=\"2.1\"/><path d=\"M12 13.4l-.8 1.2h1.6z\"/>", "lion": "<path d=\"M12 2.8c.9 1 1.3 2 1.2 3M12 2.8c-.9 1-1.3 2-1.2 3M9.3 4.2c.4 1.2 1.1 2 2 2.4M14.7 4.2c-.4 1.2-1.1 2-2 2.4\"/><path d=\"M9 5.6C6.6 6 4.8 8 4.6 10.6c-.2 2.4.8 4.6 2.6 6.1l1.8 1.6L12 21.4l3-3.1 1.8-1.6c1.8-1.5 2.8-3.7 2.6-6.1C19.2 8 17.4 6 15 5.6\"/><path d=\"M8.4 9.2c1-1.1 2.2-1.6 3.6-1.6s2.6.5 3.6 1.6v3.2c0 2-1.6 3.8-3.6 3.8s-3.6-1.8-3.6-3.8z\"/><circle cx=\"12\" cy=\"9.3\" r=\".9\"/><path d=\"M9.7 11.3l1.2.3M14.3 11.3l-1.2.3\"/><path d=\"M11.1 13.2h1.8l-.9 1z\"/><path d=\"M12 14.2v.7M11 15.4c.3.3.6.4 1 .4s.7-.1 1-.4\"/>", "salmon": "<path d=\"M3.5 12c2.4-3.4 6-5.2 10-5.2 2.8 0 4.9 1.4 6.5 3.2-1.6 1.8-3.7 3.2-6.5 3.2-1 0-2-.1-2.9-.4\"/><path d=\"M3.5 12c2.4 3.4 6 5.2 10 5.2 2.8 0 4.9-1.4 6.5-3.2\"/><path d=\"M3.5 12l-1.8-2.6M3.5 12l-1.8 2.6\"/><circle cx=\"16.6\" cy=\"10.8\" r=\".6\" fill=\"currentColor\"/><path d=\"M11 7.4l1.6-2.1M10 16.6l1.4 1.8\"/>"}).map(([k, d]) =>
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
@@ -613,27 +613,34 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (let i = 0; i < ticks; i++) later(() => hapticSwitch.click(), i * 70);
     } catch (e) { /* no haptics here */ }
   }
-  // The charge holds through "Welcome to my..." and he roars on "kingdom", the drop: timed by the song
-  // itself (its own clock, so a slow start can't knock it off the beat); with the sound off, or if it
-  // won't play, by the clock from the tap; and never more than a beat late if the audio stalls.
-  let lionTapAt = 0;
-  const dropReady = () => {
-    const since = (performance.now() - lionTapAt) / 1000, lt = sound.lionTime();
-    if (lt != null && lt > 0) return lt >= LION_DROP_S - 0.02 || since > LION_DROP_S + 0.9;
-    return since >= LION_DROP_S + (lt === 0 ? 0.9 : 0);   // (0: the song is still loading: give it a moment)
-  };
-  function awaitDrop() { if (dropReady()) return roar(); later(awaitDrop, 12); }
+  // The lion's tap starts the song from just before "Welcome to my", rising; the roar itself (focus,
+  // charge, roar: unchanged, ROAR_LEAD_S long) begins so that it lands on "kingdom", the drop. Timed by
+  // the song's own clock (a slow start can't knock it off the beat); with the sound off, by the clock
+  // from the tap; if the song never starts, a moment later by the clock.
+  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000 + 0.005;
+  let summonAt = 0;
+  function summon() {
+    if (summonAt || roaring || frozen) return;
+    summonAt = performance.now(); sound.lion(); haptic(15); root.classList.add("summoned");
+    awaitDrop();
+  }
+  function awaitDrop() {
+    const since = (performance.now() - summonAt) / 1000, lt = sound.lionTime(), at = LION_DROP_S - ROAR_LEAD_S;
+    const go = lt != null && lt > 0.05 ? lt >= at : since >= at + (lt == null ? 0 : 0.6);
+    if (go) { root.classList.remove("summoned"); return roar(); }
+    later(awaitDrop, 10);
+  }
   function roar() {
     if (roaring) return;
-    if (!frozen) { lionTapAt = performance.now(); sound.lion(); focus(); return later(roar, FOCUS_MS); }   // the song starts in the tap
+    if (!frozen) { focus(); return later(roar, FOCUS_MS); }
     const wait = FOCUS_MS - (performance.now() - focusAt);
     if (wait > 0) return later(roar, wait);
     // the charge: the vignette drops hard around the lion at once, then he roars
     if (!root.classList.contains("charging")) {
       aimFocus(); root.classList.add("charging"); haptic(25); chargeAt = performance.now();
-      return awaitDrop();
+      return later(roar, CHARGE_MS);
     }
-    if (!dropReady()) return;   // a second tap mid-charge waits for the song's "kingdom"
+    if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
     roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
     haptic([70, 30, 90, 30, 120, 40, 180]);
     scatter();
@@ -641,7 +648,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => {
       root.classList.remove("roaring"); roaring = false;
       // no finale clip yet: give the world back its life
-      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false;
+      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
     }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
@@ -649,7 +656,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now();
     if (now - bisonCallAt < 350) return;   // one tap sends both a touch and a pointer event
     bisonCallAt = now;
-    if (lionMode) return roar();
+    if (lionMode) return summon();
     // the last tap: every other totem is awake and the bison has lifted its head. It turns to you,
     // its totem fills, and the Kingdom awakens (it becomes the lion)
     if (bisonReady() && now - bisonTapAt > 600) return bisonMoment();
@@ -1064,7 +1071,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(transform, 2200);                                  // ...as the bison becomes the lion (the world stays alive)
     later(() => root.classList.remove("awakening"), 4800);
   }
-  on($(".tj-lionTotem"), "click", () => { if (lionMode) roar(); });
+  on($(".tj-lionTotem"), "click", () => { if (lionMode) summon(); });
   // the screen point -> a layer's own coordinates
   const toLayer = (x, y, key) => {
     const r = world.getBoundingClientRect(), k = r.width / CANVAS.w, L = layerOf[key];

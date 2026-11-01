@@ -744,22 +744,24 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-owl.look .glow { opacity: .95; }
 .tj-cr-owl.look .geo { opacity: .75; }
 
-/* the bison's totem: its first tap fills half its ring (a gold arc, the icon half lit); once every other
-   totem is awake the ring closes into a full glowing circle and pulses: tap the bison again */
+/* the bison's totem: its first tap fills half its ring (a gold arc, the icon half lit), and it stays half
+   until its final tap. Once every other totem is awake, the half-lit emblem glows and breathes, and the
+   bison's aura swells and brightens in the world: tap it */
 .tj-totem[data-k="bison"] { position: relative; }
 .tj-totem[data-k="bison"]::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; border: 2px solid #f3d48e; opacity: 0;
   box-shadow: 0 0 8px rgba(240,200,110,.55); pointer-events: none; transition: opacity .8s ease;
   -webkit-mask-image: conic-gradient(#000 0 50%, transparent 50% 100%); mask-image: conic-gradient(#000 0 50%, transparent 50% 100%); }
 .tj-totem.half::after { opacity: 1; }
 .tj-totem.half svg { color: #d9b46a; opacity: .7; }
-.tj-totem.half.ready::after { -webkit-mask-image: none; mask-image: none; }
-.tj-totem.half.ready { animation: tj-totemCall 1.6s ease-in-out infinite; }
-.tj-totem.half.ready svg { opacity: .9; }
-@keyframes tj-totemCall { 0%, 100% { box-shadow: 0 0 6px rgba(240,200,110,.35); transform: scale(1); } 50% { box-shadow: 0 0 18px rgba(250,215,130,.9); transform: scale(1.12); } }
-/* ready: the bison's aura brighter, breathing quicker, waiting for you */
-.tj-bison.ready .aura { filter: brightness(1.35); transform: scale(1.24); }
-.tj-bison.ready .glow { animation-duration: 2.2s; }
-.tj-bison.ready .pulse { animation-duration: 1.8s; }
+.tj-totem.half.ready { animation: tj-totemCall 2s ease-in-out infinite; }
+.tj-totem.half.ready svg { opacity: .95; filter: drop-shadow(0 0 4px rgba(250,215,130,.8)); }
+@keyframes tj-totemCall { 0%, 100% { box-shadow: 0 0 4px rgba(240,200,110,.25); } 50% { box-shadow: 0 0 16px rgba(250,215,130,.85), inset 0 0 6px rgba(250,215,130,.35); } }
+.tj-bison.ready .aura { filter: brightness(1.45); transform: scale(1.32); }
+.tj-bison.ready .glow { animation: tj-bisonCall 1.8s ease-in-out infinite; }
+.tj-bison.ready .geo { animation: tj-bisonCallGeo 1.8s ease-in-out infinite; }
+@keyframes tj-bisonCall { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@keyframes tj-bisonCallGeo { 0%, 100% { opacity: .5; } 50% { opacity: .9; } }
+.tj-bison.ready .pose .pulse { animation-duration: 1.8s; }
 
 /* TREV's photo grows about its bottom edge (the screen's bottom), so it never lifts off it */
 .tj-me, .tj-meImg { transform-origin: 50% 100%; will-change: transform; }
@@ -790,3 +792,6 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* the juniper's painting ends in a straight line at its top: dissolve it into the sky instead */
 .tj-lyr-juniper { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 7%); mask-image: linear-gradient(to bottom, transparent 0, #000 7%); }
+
+/* summoned (the lion's tap, through "Welcome to my..."): his aura slowly gathers before the roar */
+.tj.summoned .tj-cr-lion .aura { transform: scale(1.12); filter: brightness(1.35); transition: transform 1.6s ease-in, filter 1.6s ease-in; }
