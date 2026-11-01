@@ -800,3 +800,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   0%, 100% { transform: scale(1); text-shadow: 0 2px 18px rgba(0,0,0,.8), 0 1px 5px rgba(0,0,0,.7); filter: none; }
   50% { transform: scale(1.06); text-shadow: 0 2px 18px rgba(0,0,0,.8), 0 0 14px rgba(246,214,140,.75); filter: drop-shadow(0 0 4px rgba(246,214,140,.55)); } }
 @media (prefers-reduced-motion: reduce) { .tj-progressHint.call span, .tj-progressHint.call svg { animation: none; } }
+
+/* over the story, the totem row (the lion) fades away, and back in above it */
+.tj-totems.away { opacity: 0 !important; pointer-events: none !important; }
+.tj-totems.away .tj-lionTotem { pointer-events: none; }

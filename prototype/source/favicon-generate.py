@@ -12,6 +12,19 @@ def flower(L, cx, cy, r, alpha, width):
     pts=[(0,0)]+[(math.cos(k*math.pi/3),math.sin(k*math.pi/3)) for k in range(6)]+[(2*math.cos(k*math.pi/3),2*math.sin(k*math.pi/3)) for k in range(6)]+[(math.sqrt(3)*math.cos(math.pi/6+k*math.pi/3),math.sqrt(3)*math.sin(math.pi/6+k*math.pi/3)) for k in range(6)]
     for px,py in pts: d.ellipse((cx+px*r-r,cy+py*r-r,cx+px*r+r,cy+py*r+r),outline=col,width=width)
     d.ellipse((cx-3*r,cy-3*r,cx+3*r,cy+3*r),outline=col,width=width)
+def portal_flower(c, cx, cy, r, alpha, width, R):
+    pts=[(0,0)]+[(math.cos(k*math.pi/3),math.sin(k*math.pi/3)) for k in range(6)]+[(2*math.cos(k*math.pi/3),2*math.sin(k*math.pi/3)) for k in range(6)]+[(math.sqrt(3)*math.cos(math.pi/6+k*math.pi/3),math.sqrt(3)*math.sin(math.pi/6+k*math.pi/3)) for k in range(6)]
+    def lines(wd, a):
+        L=Image.new('RGBA',(R,R),DARK_GOLD+(0,)); d=ImageDraw.Draw(L)
+        for px,py in pts: d.ellipse((cx+px*r-r,cy+py*r-r,cx+px*r+r,cy+py*r+r),outline=DARK_GOLD+(a,),width=wd)
+        return L
+    glow=lines(max(2,width*4), int(alpha*.9)).filter(ImageFilter.GaussianBlur(max(1,width*2)))   # the soft glow copy
+    L=Image.alpha_composite(glow, lines(width, alpha))
+    # fade toward its edges: solid to 45% of its radius, gone by 78% (the portal's mask)
+    yy,xx=np.mgrid[0:R,0:R]; dist=np.hypot(xx-cx,yy-cy)/(3*r)
+    m=np.clip((0.78-dist)/(0.78-0.45),0,1)
+    L.putalpha(Image.fromarray((np.asarray(L.getchannel('A'))*m).astype(np.uint8)))
+    c.alpha_composite(L)
 def colored(R,s,x,y,color,alpha_img,blur):
     L=Image.new('RGBA',(R,R),color+(0,)); g=Image.new('RGBA',s.size,color+(0,)); g.putalpha(alpha_img)
     L.alpha_composite(g,(x,y)); return L.filter(ImageFilter.GaussianBlur(blur)) if blur else L
@@ -21,14 +34,12 @@ def icon(size, radius=0.22, pad=0.1):
     w=max(2,int(R*(0.012 if small else 0.0055)))
     h=int(R*(1-2*pad)); s=Sw.resize((max(1,int(Sw.width*h/Sw.height)),h),Image.LANCZOS); x=(R-s.width)//2; y=(R-s.height)//2
     geo=Image.new('RGBA',(R,R),DARK_GOLD+(0,))
-    # the corners: fainter, larger, drifting off the edges
-    k = 0.4 if small else 1.0   # barely there: a whisper of geometry
-    flower(geo, R*0.93, R*0.08, R*0.12, int(13*k), w)    # off the top-right (as on the portal)
-    flower(geo, R*0.04, R*0.95, R*0.10, int(11*k), w)    # off the bottom-left
-    flower(geo, R*0.10, R*0.20, R*0.045, int(10*k), w)   # a small one, high on the left
-    flower(geo, R*0.95, R*0.70, R*0.05, int(9*k), w)    # and one low on the right
+    # the top right only: the portal's Flower of Life (19 circles, a soft glow behind fine lines, fading
+    # out toward its edges), where the portal has it (92% across, 8% down), 5% bigger than before
+    k = 0.4 if small else 1.0   # barely there
+    portal_flower(geo, R*0.92, R*0.08, R*0.126, int(12*k), w, R)
     # behind the sword: only its hilt and the first quarter of the blade (the bottom 48% of the sword)
-    flower(geo, R/2, y+0.76*h, 0.08*h, int(26*(0.6 if small else 1)), w)
+    flower(geo, R/2, y+0.76*h, 0.08*h, int(25*(0.6 if small else 1)), w)
     mask=Image.new('L',(R,R),0); ImageDraw.Draw(mask).rounded_rectangle((0,0,R-1,R-1),radius=int(R*radius),fill=255)
     geo.putalpha(Image.fromarray(np.minimum(np.asarray(geo.getchannel('A')),np.asarray(mask)))); c.alpha_composite(geo)
     if small:
