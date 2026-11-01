@@ -500,7 +500,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="shadow" aria-hidden="true"></div><div class="outline" aria-hidden="true"></div>
       <div class="tail" aria-hidden="true"><div class="tailOutline"></div><img class="tailImg" src="${tail}" alt="" decoding="async"></div>
       <img class="body" alt="The white bison" decoding="async">
-      ${["graze", "up"].map((k) => `<div class="pose ${k}" style="--sil:url(&quot;${A}w3-bison-${k}.webp?v=2&quot;)" aria-hidden="true"><i class="pulse"></i><i class="shadow"></i><i class="outline"></i><img src="${A}w3-bison-${k}.webp?v=2" alt="" decoding="async"></div>`).join("")}`;
+      ${["graze", "up"].map((k) => `<div class="pose ${k}" style="--sil:url(&quot;${A}w3-bison-${k}.webp?v=2&quot;)" aria-hidden="true"><i class="pulse"></i><i class="shadow"></i><i class="outline"></i><img src="${A}w3-bison-${k}.webp?v=2" alt="" decoding="async"></div>`).join("")}
+      <img class="grass" src="${A}trev-world-grass.webp" alt="" decoding="async">`;   // the tuft he grazes, at his nose
     const body = rig.querySelector(".body");
     body.addEventListener("load", onLayer, { once: true }); body.addEventListener("error", onLayer, { once: true });
     body.src = src;
