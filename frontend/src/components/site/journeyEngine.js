@@ -51,8 +51,8 @@ const ENTER_AFTER_MS = 1800;   // "Tap to enter" rises this long after the porta
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
-const ME_SCALE = 0.08;
-const ME_SIDE = 1.5, ME_CYCLE_S = 7;   // sideways reach (x ME_PX) as he comes forward; one forward-and-back every 7s (alternating sides)      // and grows up to this much (about his bottom edge) as he leans toward you
+const ME_SCALE = 0.03;
+const ME_SIDE = 1.5, ME_CYCLE_S = 10;   // sideways reach (x ME_PX) as he comes forward; one forward-and-back every 10s (alternating sides)      // and grows up to this much (about his bottom edge) as he leans toward you
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
 const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
