@@ -132,7 +132,8 @@ const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down t
 // (the right side of the river, clear of the salmon's pool on the left)
 const mothWander = (t) => ({ x: 440 + 55 * Math.sin(t * 0.55) + 16 * Math.sin(t * 1.7), y: 985 + 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55),
   scale: 1 + 0.16 * Math.sin(t * 0.37 + 1) });   // drifting nearer and farther
-const MOTH_REST = [565, 914];   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
+const MOTH_REST = [565, 914];
+const MOTH_ROAR_GROW = 0.6;   // the roar sends the lolo up toward the camera: this much bigger (the finale flies past it)   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
 // flock crosses (every other beat).
@@ -205,11 +206,11 @@ const CREATURES = [
       else { const e = smooth(u); return { x: base.x + c.fromDx * (1 - e), y: base.y + c.fromDy * (1 - e), flying: true }; }
     }
     const d = c.flyAt ? t - c.flyAt : -1;
-    if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { ...base, flying: !c.home }; }
+    if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; c.roarFly = false; return { ...base, flying: !c.home }; }
     const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, loops wide, comes back down
     return { x: base.x + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
       y: base.y - e * (130 + 60 * Math.sin(d * 1.3)), rot: base.rot + e * 12 * Math.cos(d * 0.9), flying: true,
-      scale: base.scale * (1 + e * (0.05 + 0.08 * Math.sin(d * 0.9 + 2.2))) };   // its loop swings toward the camera and back
+      scale: base.scale * (1 + e * (c.roarFly ? MOTH_ROAR_GROW : 0.05 + 0.08 * Math.sin(d * 0.9 + 2.2))) };   // its loop swings toward the camera (the roar sends it right up close) and back
   } },
   ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-bleaf-${n}.webp`, after, depth, w,
     pose: (t, p) => ({
@@ -552,7 +553,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // roar, so nothing on its own clock changes that frame
     try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
     if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.el.classList.remove("is-on"); }
-    if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.el.classList.remove("is-on"); }
+    if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.roarFly = true; butterfly.el.classList.remove("is-on"); }
     if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
     for (const c of CREATURES) if (c.kind === "salmon" || c.kind === "splash") { c.roarAt = now + ROAR_LEAP_S; c.burst = true; }
     const ref = layerOf.aspens.el.nextSibling;
