@@ -3,20 +3,22 @@
 // byte per 1/30 s, trev-kingdom-beat.bin): no Web Audio runs, since on iPhone starting Web Audio
 // froze the transition video mid-play (Burnell's site).
 // Two cuts of it, their fades baked in (iPhone ignores .volume):
-//  - the intro (Tap to Enter): the song from the top, faded to silence by 25.2s so "Welcome to my" is
-//    never heard; then, on the very beat where its "kingdom" would land (27.47s), the song comes round
-//    again from its first beat (the intro's own "kingdom", the same beat: 16 bars at 139.75 BPM) and
-//    fades slowly away by ~51s
-//  - the lion (his final tap): from 25.25s, rising over 2s through "Welcome to my", so "kingdom" and
-//    the drums (the drop, 27.47s in the song) land LION_DROP_S after the tap: the roar
-const SRC = "/journey/trev-kingdom-intro.m4a?v=1";   // bump with the file (phones cache it)
-const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=1", LION_FROM = 25.25;
-export const LION_DROP_S = 2.218;   // into the lion cut: "kingdom", the drums, the roar
+//  - the intro (Tap to Enter): the song from the top, faded to silence just before "Welcome to my"
+//    (26.75s); then, on the very beat where its "kingdom" would land (the drop, 27.47s), the song
+//    comes round again from its first beat (the intro's own "kingdom", the same beat: 16 bars at
+//    139.75 BPM) and fades slowly away
+//  - the lion (his final tap): from 26.55s, rising gradually through "Welcome to my" to full on
+//    "king-", so the drums (the drop) land LION_DROP_S after the tap: the roar
+// Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
+// player's file makes iPhone start late).
+const SRC = "/journey/trev-kingdom-intro.m4a?v=2";   // bump with the file (phones cache it)
+const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=2", LION_FROM = 26.55;
+export const LION_DROP_S = 0.919;   // into the lion cut: the drop (the drums, "-dom"): the roar
 const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
 const BEAT_FPS = 30;
-export const DROP_AT = 27.43; // seconds: the first bass note (nothing reacts to the beat before it)
+export const DROP_AT = 27.47; // seconds into the song: the first bass note (nothing reacts to the beat before it)
 
-let audio = null;
+let audio = null, lionAudio = null;
 let started = false;
 let beatMap = null;
 const subs = new Set();
@@ -29,21 +31,31 @@ function el() {
   audio.preload = "auto";
   audio.src = SRC;
   ["play", "pause", "ended"].forEach((t) => audio.addEventListener(t, emit));
-  audio.addEventListener("ended", () => { started = false; emit(); });
+  audio.addEventListener("ended", () => { if (mode === "intro") { started = false; emit(); } });
   fetch(BEAT_MAP).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject())).then((b) => { beatMap = new Uint8Array(b); }).catch(() => {});
   return audio;
 }
+function lionEl() {
+  if (lionAudio) return lionAudio;
+  lionAudio = new Audio();
+  lionAudio.preload = "auto";
+  lionAudio.src = LION_SRC;
+  ["play", "pause", "ended"].forEach((t) => lionAudio.addEventListener(t, emit));
+  return lionAudio;
+}
+const cur = () => (mode === "lion" ? lionEl() : el());
 function emit() { subs.forEach((f) => f()); }
 
 export const sound = {
-  get playing() { return !!audio && !audio.paused; },
+  get playing() { const a = mode === "lion" ? lionAudio : audio; return !!a && !a.paused; },
   get beckoning() { return beckoning && !this.playing; },
   subscribe(f) { subs.add(f); return () => subs.delete(f); },
   // from the very start (Tap to Enter, or the speaker before anything has played)
   start() {
+    if (lionAudio) lionAudio.pause();
+    mode = "intro";
     const a = el();
     started = true; userMuted = false;
-    if (mode !== "intro") { mode = "intro"; a.src = SRC; }
     try { a.currentTime = 0; } catch (e) { /* not loaded yet: it starts at 0 anyway */ }
     return a.play().catch((err) => {
       // refused by the browser: it stays off. Anything else is the network (a slow connection):
@@ -54,14 +66,14 @@ export const sound = {
   },
   // Tap to Enter: always ends up playing (from the start if it never has)
   enter() {
-    const a = el();
+    const a = cur();
     if (!started) return this.start();
     if (a.paused) return a.play().catch(() => {});
     return Promise.resolve();
   },
   // the speaker
   toggle() {
-    const a = el();
+    const a = cur();
     if (!started) return this.start();
     if (a.paused) { userMuted = false; return a.play().catch(() => {}); }
     a.pause(); userMuted = true;
@@ -71,21 +83,21 @@ export const sound = {
   // "kingdom" and the drums land on the roar. Not if they turned the sound off.
   lion() {
     if (userMuted) return;
-    const a = el();
+    const l = lionEl();
+    if (audio) audio.pause();
     mode = "lion"; started = true;
-    a.src = LION_SRC;
-    try { a.currentTime = 0; } catch (e) { /* starts at 0 anyway */ }
-    a.play().catch(() => { mode = "intro"; });
+    try { l.currentTime = 0; } catch (e) { /* starts at 0 anyway */ }
+    l.play().catch(() => { mode = "intro"; emit(); });
   },
   // seconds into the lion cut (null when it isn't the lion cut that's playing, or sound is off)
-  lionTime() { return audio && mode === "lion" && !userMuted ? audio.currentTime : null; },
+  lionTime() { return mode === "lion" && lionAudio && !userMuted ? lionAudio.currentTime : null; },
   setBeckon(on) { beckoning = on; emit(); },
   // start downloading the song ahead of the tap (after the transition has its turn)
-  preload() { el(); fetch(LION_SRC).catch(() => {}); },   // (the lion cut warms the cache, for an instant start)
+  preload() { el(); lionEl(); },
   // 0..1: how hard the bass is hitting right now (0 before the drop, or when it isn't playing)
   beat() {
-    if (!audio || audio.paused || !beatMap || mode !== "lion") return 0;   // (the intro never reaches the drop)
-    const t = audio.currentTime + LION_FROM;
+    if (!lionAudio || lionAudio.paused || !beatMap || mode !== "lion") return 0;   // (the intro never reaches the drop)
+    const t = lionAudio.currentTime + LION_FROM;
     if (t < DROP_AT) return 0;
     return (beatMap[Math.floor(t * BEAT_FPS)] || 0) / 255;
   },
