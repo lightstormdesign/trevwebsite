@@ -52,7 +52,6 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const ME_SCALE = 0.03;
-const BRANCH_PX = 14, BRANCH_SCALE = 0.04;   // the foreground branch: its counter-slide (plate px) and its extra growth as he comes in
 const ME_SIDE = 0.6, ME_MOVE_S = 20, ME_PAUSE_S = 5;   // sideways reach (x ME_PX) at his nearest, mostly toward you; each move 20s (left, then right), a 5s pause after each
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
@@ -375,7 +374,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         <video class="tj-plate tj-hidden" muted loop playsinline autoplay preload="auto"></video>
         <canvas class="tj-me"></canvas>
         <img class="tj-meImg" alt="TREV" hidden>
-        <img class="tj-branch" src="${A}trev-portal-branch.webp${MV}" alt="" aria-hidden="true">
       </div>
       <div class="tj-grade"></div>
       <div class="tj-flower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
@@ -1123,7 +1121,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function initHero() {
     const heroEl = $(".tj-hero"), box = $(".tj-box"), plate = $("video.tj-plate"), plateStill = $(".tj-plateStill");
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
-    const branch = $(".tj-branch");
     const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
     let readyAt = 0;
     const trans = $(".tj-trans"), keep = $(".tj-keep");
@@ -1217,13 +1214,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
       box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
-      // the foreground branch (its 9:16 frame has it in the top-right corner): pinned to the top-right of
-      // what's visible of the plate, the visible height on a phone, 80% of it on a computer's wide screen
-      const visH = H / k, visTop = -fit.oy / k, visRight = (W - fit.ox) / k;
-      // sized to the screen's width, so the corner looks exactly as drawn (on a computer's wide screen, a
-      // 9:16 frame 80% of the screen's height)
-      const visW = W / k, bw = set.h > set.w ? visW : visH * 0.8 * 9 / 16, bh = bw * 16 / 9;
-      Object.assign(branch.style, { width: bw.toFixed(0) + "px", height: bh.toFixed(0) + "px", left: (Math.min(set.w, visRight) - bw).toFixed(0) + "px", top: visTop.toFixed(0) + "px" });
       // where his face is on screen: the film grain is at half strength there (FilmGrain.jsx)
       const [fx, fy, rx, ry] = set.face;
       docEl.style.setProperty("--tj-face", `${(rx * k).toFixed(0)}px ${(ry * k).toFixed(0)}px at ${(fit.ox + fx * k).toFixed(0)}px ${(fit.oy + fy * k).toFixed(0)}px`);
@@ -1258,7 +1248,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     let inX = 0, inY = 0;
     on(window, "pointermove", (e) => { if (e.pointerType === "mouse") { inX = e.clientX / innerWidth * 2 - 1; inY = e.clientY / innerHeight * 2 - 1; } });
 
-    let px = 0, py = 0, vx = 0, vy = 0, t0 = null, last = 0, leaving = false; let meScale = "", branchT = "";
+    let px = 0, py = 0, vx = 0, vy = 0, t0 = null, last = 0, leaving = false; let meScale = "";
     function heroFrame(now) {
       if (t0 === null) { t0 = now; last = now; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -1284,9 +1274,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       drawMe(px * ME_PX * ME_SIDE * m / k, (1 - near) * ME_PX * 0.585 * m / k, 0);
       const sc = (1 + ME_SCALE * near * m).toFixed(4);
       if (sc !== meScale) { meScale = sc; (gl ? canvas : meImg).style.transform = `scale(${sc})`; }
-      // the branch is nearest the camera: it slides the other way, further, and grows more as he comes in
-      const bt = `translate3d(${(-px * BRANCH_PX * m).toFixed(1)}px, ${(-near * BRANCH_PX * 0.4 * m).toFixed(1)}px, 0) scale(${(1.03 + BRANCH_SCALE * near * m).toFixed(4)})`;
-      if (bt !== branchT) { branchT = bt; branch.style.transform = bt; }
     }
 
     // ---------- the transition ----------
