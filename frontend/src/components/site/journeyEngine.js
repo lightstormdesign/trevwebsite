@@ -51,7 +51,7 @@ const ENTER_AFTER_MS = 1800;   // "Tap to enter" rises this long after the porta
 const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
-const ME_SCALE = 0.02;      // and grows up to this much (about his bottom edge) as he leans toward you
+const ME_SCALE = 0.023;      // and grows up to this much (about his bottom edge) as he leans toward you
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
 const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
@@ -1263,7 +1263,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       // depth without ever lifting off the bottom edge: he only ever sinks a little below it (never up),
       // and leaning toward you he grows a touch, from his bottom edge. One rigid photo: his face never warps
       const down = (1 + py) / 2, near = 1 - down;   // 0..1
-      drawMe(px * ME_PX * m / k, down * ME_PX * 0.9 * m / k, 0);
+      drawMe(px * ME_PX * m / k, down * ME_PX * 0.585 * m / k, 0);   // sinks up to ~7px (was ~11)
       const sc = (1 + ME_SCALE * near * m).toFixed(4);
       if (sc !== meScale) { meScale = sc; (gl ? canvas : meImg).style.transform = `scale(${sc})`; }
     }
