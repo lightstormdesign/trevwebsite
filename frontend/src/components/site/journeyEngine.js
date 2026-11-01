@@ -52,7 +52,7 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const ME_SCALE = 0.03;
-const ME_SIDE = 1.5, ME_CYCLE_S = 10;   // sideways reach (x ME_PX) as he comes forward; one forward-and-back every 10s (alternating sides)      // and grows up to this much (about his bottom edge) as he leans toward you
+const ME_SIDE = 1.5, ME_MOVE_S = 10, ME_PAUSE_S = 5;   // sideways reach (x ME_PX) at his nearest; each move 10s (left, then right), a 5s pause after each
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
 const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transition-720.mp4", h264: "trev-transition-mobile.mp4", w: 1080, h: 1920 };
@@ -1256,8 +1256,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       // he sinks below when back) to one side, eases back to centre, then comes forward to the other side.
       // On a phone with motion, or a mouse, you lead it: the side you tilt or point to, nearer the further.
       if (tilt.live) { inX = tilt.x; inY = tilt.y; }
-      const th = t * (2 * Math.PI / ME_CYCLE_S);
-      const autoNear = (1 - Math.cos(th)) / 2, autoSide = autoNear * Math.sin(th / 2);
+      // the drift: 10s toward you and to the left and back, a 5s pause, then the same exactly mirrored to
+      // the right, a 5s pause (30s in all); one eased curve, so both sides take the same time
+      const ph = t % (2 * (ME_MOVE_S + ME_PAUSE_S)), half = ME_MOVE_S + ME_PAUSE_S;
+      const inMove = (ph % half) < ME_MOVE_S, u = (ph % half) / ME_MOVE_S;
+      const autoNear = inMove ? (1 - Math.cos(2 * Math.PI * u)) / 2 : 0, autoSide = (ph < half ? -1 : 1) * autoNear;
       const led = tilt.live || inX !== 0 || inY !== 0, w = led ? 0.45 : 1;   // led: the drift carries on beneath, smaller
       const aSide = Math.max(-1, Math.min(1, autoSide * w + (led ? inX : 0)));
       const aNear = Math.max(0, Math.min(1, autoNear * w + (led ? Math.abs(inX) * 0.85 + Math.max(0, -inY) * 0.4 : 0)));
