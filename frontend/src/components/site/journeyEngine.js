@@ -120,11 +120,11 @@ const LEAVES = [
   [4, "mountains", 0.35, 46, 700, 900, 3.3], [3, "mountains", 0.35, 42, 330, 200, 5.1],
 ];
 const OWL = { x: 166, y: 482, w: 71 };   // on the aspens' branch, halfway up the grove (aspens layer coordinates)
-const PERCH = { x: 572, y: 384, w: 106 }; // the bluebird, up on the juniper's high branch
+const PERCH = { x: 580, y: 627, w: 106 }; // the bluebird, on the juniper's lower branch (where she began)
 // The lolo (the Madagascan sunset moth, a totem): it begins as a cocoon hanging from the juniper's
 // upper branch; tapped, the cocoon pulses gold and splits, the moth unfolds its wings as light sweeps
 // across them, then settles on the branch (juniper coordinates). After that a tap sends it fluttering.
-const COCOON_AT = [541, 661], COCOON_W = 120;   // hanging from the juniper's lower limb
+const COCOON_AT = [583, 1025], COCOON_W = 120;   // hanging from the juniper's lowest branch, over the water
 const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down to the water]
 // where Burnell's big butterfly used to wander, over the water (juniper coordinates), and its rest
 // on the cactus flower once the lion forms (the roar sends it up from there)
