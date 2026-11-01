@@ -706,3 +706,26 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .tj-flower .in, .tj-flower .breathe, .tj-flower .turn { animation: none !important; } }
 /* gone the moment the journey starts */
 .tj-hero.thru .tj-flower, .tj-hero.out .tj-flower { opacity: 0; }
+
+/* ---------- each animal's own aura colour (same glow + Flower of Life, same rhythm) ---------- */
+/* bison: earth brown and gold */
+.tj-bison .glow i { background: conic-gradient(from 0deg, rgba(232,170,80,.7), rgba(150,92,40,.6), rgba(250,206,110,.7), rgba(128,76,34,.58), rgba(236,180,86,.7), rgba(170,108,52,.6), rgba(232,170,80,.7)); }
+.tj-bison .geo svg g { stroke: #e9b45e; }
+/* bluebird: sky blue */
+.tj-cr-perch .glow i { background: conic-gradient(from 0deg, rgba(110,185,255,.85), rgba(210,236,255,.75), rgba(70,160,255,.8), rgba(180,222,255,.75), rgba(100,180,255,.85), rgba(225,242,255,.75), rgba(110,185,255,.85)); }
+.tj-cr-perch .glow { opacity: .7; animation-name: tj-perchGlowB; } @keyframes tj-perchGlowB { 0%, 100% { opacity: .7; } 50% { opacity: .82; } }
+.tj-cr-perch .geo svg g { stroke: #9fd0ff; }
+.tj-cr-perch.is-on .sit { filter: drop-shadow(0 0 6px rgba(140,200,255,.85)); }
+/* the lion: pure white and gold */
+.tj-cr-lion .glow i { background: conic-gradient(from 0deg, rgba(255,255,255,.75), rgba(255,206,100,.68), rgba(255,252,240,.72), rgba(240,184,70,.66), rgba(255,255,255,.75), rgba(255,214,120,.68), rgba(255,255,255,.75)); }
+.tj-cr-lion .geo svg g { stroke: #fff0c8; }
+/* the lolo (and its cocoon): a rainbow */
+.tj-cr-butterfly.landed .glow i, .tj-cr-cocoon .glow i { background: conic-gradient(from 0deg, rgba(255,80,90,.8), rgba(255,170,60,.8), rgba(255,235,80,.8), rgba(90,220,120,.8), rgba(80,170,255,.8), rgba(160,110,255,.8), rgba(255,100,200,.8), rgba(255,80,90,.8));
+  -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); animation: tj-auraSpin 30s linear infinite; }
+.tj-cr-butterfly.landed .glow { opacity: .6; animation-name: tj-mothGlow; } @keyframes tj-mothGlow { 0%, 100% { opacity: .6; } 50% { opacity: .72; } }
+.tj-cr-cocoon .glow { opacity: .5; animation-name: tj-mothGlow2; } @keyframes tj-mothGlow2 { 0%, 100% { opacity: .45; } 50% { opacity: .6; } }
+.tj-cr-butterfly.landed .geo svg g, .tj-cr-cocoon .geo svg g { stroke: #fff6ea; }
+.tj-cr-butterfly.landed.flying .aura { opacity: 1; }   /* it wanders now: the rainbow goes with it */
+/* the salmon: orange and white, a halo that rides the leap (cut off at the surface like the fish) */
+.tj-cr-salmon .fish .halo { position: absolute; left: -30%; top: -30%; width: 160%; height: 160%; border-radius: 50%; opacity: .9;
+  background: radial-gradient(closest-side, rgba(255,255,255,.9), rgba(255,160,70,.75) 40%, rgba(255,120,40,.3) 68%, transparent 100%); }

@@ -767,9 +767,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (c.kind === "aspen") body.innerHTML = sacredAura();
     else if (c.kind === "salmon") {
       body.style.height = POOL.h + "px";
-      body.innerHTML = `<div class="fish" style="width:${SALMON_W}px">` + ["rise", "peak", "dive"].map((k) =>
+      body.innerHTML = `<div class="fish" style="width:${SALMON_W}px"><i class="halo"></i>` + ["rise", "peak", "dive"].map((k) =>
         `<img class="${k}" src="${A}trev-world-salmon-${k}.webp" alt="">`).join("") + `</div>`;
-      salmon = c; c.fish = body.firstChild; c.imgs = [...c.fish.children];
+      salmon = c; c.fish = body.firstChild; c.imgs = [...c.fish.querySelectorAll("img")];
       c.update = (pose) => {
         const u = pose.u, ok = u >= 0;
         c.fish.style.opacity = ok ? "1" : "0";
