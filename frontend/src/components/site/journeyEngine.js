@@ -125,8 +125,9 @@ const COCOON_AT = [541, 661], COCOON_W = 120;   // hanging from the juniper's lo
 const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down to the water]
 // where Burnell's big butterfly used to wander, over the water (juniper coordinates), and its rest
 // on the cactus flower once the lion forms (the roar sends it up from there)
-const mothWander = (t) => ({ x: 135 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)), y: 1074 + 38 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55) });
-const MOTH_REST = [530, 914];   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
+const mothWander = (t) => ({ x: 135 + 1.2 * (60 * Math.sin(t * 0.55) + 18 * Math.sin(t * 1.7)), y: 1074 + 38 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55),
+  scale: 1 + 0.16 * Math.sin(t * 0.37 + 1) });   // drifting nearer and farther
+const MOTH_REST = [565, 914];   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
 // flock crosses (every other beat).
@@ -177,7 +178,7 @@ const CREATURES = [
   { kind: "butterfly", layer: "forest", w: 30, pose: (t) => ({ x: 650 + 70 * Math.sin(t * 0.55 + 2.1) + 20 * Math.sin(t * 1.7 + 2.1),
     y: 1000 + 30 * Math.sin(t * 0.85 + 4.2), rot: 10 * Math.cos(t * 0.55 + 2.1) }) },
   { kind: "cocoon", layer: "juniper", w: COCOON_W, pose: (t, p, c) => (c.gone ? null : { x: COCOON_AT[0], y: COCOON_AT[1] }) },
-  { kind: "butterfly", landed: true, layer: "juniper", w: 100, pose: (t, p, c) => {
+  { kind: "butterfly", landed: true, layer: "juniper", w: 110, pose: (t, p, c) => {
     if (!c.emerged) {
       if (!c.hatchAt) return null;
       const d = t - c.hatchAt;
@@ -188,7 +189,7 @@ const CREATURES = [
         rot: w.rot * e, flying: u > 0 };
     }
     // free, it drifts over the water; once the lion forms it comes to rest on the cactus flower
-    const base = c.home ? { x: MOTH_REST[0], y: MOTH_REST[1], rot: 0 } : mothWander(t);
+    const base = c.home ? { x: MOTH_REST[0], y: MOTH_REST[1], rot: 0, scale: 1 } : mothWander(t);
     if (c.returnAt) {
       const u = (t - c.returnAt) / RETURN_S;
       if (u >= 1 || u < 0) c.returnAt = 0;
@@ -198,7 +199,8 @@ const CREATURES = [
     if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; return { ...base, flying: !c.home }; }
     const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, loops wide, comes back down
     return { x: base.x + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
-      y: base.y - e * (130 + 60 * Math.sin(d * 1.3)), rot: base.rot + e * 12 * Math.cos(d * 0.9), flying: true };
+      y: base.y - e * (130 + 60 * Math.sin(d * 1.3)), rot: base.rot + e * 12 * Math.cos(d * 0.9), flying: true,
+      scale: base.scale * (1 + e * (0.05 + 0.08 * Math.sin(d * 0.9 + 2.2))) };   // its loop swings toward the camera and back
   } },
   ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-bleaf-${n}.webp`, after, depth, w,
     pose: (t, p) => ({
@@ -212,12 +214,13 @@ const CREATURES = [
     if (c.returnAt) {   // called home (the lion's moment): flies in from the right onto its branch
       const u = (t - c.returnAt) / RETURN_S;
       if (u >= 1 || u < 0) c.returnAt = 0;
-      else { const e = smooth(u); return { x: PERCH.x + 430 * (1 - e), y: PERCH.y - 170 * (1 - e) - 40 * Math.sin(Math.PI * e), flying: true, face: -1 }; }
+      else { const e = smooth(u); return { x: PERCH.x + 430 * (1 - e), y: PERCH.y - 170 * (1 - e) - 40 * Math.sin(Math.PI * e), flying: true, face: -1, scale: 0.7 + 0.3 * e }; }
     }
     const d = c.flyAt ? t - c.flyAt : -1;
     if (d < 0) return { x: PERCH.x, y: PERCH.y, flying: false };
     if (d < 2.6) { const e = Math.pow(d / 2.6, 1.5);
-      return { x: PERCH.x - 760 * e, y: PERCH.y - 420 * e + 22 * Math.sin(d * 9) * (1 - e), flying: true, face: -1 }; }
+      // depth: she banks toward the camera as she goes, growing, then pulls away into the sky
+      return { x: PERCH.x - 760 * e, y: PERCH.y - 420 * e + 22 * Math.sin(d * 9) * (1 - e), flying: true, face: -1, scale: 1 + 0.35 * Math.sin(Math.PI * Math.min(1, e * 1.25)) }; }
     if (d < 18) return null;
     if (d > 19) c.flyAt = 0;                              // back on its branch
     return { x: PERCH.x, y: PERCH.y, flying: false, op: Math.min(1, d - 18) };
@@ -934,6 +937,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   const layerOf = Object.fromEntries(LAYERS.map((L) => [L.key, L]));
   const GONE_WHEN_FROZEN = new Set(["bird", "leaf", "mote", "ripple", "firefly", "salmon", "splash"]);
+  // a creature's own size change (depth) happens about its centre, not its top-left corner
+  const scaleAbout = (c, k) => {
+    if (!c.half || !c.half[0] || !c.half[1]) c.half = [c.el.offsetWidth / 2, c.el.offsetHeight / 2];
+    const [hx, hy] = c.half;
+    return ` translate(${hx.toFixed(1)}px, ${hy.toFixed(1)}px) scale(${k.toFixed(3)}) translate(${(-hx).toFixed(1)}px, ${(-hy).toFixed(1)}px)`;
+  };
   function placeCreatures(t, p) {
     // the lion's moment: over SETTLE_MS the animals that roam fade out (the leaves quickest) while the
     // rest come home, then every pose holds at one fixed moment (the finale's first frame)
@@ -956,7 +965,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (el.style.opacity !== op) el.style.opacity = op;
       if (c.update) c.update(pose);
       const sx = pose.flip != null ? pose.flip : pose.face;
-      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}${pose.scale ? ` scale(${pose.scale.toFixed(3)})` : ""}`;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}${pose.scale && pose.scale !== 1 ? scaleAbout(c, pose.scale) : ""}`;
     }
   }
   function storyLayout(s) {
