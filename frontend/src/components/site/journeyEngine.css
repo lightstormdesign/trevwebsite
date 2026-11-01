@@ -729,3 +729,11 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* the salmon: orange and white, a halo that rides the leap (cut off at the surface like the fish) */
 .tj-cr-salmon .fish .halo { position: absolute; left: -30%; top: -30%; width: 160%; height: 160%; border-radius: 50%; opacity: .7;
   background: radial-gradient(closest-side, rgba(255,246,232,.55), rgba(255,160,70,.5) 35%, rgba(255,120,40,.22) 65%, transparent 100%); }
+/* the lion draws every other light into himself: from the charge through the roar, only his aura glows
+   (the animals still scatter, without their halos); it all comes back when the world does */
+.tj-cr-salmon .fish .halo { transition: opacity .45s ease; }
+.tj.charging .tj-cr-perch .aura, .tj.roaring .tj-cr-perch .aura,
+.tj.charging .tj-cr-butterfly .aura, .tj.roaring .tj-cr-butterfly .aura,
+.tj.charging .tj-cr-owl .aura, .tj.roaring .tj-cr-owl .aura,
+.tj.charging .tj-cr-aspen .aura, .tj.roaring .tj-cr-aspen .aura,
+.tj.charging .tj-cr-salmon .halo, .tj.roaring .tj-cr-salmon .halo { opacity: 0 !important; transition: opacity .45s ease; }
