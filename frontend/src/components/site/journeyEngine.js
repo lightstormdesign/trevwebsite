@@ -256,7 +256,7 @@ const CREATURES = [
   ...Array.from({ length: 5 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
-const BISON_TAP_S = 4;      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
+const BISON_TAP_S = 4, BISON_UP_MS = 4000;   // its first tap: head up this long (never to you), then back to grazing      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
 // Flower of Life centres: a hexagonal lattice of circles out to three rings (as on Burnell's deer)
 const FLOWER = (() => {
   const pts = [];
@@ -647,6 +647,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (now - bisonTapAt < BISON_TAP_S * 1000) return;
     // the first tap: it lifts its head from the grass (its totem half lit) and gives its gift
     bisonTapAt = now; bison.classList.add("is-on", "up"); wake("bison");
+    later(() => { if (!bison.classList.contains("facing")) bison.classList.remove("up"); }, BISON_UP_MS);   // ...and back to the grass: unresolved
     // its gift: a ring of gold light across the ground from its hooves, flowers glinting along it
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
     later(() => { bison.classList.add("bloomed"); bison.classList.remove("blessing"); }, 4600);   // its flowers stay
@@ -1028,14 +1029,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     b.classList.toggle("half", awake.has("bison") && !climaxed);
     b.classList.toggle("ready", bisonReady());
     if (bison) {
-      bison.classList.toggle("up", awake.has("bison")); bison.classList.toggle("ready", bisonReady());
+      bison.classList.toggle("ready", bisonReady());
       if (awake.has("bison") && !bison.classList.contains("blessing")) bison.classList.add("bloomed");   // a visit under way
     }
   };
   paintTotems();
   function bisonMoment() {
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
-    bison.classList.remove("ready"); bison.classList.add("is-on", "facing");
+    bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
     haptic([40, 40, 80]);
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
