@@ -133,7 +133,10 @@ const BUTTERFLY_FLY_S = 9, HATCH_S = [1.3, 2.4];   // [unfolding, gliding down t
 const mothWander = (t) => ({ x: 440 + 55 * Math.sin(t * 0.55) + 16 * Math.sin(t * 1.7), y: 985 + 32 * Math.sin(t * 0.85), rot: 10 * Math.cos(t * 0.55),
   scale: 1 + 0.16 * Math.sin(t * 0.37 + 1) });   // drifting nearer and farther
 const MOTH_REST = [565, 914];
-const MOTH_ROAR_GROW = 0.6;   // the roar sends the lolo up toward the camera: this much bigger (the finale flies past it)   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
+const MOTH_ROAR_GROW = 0.6;
+// The roar's scatter flights (bluebird, lolo) run at this speed, so at the finale's first frame (0.9 s in)
+// the bluebird is just above and right of the lion and the lolo just right of him, as in the start frame
+const ROAR_FLIGHT_K = 0.5;   // the roar sends the lolo up toward the camera: this much bigger (the finale flies past it)   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
 // flock crosses (every other beat).
@@ -142,13 +145,13 @@ const inBeat = (T, [a, b]) => { const s = ((T % BEAT_S) + BEAT_S) % BEAT_S; retu
 // The salmon (a totem): once every SALMON_EVERY_S, when the near flock isn't crossing, a glint on the
 // pool, then it leaps (rising, peak, diving poses) and is swallowed back under; tap it mid-leap to
 // catch it. It's drawn in a window whose bottom edge is the water's surface (river coordinates).
-const POOL = { x: 180, y: 610, w: 520, h: 270 },   /* its surface (y + h, river coordinates) lies in the open pool */ SALMON_AT = 12.5, SALMON_EVERY_S = 15,   /* leaps at 12.5s and 27.5s of each 30s: never while the near flock crosses (0-11s) */ SALMON_LEAP_S = 1.6;
-const SALMON_X = [34, 174], SALMON_DEPTH = 40, SALMON_RISE = 400, SALMON_W = 150;   // a low leap (60 above the surface): out of open water, back into open water
+const POOL = { x: 180, y: 606, w: 520, h: 270 },   /* its surface (y + h, river coordinates) lies in the open pool */ SALMON_AT = 12.5, SALMON_EVERY_S = 15,   /* leaps at 12.5s and 27.5s of each 30s: never while the near flock crosses (0-11s) */ SALMON_LEAP_S = 1.6;
+const SALMON_X = [106.8, 409.3], SALMON_DEPTH = 40, SALMON_RISE = 432, SALMON_W = 120;   /* a smaller fish (~110 long), a longer, low leap: out of the pool at x 318, over the rock, back in at 558 (~2 body lengths), peaking ~68 above the surface */   // a low leap (60 above the surface): out of open water, back into open water
 const SALMON_SURF_U = (1 - Math.sqrt(1 - 4 * SALMON_DEPTH / SALMON_RISE)) / 2;
 const salmonU = (T) => { const s = ((T % SALMON_EVERY_S) + SALMON_EVERY_S) % SALMON_EVERY_S; return (s - SALMON_AT) / SALMON_LEAP_S; };
 // the roar makes the salmon leap once on its own clock (c.roarAt), peaking at the finale's first frame
 const leapU = (c, t, T) => (c.roarAt ? (t - c.roarAt) / SALMON_LEAP_S : salmonU(T));
-const ROAR_LEAP_S = 1.35 - SALMON_LEAP_S / 2;   // leap starts this long after the roar: top of the arc at FINALE_AFTER_MS
+const ROAR_LEAP_S = 0.9 - SALMON_LEAP_S / 2;   // leap starts this long after the roar: top of the arc at the finale's first frame (FINALE_AFTER_MS)
 // the bison's abundance: flowers that bloom in the grass around its hooves when it's called
 // ([x %, y % of the ground ring, size, delay s, petal colour])
 const BLOOMS = [[0, 64, 1, .35, "#fff6e6"], [14, 26, .8, .5, "#ffe2a8"], [30, 84, 1.1, .2, "#fff6e6"], [46, 14, .75, .65, "#ffd9e4"],
@@ -205,12 +208,12 @@ const CREATURES = [
       if (u >= 1 || u < 0) c.returnAt = 0;
       else { const e = smooth(u); return { x: base.x + c.fromDx * (1 - e), y: base.y + c.fromDy * (1 - e), flying: true }; }
     }
-    const d = c.flyAt ? t - c.flyAt : -1;
+    const d = c.flyAt ? (t - c.flyAt) * (c.roarFly ? ROAR_FLIGHT_K : 1) : -1;   // (the roar's flight is slower: see ROAR_FLIGHT_K)
     if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; c.roarFly = false; return { ...base, flying: !c.home }; }
     const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, loops wide, comes back down
     return { x: base.x + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
       y: base.y - e * (130 + 60 * Math.sin(d * 1.3)), rot: base.rot + e * 12 * Math.cos(d * 0.9), flying: true,
-      scale: base.scale * (1 + e * (c.roarFly ? MOTH_ROAR_GROW : 0.05 + 0.08 * Math.sin(d * 0.9 + 2.2))) };   // its loop swings toward the camera (the roar sends it right up close) and back
+      scale: base.scale * (c.roarFly ? 1 + MOTH_ROAR_GROW * smooth(d / 0.45) : 1 + e * (0.05 + 0.08 * Math.sin(d * 0.9 + 2.2))) };   // its loop swings toward the camera (the roar sends it right up close) and back
   } },
   ...LEAVES.map(([n, after, depth, w, x0, off, ph]) => ({ kind: "leaf", src: `trev-world-bleaf-${n}.webp`, after, depth, w,
     pose: (t, p) => ({
@@ -226,13 +229,13 @@ const CREATURES = [
       if (u >= 1 || u < 0) c.returnAt = 0;
       else { const e = smooth(u); return { x: PERCH.x + 430 * (1 - e), y: PERCH.y - 170 * (1 - e) - 40 * Math.sin(Math.PI * e), flying: true, face: -1, scale: 0.7 + 0.3 * e }; }
     }
-    const d = c.flyAt ? t - c.flyAt : -1;
+    const d = c.flyAt ? (t - c.flyAt) * (c.roarFly ? ROAR_FLIGHT_K : 1) : -1;   // (the roar's flight is slower: see ROAR_FLIGHT_K)
     if (d < 0) return { x: PERCH.x, y: PERCH.y, flying: false };
     if (d < 2.6) { const e = Math.pow(d / 2.6, 1.5);
       // depth: she banks toward the camera as she goes, growing, then pulls away into the sky
       return { x: PERCH.x - 760 * e, y: PERCH.y - 420 * e + 22 * Math.sin(d * 9) * (1 - e), flying: true, face: -1, scale: 1 + 0.35 * Math.sin(Math.PI * Math.min(1, e * 1.25)) }; }
     if (d < 18) return null;
-    if (d > 19) c.flyAt = 0;                              // back on its branch
+    if (d > 19) { c.flyAt = 0; c.roarFly = false; }       // back on its branch
     return { x: PERCH.x, y: PERCH.y, flying: false, op: Math.min(1, d - 18) };
   } },
   { kind: "owl", layer: "aspens", w: OWL.w, pose: () => ({ x: OWL.x, y: OWL.y }) },
@@ -552,7 +555,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // every looping animation in the world (wing beats, spinning auras, the falls) restarts with the
     // roar, so nothing on its own clock changes that frame
     try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
-    if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.el.classList.remove("is-on"); }
+    if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.roarFly = true; perch.el.classList.remove("is-on"); }
     if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.roarFly = true; butterfly.el.classList.remove("is-on"); }
     if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
     for (const c of CREATURES) if (c.kind === "salmon" || c.kind === "splash") { c.roarAt = now + ROAR_LEAP_S; c.burst = true; }
@@ -869,8 +872,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     world.appendChild(sunsetEl);
     // the salmon's way home, drawn in canvas coordinates (pool -> cascades -> the falls)
     world.insertAdjacentHTML("beforeend", `<svg class="tj-homeward" viewBox="0 0 941 1672" aria-hidden="true">`
-      + `<path pathLength="1" d="M285 1302 C 330 1255 380 1190 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/>`
-      + `<path class="core" pathLength="1" d="M285 1302 C 330 1255 380 1190 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/></svg>`);
+      + `<path pathLength="1" d="M438 1300 C 425 1250 400 1190 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/>`
+      + `<path class="core" pathLength="1" d="M438 1300 C 425 1250 400 1190 392 1150 S 470 1060 530 1000 S 520 900 488 820 S 462 700 458 640 S 456 590 456 575"/></svg>`);
     homeward = world.lastChild;
     for (const c of CREATURES) if (c.top) { c.el = creatureEl(c); world.appendChild(c.el); }
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
