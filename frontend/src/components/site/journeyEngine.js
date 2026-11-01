@@ -152,7 +152,10 @@ const BLOOMS = [[0, 64, 1, .35, "#fff6e6"], [14, 26, .8, .5, "#ffe2a8"], [30, 84
 const BLOOM_SVG = '<svg viewBox="-12 -12 24 24"><g>' + Array.from({ length: 5 }, (_, i) =>
   `<ellipse rx="3.4" ry="6" cy="-5.6" transform="rotate(${i * 72})" fill="var(--c)" stroke="rgba(214,170,90,.7)" stroke-width=".5"/>`).join("")
   + '</g><circle r="2.6" fill="#f2b84a"/><circle r="1.2" fill="#fff3c4"/></svg>';
-const FLOWER_TILE = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-30 -26 60 52\"><g fill=\"none\" stroke=\"#ffd27a\" stroke-width=\".6\"><circle r=\"10\"/><circle r=\"10\" cx=\"10\"/><circle r=\"10\" cx=\"-10\"/><circle r=\"10\" cx=\"5\" cy=\"8.66\"/><circle r=\"10\" cx=\"-5\" cy=\"8.66\"/><circle r=\"10\" cx=\"5\" cy=\"-8.66\"/><circle r=\"10\" cx=\"-5\" cy=\"-8.66\"/></g></svg>";   // the owl's sight: a tiling Flower of Life
+// the owl's sight: one continuous Flower of Life, every circle joined (radius 20px on a triangular lattice of
+// spacing 20px, the same circles and line as before), tiled seamlessly with a lattice point at the tile's centre
+const FLOWER_TILE = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"34.641\" viewBox=\"-10.0 -17.321 20 34.641\"><g fill=\"none\" stroke=\"#ffd27a\" stroke-width=\"1.2\"><circle cx=\"-20.000\" cy=\"-34.641\" r=\"20\"/><circle cx=\"0.000\" cy=\"-34.641\" r=\"20\"/><circle cx=\"20.000\" cy=\"-34.641\" r=\"20\"/><circle cx=\"-30.000\" cy=\"-17.321\" r=\"20\"/><circle cx=\"-10.000\" cy=\"-17.321\" r=\"20\"/><circle cx=\"10.000\" cy=\"-17.321\" r=\"20\"/><circle cx=\"30.000\" cy=\"-17.321\" r=\"20\"/><circle cx=\"-20.000\" cy=\"0.000\" r=\"20\"/><circle cx=\"0.000\" cy=\"0.000\" r=\"20\"/><circle cx=\"20.000\" cy=\"0.000\" r=\"20\"/><circle cx=\"-30.000\" cy=\"17.321\" r=\"20\"/><circle cx=\"-10.000\" cy=\"17.321\" r=\"20\"/><circle cx=\"10.000\" cy=\"17.321\" r=\"20\"/><circle cx=\"30.000\" cy=\"17.321\" r=\"20\"/><circle cx=\"-20.000\" cy=\"34.641\" r=\"20\"/><circle cx=\"0.000\" cy=\"34.641\" r=\"20\"/><circle cx=\"20.000\" cy=\"34.641\" r=\"20\"/></g></svg>";
+const FLOWER_TILE_WH = [20, 34.641];
 const GLINTS = [[300, 865], [450, 875], [600, 865], [420, 1035]];
 const CREATURES = [
   // Burnell's far flock, exactly as on his world
@@ -357,7 +360,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-world"></div>
       <div class="tj-shade"></div>
       <div class="tj-dawn" aria-hidden="true"></div>
-      <div class="tj-sight" aria-hidden="true" style="background-image:url('data:image/svg+xml;utf8,${encodeURIComponent(FLOWER_TILE)}')"></div>
+      <div class="tj-sight" aria-hidden="true">${["sheet", "shimmer"].map((k) => `<i class="${k}" style="background-image:url('data:image/svg+xml;utf8,${encodeURIComponent(FLOWER_TILE)}')"></i>`).join("")}</div>
       <div class="tj-rain" aria-hidden="true"><i class="dark"></i><i class="drops" style="background-image:url(${A}trev-world-rain.webp)"></i><i class="drops b" style="background-image:url(${A}trev-world-rain.webp)"></i></div>
     </div>
     ${phase === "hero" ? `
@@ -739,7 +742,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   const owlLook = () => {
     if (owlBusy) return; owlBusy = true; wake("owl");
-    later(() => { root.classList.add("owlsight"); later(() => root.classList.remove("owlsight"), 3200); }, OWL_LOOK_MS);
+    later(() => {   // the sheet of the Flower of Life ripples out across the whole world from the owl's eyes
+      const sight = $(".tj-sight"), sr = sight.getBoundingClientRect(), r = owl.firstChild.getBoundingClientRect();
+      const ox = r.left + r.width / 2 - sr.left, oy = r.top + r.height * 0.22 - sr.top;
+      sight.style.setProperty("--ox", ox.toFixed(1) + "px"); sight.style.setProperty("--oy", oy.toFixed(1) + "px");
+      sight.style.setProperty("--bx", (ox - FLOWER_TILE_WH[0] / 2).toFixed(1) + "px"); sight.style.setProperty("--by", (oy - FLOWER_TILE_WH[1] / 2).toFixed(1) + "px");
+      root.classList.remove("owlsight"); void sight.offsetWidth; root.classList.add("owlsight");
+      later(() => root.classList.remove("owlsight"), 4200);
+    }, OWL_LOOK_MS);
     owl.classList.add("look");
     later(() => owl.classList.add("open"), OWL_LOOK_MS);
     const rest = () => {

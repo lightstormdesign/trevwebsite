@@ -332,14 +332,15 @@ html.tj-bison-hover, html.tj-bison-hover * { cursor: pointer; }
 .tj-cr-owl.open .open { opacity: 1; transition-duration: .3s; }
 .tj-cr-owl .aura { position: absolute; left: -45%; top: -12%; width: 190%; height: 100%; transition: opacity .6s ease, transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
 .tj-cr-owl .glow, .tj-cr-owl .geo { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .6s ease; }
-.tj-cr-owl .glow { border-radius: 50%; opacity: .26;
+.tj-cr-owl .glow { border-radius: 50%; opacity: .62; animation: tj-owlGlow 5s ease-in-out infinite;
   background: radial-gradient(closest-side, rgba(255,226,160,.7), rgba(240,190,110,.3) 55%, transparent 100%); }
-.tj-cr-owl .geo { opacity: .14; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
+.tj-cr-owl .geo { opacity: .3; -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 100%); mask-image: radial-gradient(closest-side, #000 30%, transparent 100%);
   animation: tj-auraSpin 80s linear infinite reverse; }
 /* 65% of what a tap does to the bison's aura (scale 1.15, brightness 1.5, glow .62, geometry .38) */
 .tj-cr-owl.look .aura { transform: scale(1.0975); filter: brightness(1.325); }
-.tj-cr-owl.look .glow { opacity: .40; }
-.tj-cr-owl.look .geo { opacity: .25; }
+.tj-cr-owl.look .glow { animation: none; opacity: .7; }
+.tj-cr-owl.look .geo { opacity: .5; }
+@keyframes tj-owlGlow { 0%, 100% { opacity: .46; } 50% { opacity: .62; } }
 html.tj-owl-hover, html.tj-owl-hover * { cursor: pointer; }
 .tj-cr-bird .up { animation: tj-flapA var(--flap, .36s) infinite; }
 .tj-cr-bird .down { animation: tj-flapB var(--flap, .36s) infinite; }
@@ -590,11 +591,27 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-homeward.run path { animation: tj-homeRun 2.6s cubic-bezier(.45,.05,.4,1) .15s forwards; }
 @keyframes tj-homeRun { to { stroke-dashoffset: -1; } }
 @keyframes tj-homeFade { 0% { opacity: 0; } 8%, 75% { opacity: 1; } 100% { opacity: 0; } }
-/* owl: the hidden geometry of the world, seen for a moment through its eyes */
-.tj-sight { position: absolute; inset: 0; pointer-events: none; opacity: 0; background-size: 120px 104px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 80%); mask-image: radial-gradient(ellipse 75% 70% at 50% 45%, #000 20%, transparent 80%);
-  transition: opacity 1s ease; }
-.tj.owlsight .tj-sight { opacity: .42; }
+/* owl: the hidden geometry of the world, seen for a moment through its eyes. One sheet of the Flower of
+   Life, every circle joined, anchored on the owl: it spreads from the owl across the whole screen (an
+   expanding mask), a brighter shimmer riding its leading edge, then lets go */
+.tj-sight { position: absolute; inset: 0; pointer-events: none; overflow: hidden; visibility: hidden; }
+.tj-sight i { position: absolute; inset: 0; background-repeat: repeat; background-position: var(--bx, 0) var(--by, 0);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 0 0; mask-size: 0 0;
+  -webkit-mask-position: var(--ox, 50%) var(--oy, 50%); mask-position: var(--ox, 50%) var(--oy, 50%); }
+.tj-sight .sheet { opacity: .4;
+  -webkit-mask-image: radial-gradient(circle closest-side, #000 0%, #000 55%, transparent 100%); mask-image: radial-gradient(circle closest-side, #000 0%, #000 55%, transparent 100%); }
+.tj-sight .shimmer { opacity: .95;
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent 0%, transparent 72%, #000 88%, transparent 100%); mask-image: radial-gradient(circle closest-side, transparent 0%, transparent 72%, #000 88%, transparent 100%); }
+.tj.owlsight .tj-sight { visibility: visible; }
+.tj.owlsight .tj-sight .sheet { animation: tj-sightGrow 2.6s cubic-bezier(.3,.1,.3,1) both, tj-sightSheet 4.2s ease both; }
+.tj.owlsight .tj-sight .shimmer { animation: tj-sightGrow 2.6s cubic-bezier(.3,.1,.3,1) both, tj-sightShimmer 2.6s ease both; }
+@keyframes tj-sightGrow {
+  from { -webkit-mask-size: 0 0; mask-size: 0 0; -webkit-mask-position: var(--ox) var(--oy); mask-position: var(--ox) var(--oy); }
+  to { -webkit-mask-size: 360vmax 360vmax; mask-size: 360vmax 360vmax;
+    -webkit-mask-position: calc(var(--ox) - 180vmax) calc(var(--oy) - 180vmax); mask-position: calc(var(--ox) - 180vmax) calc(var(--oy) - 180vmax); } }
+@keyframes tj-sightSheet { 0% { opacity: 0; } 12% { opacity: .42; } 62% { opacity: .38; } 100% { opacity: 0; } }
+@keyframes tj-sightShimmer { 0% { opacity: 0; } 10% { opacity: .95; } 75% { opacity: .8; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tj.owlsight .tj-sight i { animation: none; -webkit-mask: none; mask: none; opacity: .3; } }
 /* bison: a ring of gold across the ground from its hooves, glints along it */
 .tj-bison .groundRing { left: 50%; top: 93%; width: 100%; aspect-ratio: 3.2 / 1; transform: translate(-50%, -50%); pointer-events: none; }
 .tj-bison .groundRing i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(255,226,150,.9); box-shadow: 0 0 8px rgba(255,214,140,.7); opacity: 0; }
@@ -713,3 +730,17 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.charging .tj-cr-owl .aura, .tj.roaring .tj-cr-owl .aura,
 .tj.charging .tj-cr-aspen .aura, .tj.roaring .tj-cr-aspen .aura,
 .tj.charging .tj-cr-salmon .halo, .tj.roaring .tj-cr-salmon .halo { opacity: 0 !important; transition: opacity .45s ease; }
+
+/* the owl findable at rest: it sits against pale sky, so its aura is a deeper amber than the sky (not
+   white), its geometry bolder, and a thin gold ring breathes out from it every 4s to catch the eye */
+.tj-cr-owl .aura { left: -125%; top: -40%; width: 350%; height: 180%; }
+.tj-cr-owl .glow { background: radial-gradient(closest-side, rgba(255,200,100,.85) 0%, rgba(255,186,80,.7) 30%, rgba(245,165,60,.32) 58%, rgba(230,150,60,.08) 80%, transparent 100%); }
+.tj-cr-owl .geo { opacity: .7; }
+.tj-cr-owl .geo g { stroke: #f4c060; stroke-width: 1.3; }
+@keyframes tj-owlGlow { 0%, 100% { opacity: .6; } 50% { opacity: .8; } }
+.tj-cr-owl .aura::after { content: ""; position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; border-radius: 50%;
+  border: 2px solid rgba(255,214,130,.95); box-shadow: 0 0 6px rgba(255,200,100,.6); transform: translate(-50%, -50%) scale(.5); opacity: 0; animation: tj-owlRing 4s ease-out infinite; }
+@keyframes tj-owlRing { 0% { transform: translate(-50%, -50%) scale(.9); opacity: 0; } 12% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.1); opacity: 0; } }
+.tj-cr-owl.look .aura::after { animation: none; }
+.tj-cr-owl.look .glow { opacity: .95; }
+.tj-cr-owl.look .geo { opacity: .75; }
