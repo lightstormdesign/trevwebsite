@@ -52,7 +52,7 @@ const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never st
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const ME_SCALE = 0.03;
-const TREE_K = 0.4, TREE_SCALE = 0.018;   // the portal trees: share of his sideways drift, and how far they spread as he comes in
+const TREE_SCALE = 0.018;   // the portal trees: how much they grow as he comes in
 const ME_SIDE = 0.6, ME_MOVE_S = 20, ME_PAUSE_S = 5;   // sideways reach (x ME_PX) at his nearest, mostly toward you; each move 20s (left, then right), a 5s pause after each
 const FADE_ME_MS = 500;     // TREV's real photo fades out over the playing transition
 // phones get 720p (Burnell's phone size): HEVC 0.9MB where it plays, else H.264 1MB; computers 1080p H.264
@@ -373,8 +373,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-box">
         <img class="tj-plate tj-plateStill" alt="">
         <video class="tj-plate tj-hidden" muted loop playsinline autoplay preload="auto"></video>
-        <img class="tj-tree" src="${A}trev-portal-tree-left.webp${MV}" alt="" aria-hidden="true">
-        <img class="tj-tree" src="${A}trev-portal-tree-right.webp${MV}" alt="" aria-hidden="true">
+        <img class="tj-tree left" src="${A}trev-portal-tree-left.webp${MV}" alt="" aria-hidden="true">
+        <img class="tj-tree right" src="${A}trev-portal-tree-right.webp${MV}" alt="" aria-hidden="true">
         <canvas class="tj-me"></canvas>
         <img class="tj-meImg" alt="TREV" hidden>
       </div>
@@ -1281,9 +1281,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       drawMe(px * ME_PX * ME_SIDE * m / k, (1 - near) * ME_PX * 0.585 * m / k, 0);
       const sc = (1 + ME_SCALE * near * m).toFixed(4);
       if (sc !== meScale) { meScale = sc; (gl ? canvas : meImg).style.transform = `scale(${sc})`; }
-      // the trees: as he comes toward you they spread outward a little (a camera pushing in) and drift
-      // his way, by less than him: the sky still, the trees a little, TREV the most
-      const tt = `translate3d(${(px * ME_PX * ME_SIDE * TREE_K * m / k).toFixed(2)}px, 0, 0) scale(${(1 + TREE_SCALE * near * m).toFixed(4)})`;
+      // the trees: they only grow (no sliding), each from its own edge of the frame, in step with him and
+      // by less: the sky still, the trees a little, TREV the most
+      const tt = `scale(${(1 + TREE_SCALE * near * m).toFixed(4)})`;   // in step with him: as he comes in, they grow too
       if (tt !== treeT) { treeT = tt; trees.forEach((tr) => { tr.style.transform = tt; }); }
     }
 
