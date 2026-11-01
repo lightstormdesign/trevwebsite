@@ -932,7 +932,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     rimEl.style.opacity = clamp01((hid - 0.05) / 0.5).toFixed(3);
     const now = performance.now() / 1000;
     CLOUDS.forEach((c, i) => {
-      const t = Math.min(1, p / PART_RANGE), e = 1 - (1 - t) * (1 - t), kk = 1 + 0.3 * c.spd;
+      // they part with the same gentle ease as the rest of the world (they used to start at full speed)
+      const t = Math.min(1, p / PART_RANGE), e = smooth(t), kk = 1 + 0.3 * c.spd;
       const x = c.x0 - c.w / 2 + c.dir * 640 * kk * e + 8 * Math.sin(now * 0.3 + i) * (frozen ? clamp01(1 - (performance.now() - focusAt) / SETTLE_MS) : 1) + tx * TILT_X * CLOUD_TILT * c.depth;
       const y = c.y0 - c.w * (c.ar || 0.438) / 2 - p * 600 * kk + ty * TILT_Y * CLOUD_TILT * c.depth;
       c.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${c.flip ? " scaleX(-1)" : ""}`;
