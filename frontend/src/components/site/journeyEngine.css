@@ -775,7 +775,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 
 /* the portal's two trees, a middle plane: they spread from the frame's centre as TREV comes in */
-.tj-tree { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .93; will-change: transform; }
+.tj-tree { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .9; will-change: transform; }
 .tj-tree.left { transform-origin: 0% 32%; }    /* each grows from its own side of the frame, so it never slides */
 .tj-tree.right { transform-origin: 100% 45%; }
 
