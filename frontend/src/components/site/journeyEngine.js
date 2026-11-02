@@ -33,6 +33,7 @@
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
 import { sound, tilt } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
+import { createFinale, FINALE } from "./finale";
 
 const A = "/journey/";
 // Cache-buster for re-encoded media (Burnell's MEDIA_V): bump it whenever a video, the song or the
@@ -535,7 +536,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   function transform() {
     if (lionMode) return;
-    lionMode = true; bison.classList.add("is-on", "facing");   // the bison turns to you, aura blazing, then...
+    lionMode = true; bison.classList.add("is-on", "facing"); finale.preload();   // the bison turns to you, aura blazing, then...
     root.classList.add("transforming");
     callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
@@ -621,6 +622,27 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (let i = 0; i < ticks; i++) later(() => hapticSwitch.click(), i * 70);
     } catch (e) { /* no haptics here */ }
   }
+  // The finale (finale.js): the lion's tap starts the baked video, hidden; the roar (unchanged: focus,
+  // charge, roar) begins so it lands on the video's "K-ingdom", by the video's own clock; the video
+  // takes over at FINALE.reveal and the world waits under it. If the video won't start, he roars anyway.
+  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000;
+  const finale = createFinale(root, { onEnd: () => release() });
+  off.push(() => finale.destroy());
+  let summonAt = 0;
+  function summon() {
+    if (summonAt || roaring || frozen) return;
+    summonAt = performance.now(); sound.hush(); finale.start(sound.muted);
+    awaitDrop();
+  }
+  function awaitDrop() {
+    const t = finale.time(), since = (performance.now() - summonAt) / 1000;
+    if (t != null && t >= FINALE.drop - ROAR_LEAD_S - 0.03) return roar();   // (0.03: the roar's own timers run a touch long)
+    if (since > 1.6 || finale.failed) { finale.stop(); return roar(); }   // the video never came: he roars anyway
+    later(awaitDrop, 8);
+  }
+  function release() {
+    root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
+  }
   function roar() {
     if (roaring) return;
     if (!frozen) { focus(); return later(roar, FOCUS_MS); }
@@ -638,8 +660,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
     later(() => {
       root.classList.remove("roaring"); roaring = false;
-      // no finale clip yet: give the world back its life
-      root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false;
+      if (!finale.active) release();   // (with the finale, the world waits under it until it ends)
     }, ROAR_MS);
   }
   let bisonCallAt = -1e9;
@@ -647,7 +668,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now();
     if (now - bisonCallAt < 350) return;   // one tap sends both a touch and a pointer event
     bisonCallAt = now;
-    if (lionMode) return roar();
+    if (lionMode) return summon();
     // the last tap: every other totem is awake and the bison has lifted its head. It turns to you,
     // its totem fills, and the Kingdom awakens (it becomes the lion)
     if (bisonReady() && now - bisonTapAt > 600) return bisonMoment();
@@ -1069,7 +1090,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(transform, 2200);                                  // ...as the bison becomes the lion (the world stays alive)
     later(() => root.classList.remove("awakening"), 4800);
   }
-  on($(".tj-lionTotem"), "click", () => { if (lionMode) roar(); });
+  on($(".tj-lionTotem"), "click", () => { if (lionMode) summon(); });
   // the screen point -> a layer's own coordinates
   const toLayer = (x, y, key) => {
     const r = world.getBoundingClientRect(), k = r.width / CANVAS.w, L = layerOf[key];
@@ -1117,7 +1138,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
-    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); }   // already awake
+    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); finale.preload(); }   // already awake
     paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;

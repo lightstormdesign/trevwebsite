@@ -91,6 +91,9 @@ export const sound = {
   },
   // seconds into the lion cut (null when it isn't the lion cut that's playing, or sound is off)
   lionTime() { return mode === "lion" && lionAudio && !userMuted ? lionAudio.currentTime : null; },
+  // the finale takes the sound over: whatever is playing stops (the speaker's mute is kept)
+  get muted() { return userMuted; },
+  hush() { if (audio) audio.pause(); if (lionAudio) lionAudio.pause(); },
   setBeckon(on) { beckoning = on; emit(); },
   // start downloading the song ahead of the tap (after the transition has its turn)
   preload() { el(); lionEl(); },

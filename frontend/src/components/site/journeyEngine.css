@@ -809,3 +809,24 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* the tuft of grass he grazes: right at his muzzle (the grazing pose's nose is 103.6% across, 97.7% down
    his box; the ground 99.6%), in front of it, so he's eating from it; it stays (as the lion stands there too) */
 .tj-bison .grass { left: 84.6%; top: 75.4%; width: 38%; height: auto; pointer-events: none; }
+
+/* ---------- the finale (finale.js): the baked video over everything, from its reveal ---------- */
+.tj-finale { position: fixed; inset: 0; z-index: 60; background: #000; opacity: 0; pointer-events: none; transition: opacity .15s linear; overflow: hidden; }
+.tj-finale.show { opacity: 1; pointer-events: auto; }
+.tj-finale video { position: absolute; left: 50%; top: 50%; width: 100vw; height: 100vh; height: 100lvh; transform: translate(-50%, -50%); object-fit: cover; background: #000; }
+/* a landscape screen (desktop, or a phone with rotation unlocked): the vertical part sits whole in the
+   middle; once the music video fills the frame (sideways, bottom to the right) it's turned back, wide */
+@media (orientation: landscape) {
+  .tj-finale video { object-fit: contain; }
+  .tj-finale.wide video { width: 100vh; width: 100lvh; height: 100vw; object-fit: cover; transform: translate(-50%, -50%) rotate(90deg); transition: transform .5s cubic-bezier(.3,.1,.3,1); }
+}
+/* phones held upright: a moment's sign to turn the phone (clockwise) */
+.tj-finaleTurn { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; color: #fff; opacity: 0; pointer-events: none;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,.6)); transition: opacity .5s ease; }
+.tj-finale.turn .tj-finaleTurn { opacity: .9; animation: tj-turnPhone 1.4s ease-in-out .2s 2; }
+@keyframes tj-turnPhone { 0%, 20% { transform: rotate(0); } 70%, 100% { transform: rotate(90deg); } }
+.tj-finaleClose { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 14px; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.35); background: rgba(0,0,0,.35); color: #fff; font: 300 28px/1 system-ui, sans-serif; cursor: pointer;
+  opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+.tj-finale.controls .tj-finaleClose { opacity: 1; pointer-events: auto; }
+@media (orientation: landscape) { .tj-finale.wide .tj-finaleClose { right: 18px; } }
