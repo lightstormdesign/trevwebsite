@@ -425,17 +425,21 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="The Kingdom, unreleased music video">
-        <div class="tj-unlockPhoto">
-          <img src="${A}trev-unlock-photo.webp" alt="TREV on a red rock ledge above Sedona">
-          <div class="tj-flower tj-unlockFlower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
-          <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
-        </div>
-        <div class="tj-unlockBody" style="--sedona:url(${A}trev-unlock-sedona.webp)">
+      <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp)">
+        <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
+        <img class="tj-unlockDeco aspen" src="${A}trev-unlock-aspen.webp" alt="" aria-hidden="true">
+        <img class="tj-unlockDeco juniper" src="${A}trev-unlock-juniper.webp" alt="" aria-hidden="true">
+        <div class="tj-unlockInner">
+          <div class="tj-unlockPhoto">
+            <img src="${A}trev-unlock-photo.webp" alt="TREV on a red rock ledge above Sedona">
+            <div class="tj-flower tj-unlockFlower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
+          </div>
           <span class="tj-unlockHand">you've unlocked</span>
           <p class="tj-unlockTitle">The Kingdom<small>unreleased music video</small></p>
           <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Tap here</a>
         </div>
+        <img class="tj-unlockDeco rocks" src="${A}trev-unlock-rocks.webp" alt="" aria-hidden="true">
+        <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
       </div>
     </div>
     <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
