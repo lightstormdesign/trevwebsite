@@ -626,18 +626,60 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // charge, roar) begins so it lands on the video's "K-ingdom", by the video's own clock; the video
   // takes over at FINALE.reveal and the world waits under it. If the video won't start, he roars anyway.
   const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000;
-  const finale = createFinale(root, { onEnd: () => release() });
+  const finale = createFinale(root, {
+    onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
+    onEnd: () => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); },
+  });
+  // The roar's Flower of Life rings carry on over the video: at the takeover each ring is picked up
+  // exactly where it is in the world (its place, size, turn and brightness, the same moment the video's
+  // first frame shows) and keeps rippling outward over the footage, fading as it goes.
+  function carryRings(wrap) {
+    const src = CREATURES.find((c) => c.kind === "roarwave" && !c.over);
+    if (!src) return;
+    const box = src.el.firstChild.getBoundingClientRect();
+    const layer = document.createElement("div");
+    layer.className = "tj-finaleRings";
+    Object.assign(layer.style, { left: box.left + "px", top: box.top + "px", width: box.width + "px", height: box.height + "px" });
+    src.el.querySelectorAll(".wave").forEach((w) => {
+      const cs = getComputedStyle(w), o = parseFloat(cs.opacity);
+      if (!(o > 0.01)) return;
+      const m = new DOMMatrixReadOnly(cs.transform === "none" ? undefined : cs.transform);
+      const k = Math.hypot(m.a, m.b), deg = Math.atan2(m.b, m.a) * 180 / Math.PI;
+      const ring = document.createElement("img");
+      ring.src = A + "trev-roar-ring.webp"; ring.alt = "";
+      layer.appendChild(ring);
+      ring.animate([
+        { transform: `rotate(${deg.toFixed(2)}deg) scale(${k.toFixed(3)})`, opacity: o },
+        { transform: `rotate(${(deg + 12).toFixed(2)}deg) scale(${(k * 2.4).toFixed(3)})`, opacity: 0 },
+      ], { duration: 1300, easing: "cubic-bezier(.2,.6,.3,1)", fill: "forwards" });
+    });
+    // ...and the roar keeps radiating: a fresh set of rings rises from the lion and ripples out over the
+    // whole screen as the camera takes off
+    for (let i = 0; i < 3; i++) {
+      const ring = document.createElement("img");
+      ring.src = A + "trev-roar-ring.webp"; ring.alt = "";
+      layer.appendChild(ring);
+      ring.animate([
+        { transform: `rotate(${i * 10}deg) scale(3.4)`, opacity: 0 },     // born at the size of his aura (he stays clear)
+        { opacity: 0.5, offset: 0.16 },
+        { opacity: 0.28, offset: 0.6 },
+        { transform: `rotate(${i * 10 + 30}deg) scale(15)`, opacity: 0 },
+      ], { duration: 1600, delay: i * 160, easing: "cubic-bezier(.25,.55,.35,1)", fill: "both" });
+    }
+    wrap.appendChild(layer);
+  }
   off.push(() => finale.destroy());
   let summonAt = 0;
   function summon() {
     if (summonAt || roaring || frozen) return;
     summonAt = performance.now(); sound.hush(); finale.start(sound.muted);
+    docEl.classList.add("tj-finale-on");   // (the speaker, the hints and the totems step back)
     awaitDrop();
   }
   function awaitDrop() {
     const t = finale.time(), since = (performance.now() - summonAt) / 1000;
     if (t != null && t >= FINALE.drop - ROAR_LEAD_S - 0.03) return roar();   // (0.03: the roar's own timers run a touch long)
-    if (since > 1.6 || finale.failed) { finale.stop(); return roar(); }   // the video never came: he roars anyway
+    if (since > 1.2 || finale.failed) { finale.stop(); docEl.classList.remove("tj-finale-on"); return roar(); }   // the video never came: he roars anyway
     later(awaitDrop, 8);
   }
   function release() {
@@ -1635,6 +1677,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   raf = requestAnimationFrame(loop);
   on(window, "resize", () => { if (phase === "world") worldLayout(Math.min(1, cur / DESCENT_SVH)); });
 
+  off.push(() => docEl.classList.remove("tj-finale-on"));
   return () => {
     cancelAnimationFrame(raf);
     timers.forEach(clearTimeout);

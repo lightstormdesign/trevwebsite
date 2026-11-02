@@ -13,7 +13,7 @@ export const FINALE = {
 };
 const HLS_URL = `https://videodelivery.net/${FINALE.id}/manifest/video.m3u8`;
 
-export function createFinale(root, { onEnd }) {
+export function createFinale(root, { onEnd, onReveal }) {
   const wrap = document.createElement("div");
   wrap.className = "tj-finale";
   wrap.setAttribute("aria-hidden", "true");
@@ -52,7 +52,7 @@ export function createFinale(root, { onEnd }) {
     if (!active) return;
     raf = requestAnimationFrame(tick);
     const t = v.currentTime;
-    if (!shown && t >= FINALE.reveal) { shown = true; wrap.classList.add("show"); wrap.setAttribute("aria-hidden", "false"); }
+    if (!shown && t >= FINALE.reveal) { shown = true; wrap.classList.add("show"); wrap.setAttribute("aria-hidden", "false"); if (onReveal) onReveal(wrap); }
     if (!wide && t >= FINALE.wide) {
       wide = true; wrap.classList.add("wide");
       if (matchMedia("(orientation: portrait)").matches) { wrap.classList.add("turn"); setTimeout(() => wrap.classList.remove("turn"), 2800); }
@@ -62,7 +62,7 @@ export function createFinale(root, { onEnd }) {
     if (!active) return;
     active = false; cancelAnimationFrame(raf);
     wrap.classList.remove("show", "wide", "turn", "controls"); wrap.setAttribute("aria-hidden", "true");
-    setTimeout(() => { v.pause(); }, 600);
+    setTimeout(() => { v.pause(); wrap.querySelectorAll(".tj-finaleRings").forEach((e) => e.remove()); }, 600);
     onEnd();
   }
   v.addEventListener("ended", stop);

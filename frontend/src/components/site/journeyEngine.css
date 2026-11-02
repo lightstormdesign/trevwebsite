@@ -811,9 +811,11 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-bison .grass { left: 84.6%; top: 75.4%; width: 38%; height: auto; pointer-events: none; }
 
 /* ---------- the finale (finale.js): the baked video over everything, from its reveal ---------- */
-.tj-finale { position: fixed; inset: 0; z-index: 60; background: #000; opacity: 0; pointer-events: none; transition: opacity .15s linear; overflow: hidden; }
+/* it sits right over the world (under the vignette and the lion's spotlight, which carry on over it and
+   fade on their own), and it's clear around the picture, so a wide screen keeps the world's sides */
+.tj-finale { position: fixed; inset: 0; z-index: 30; opacity: 0; pointer-events: none; transition: opacity .12s linear; overflow: hidden; }
 .tj-finale.show { opacity: 1; pointer-events: auto; }
-.tj-finale video { position: absolute; left: 50%; top: 50%; width: 100vw; height: 100vh; height: 100lvh; transform: translate(-50%, -50%); object-fit: cover; background: #000; }
+.tj-finale video { position: absolute; left: 50%; top: 50%; width: 100vw; height: 100vh; height: 100lvh; transform: translate(-50%, -50%); object-fit: cover; background: transparent; }
 /* a landscape screen (desktop, or a phone with rotation unlocked): the vertical part sits whole in the
    middle; once the music video fills the frame (sideways, bottom to the right) it's turned back, wide */
 @media (orientation: landscape) {
@@ -830,3 +832,13 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   opacity: 0; pointer-events: none; transition: opacity .3s ease; }
 .tj-finale.controls .tj-finaleClose { opacity: 1; pointer-events: auto; }
 @media (orientation: landscape) { .tj-finale.wide .tj-finaleClose { right: 18px; } }
+
+/* the roar's rings, carried over the video (journeyEngine.js carryRings) */
+.tj-finaleRings { position: absolute; pointer-events: none; transform: translate(-0%, -0%); }
+.tj-finaleRings img { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 50%; will-change: transform, opacity; }
+/* once the video has the screen, the site's own furniture steps back, and the world's vignette lifts */
+.tj.finale .tj-header, .tj.finale .tj-totems, .tj.finale .tj-progress, .tj.finale .tj-dust, .tj.finale .tj-bubble, .tj.finale .tj-sound { opacity: 0 !important; pointer-events: none !important; transition: opacity .6s ease; }
+.tj.finale .tj-vignette { opacity: 0 !important; transition: opacity 1.6s ease !important; }
+
+/* from the lion's tap: the speaker, the scroll hint and the totems step back (they return with the world) */
+html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .tj-progressHint, html.tj-finale-on .tj-totems, html.tj-finale-on .tj-bubble { opacity: 0 !important; pointer-events: none !important; transition: opacity .4s ease !important; }
