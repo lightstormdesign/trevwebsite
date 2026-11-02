@@ -848,20 +848,26 @@ html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .
 .tj-finale:fullscreen { background: #000; }
 .tj-finale:fullscreen video { height: 100vh; }
 
-/* the unlock cards, after the lion's roar: the new song (during the hook), then the unreleased music video */
-.tj-unlock { position: fixed; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 16px; }
-.tj-unlockCard { grid-area: 1 / 1; position: relative; width: min(100%, 340px); padding: 18px 20px 20px; border-radius: 18px; text-align: center;
-  background: rgba(16,12,8,.82); border: 1px solid rgba(242,220,165,.35); box-shadow: 0 10px 40px rgba(0,0,0,.45), 0 0 24px rgba(240,200,110,.18);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); opacity: 0; transform: translateY(18px) scale(.97); pointer-events: none;
-  transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.3,1); }
-.tj-unlockCard.show { opacity: 1; transform: none; pointer-events: auto; }
-.tj-unlockIcon { display: grid; place-items: center; width: 38px; height: 38px; margin: 0 auto 10px; border-radius: 50%; color: #1a1208; font-size: 17px;
-  background: radial-gradient(circle at 35% 35%, #fff3cf, #e7c06a 60%, #b9893a); box-shadow: 0 0 16px rgba(240,200,110,.6); }
-.tj-unlockCard p { margin: 0 0 16px; font: 500 18px/1.25 var(--tj-display); letter-spacing: .06em; color: #f6e6bd; }
-.tj-unlockCard small { display: block; margin-bottom: 4px; font: 400 11px/1.2 var(--tj-display); letter-spacing: .28em; text-transform: uppercase; color: rgba(239,230,214,.6); }
-.tj-unlockCard em { display: block; margin-top: 4px; font: italic 300 14px/1.3 var(--tj-sans); color: rgba(239,230,214,.7); }
-.tj-unlockSub { display: block; margin: 8px 0 14px; font: 300 13.5px/1.4 var(--tj-sans); color: rgba(239,230,214,.78); }
-.tj-unlockGo { display: inline-block; padding: 12px 24px; border-radius: 999px; font: 600 12.5px/1 var(--tj-display); letter-spacing: .18em; text-transform: uppercase;
-  color: #1a1208; text-decoration: none; background: linear-gradient(180deg, #f6dc9c, #d9ab52); box-shadow: 0 4px 18px rgba(240,200,110,.35); }
-.tj-unlockClose { position: absolute; right: 8px; top: 8px; width: 30px; height: 30px; border: 0; background: none; color: rgba(239,230,214,.6); font-size: 22px; line-height: 1; cursor: pointer; }
+/* the unlock card, after the lion's roar: warm paper, a photo, the portal's Flower of Life, Sedona's
+   red rocks painted faintly under the words; handwriting and Cinzel */
+.tj-unlock { position: fixed; left: 0; right: 0; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 18px; }
+.tj-unlockCard { grid-area: 1 / 1; position: relative; width: min(100%, 330px); border-radius: 14px; overflow: hidden; background: #f4ecdf; color: #3b2a1c;
+  border: 1px solid rgba(120,88,52,.22); box-shadow: 0 14px 40px rgba(20,12,4,.45), 0 2px 6px rgba(20,12,4,.2);
+  opacity: 0; transform: translateY(20px) rotate(-.6deg); pointer-events: none; transition: opacity .7s ease, transform .8s cubic-bezier(.2,.8,.3,1); }
+.tj-unlockCard.show { opacity: 1; transform: rotate(-.6deg); pointer-events: auto; }
+.tj-unlockPhoto { position: relative; aspect-ratio: 900 / 564; overflow: hidden; }
+.tj-unlockPhoto > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* the portal's Flower of Life (PORTAL_FLOWER, .tj-flower), in the photo's top-right corner, as on the portal */
+.tj-unlockFlower { left: 92%; top: 8%; width: 115%; }
+@media (hover: hover) and (pointer: fine) { .tj-unlockFlower { top: 8%; } }
+.tj-unlockClose { position: absolute; left: 6px; top: 6px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: rgba(20,12,6,.28);
+  color: #fff8ec; font: 300 22px/1 system-ui, sans-serif; cursor: pointer; }
+.tj-unlockBody { position: relative; padding: 14px 20px 22px; text-align: center;
+  background: linear-gradient(rgba(244,236,223,.93) 0%, rgba(244,236,223,.86) 45%, rgba(244,236,223,.62) 100%), var(--sedona) center bottom / 100% auto no-repeat, #f4ecdf; }
+.tj-unlockHand { display: block; font: 600 21px/1 "Caveat", "Bradley Hand", cursive; color: #8a5a34; transform: rotate(-2deg); }
+.tj-unlockTitle { margin: 6px 0 16px; font: 600 24px/1.1 var(--tj-display); letter-spacing: .06em; color: #3b2a1c; }
+.tj-unlockTitle small { display: block; margin-top: 6px; font: 500 12px/1.2 var(--tj-display); letter-spacing: .22em; text-transform: uppercase; color: #6d4d33; }
+.tj-unlockGo { display: inline-block; padding: 7px 26px 9px; border-radius: 10px; font: 600 25px/1 "Caveat", "Bradley Hand", cursive;
+  color: #fff8ec; text-decoration: none; background: #b0532e; box-shadow: 0 3px 0 #873d20, 0 6px 14px rgba(120,50,20,.25); transform: rotate(-1deg); }
+.tj-unlockGo:active { transform: rotate(-1deg) translateY(2px); box-shadow: 0 1px 0 #873d20; }
 .tj-unlock:not([hidden]) ~ .tj-bubble { opacity: 0 !important; pointer-events: none !important; }   /* (one card at a time) */

@@ -425,11 +425,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="Unreleased music video">
-        <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
-        <span class="tj-unlockIcon" aria-hidden="true">✦</span>
-        <p><small>You've unlocked</small>The Kingdom unreleased music video</p>
-        <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Tap here</a>
+      <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="The Kingdom, unreleased music video">
+        <div class="tj-unlockPhoto">
+          <img src="${A}trev-unlock-photo.webp" alt="TREV on a red rock ledge above Sedona">
+          <div class="tj-flower tj-unlockFlower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
+          <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
+        </div>
+        <div class="tj-unlockBody" style="--sedona:url(${A}trev-unlock-sedona.webp)">
+          <span class="tj-unlockHand">you've unlocked</span>
+          <p class="tj-unlockTitle">The Kingdom<small>unreleased music video</small></p>
+          <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Tap here</a>
+        </div>
       </div>
     </div>
     <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
@@ -1147,7 +1153,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function bisonMoment() {
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
-    sound.fadeIntro();   // the intro song fades away as he turns to you
+    sound.fadeIntro(3000);   // the intro song fades away, slowly, as he turns to you
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
     haptic([40, 40, 80]);
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
