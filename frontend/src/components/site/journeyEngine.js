@@ -428,6 +428,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp)">
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco aspen" src="${A}trev-unlock-aspen.webp" alt="" aria-hidden="true">
+        <img class="tj-unlockDeco aspen right" src="${A}trev-unlock-aspen.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco juniper" src="${A}trev-unlock-juniper.webp" alt="" aria-hidden="true">
         <div class="tj-unlockInner">
           <div class="tj-unlockPhoto">

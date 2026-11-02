@@ -851,18 +851,22 @@ html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .
 /* the unlock card, after the lion's roar: the world's sky, darkened, framed by the world itself
    (clouds above, the aspen and the juniper at the sides, the red rocks below); the photo with the
    portal's Flower of Life; Cormorant and Cinzel */
-.tj-unlock { position: fixed; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom, 0px)); z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 34px; }
-.tj-unlockCard { grid-area: 1 / 1; position: relative; width: min(100%, 300px); border-radius: 16px; color: #f4e4c4;
-  background: var(--sky) center 30% / cover no-repeat, #1c1420; border: 1px solid rgba(214,150,96,.4);
-  box-shadow: 0 18px 50px rgba(8,4,2,.6), inset 0 0 40px rgba(10,6,14,.55);
+.tj-unlock { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 8px; }
+.tj-unlockCard { grid-area: 1 / 1; position: relative; width: min(100%, 380px); color: #f4e4c4;
   opacity: 0; transform: translateY(22px) scale(.97); pointer-events: none; transition: opacity .7s ease, transform .8s cubic-bezier(.2,.8,.3,1); }
 .tj-unlockCard.show { opacity: 1; transform: none; pointer-events: auto; }
-.tj-unlockInner { position: relative; z-index: 2; padding: 40px 30px 52px; text-align: center; }
+/* the darkened sky: no edge of its own, it fades out under the frame */
+.tj-unlockCard::before { content: ""; position: absolute; inset: 14px 30px 22px; z-index: 0; border-radius: 30px;
+  background: var(--sky) center 30% / cover no-repeat, #1c1420;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 10%, #000 90%, transparent); mask-composite: intersect; }
+.tj-unlockInner { position: relative; z-index: 2; padding: 58px 80px 84px; text-align: center; }
 .tj-unlockDeco { position: absolute; pointer-events: none; z-index: 3; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
-.tj-unlockDeco.clouds { left: -9%; top: -16px; width: 118%; }
-.tj-unlockDeco.rocks { left: -8%; bottom: -16px; width: 116%; }
-.tj-unlockDeco.aspen { left: -44px; top: 10%; height: 76%; }
-.tj-unlockDeco.juniper { right: -52px; bottom: 10%; height: 50%; }
+.tj-unlockDeco.clouds { left: -6%; top: -4px; width: 112%; }
+.tj-unlockDeco.rocks { left: -6%; bottom: -8px; width: 112%; }
+.tj-unlockDeco.aspen { left: -18px; top: 0; height: 100%; }
+.tj-unlockDeco.juniper { right: -30px; bottom: 7%; height: 54%; }
+.tj-unlockDeco.aspen.right { left: auto; right: -58px; transform: scaleX(-1); }   /* the right edge, top to bottom, behind the juniper */
 .tj-unlockPhoto { position: relative; aspect-ratio: 900 / 564; overflow: hidden; border-radius: 8px; border: 1px solid rgba(232,190,130,.45); box-shadow: 0 6px 18px rgba(0,0,0,.45); }
 .tj-unlockPhoto > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* the portal's Flower of Life (PORTAL_FLOWER, .tj-flower), in the photo's top-right corner, as on the portal */
@@ -870,11 +874,11 @@ html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .
 @media (hover: hover) and (pointer: fine) { .tj-unlockFlower { top: 8%; } }
 .tj-unlockHand { display: block; margin-top: 16px; font: italic 500 18px/1 "Cormorant Garamond", Georgia, serif; letter-spacing: .02em; color: #e3bf86; }
 .tj-unlockTitle { margin: 6px 0 16px; font: 600 23px/1.1 var(--tj-display); letter-spacing: .06em; color: #f8e8c4; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
-.tj-unlockTitle small { display: block; margin-top: 7px; font: 500 10.5px/1.2 var(--tj-display); letter-spacing: .24em; text-transform: uppercase; color: #dc9e72; }
+.tj-unlockTitle small { display: block; margin-top: 7px; font: 500 10px/1.2 var(--tj-display); letter-spacing: .18em; text-transform: uppercase; color: #dc9e72; }
 .tj-unlockGo { display: inline-block; padding: 11px 26px; border-radius: 999px; font: 600 12px/1 var(--tj-display); letter-spacing: .24em; text-transform: uppercase; padding-right: calc(26px - .24em);
   color: #fff1dc; text-decoration: none; background: linear-gradient(180deg, #b9592f, #8a361a); border: 1px solid rgba(255,206,150,.4);
   box-shadow: 0 4px 16px rgba(140,50,20,.45), inset 0 1px 0 rgba(255,220,180,.25); }
 .tj-unlockGo:active { transform: translateY(1px); }
-.tj-unlockClose { position: absolute; z-index: 4; right: 8px; top: 8px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(10,6,4,.45);
+.tj-unlockClose { position: absolute; z-index: 4; right: 54px; top: 36px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(10,6,4,.45);
   color: #f4e4c4; font: 300 20px/1 system-ui, sans-serif; cursor: pointer; }
 .tj-unlock:not([hidden]) ~ .tj-bubble { opacity: 0 !important; pointer-events: none !important; }   /* (one card at a time) */
