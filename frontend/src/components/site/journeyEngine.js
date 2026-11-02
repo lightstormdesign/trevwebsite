@@ -316,7 +316,6 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = false;     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
-const UNLOCK_SONG_AFTER_MS = 1600;  // after the roar, "You've unlocked a new song"
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
@@ -425,14 +424,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockSong" role="status"><span class="tj-unlockIcon" aria-hidden="true">✦</span>
-        <p><small>You've unlocked</small>A new song<em>Kingdom</em></p></div>
       <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="Unreleased music video">
         <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
         <span class="tj-unlockIcon" aria-hidden="true">✦</span>
-        <p><small>You've unlocked</small>An unreleased music video</p>
-        <span class="tj-unlockSub">Drop your number and I'll text it to you first.</span>
-        <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Send it to me</a>
+        <p><small>You've unlocked</small>The Kingdom unreleased music video</p>
+        <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Tap here</a>
       </div>
     </div>
     <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
@@ -685,22 +681,21 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   off.push(() => finale.destroy());
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
-  const unlock = $(".tj-unlock"), unlockSong = $(".tj-unlockSong"), unlockVideo = $(".tj-unlockVideo");
+  const unlock = $(".tj-unlock"), unlockVideo = $(".tj-unlockVideo");
   let unlockShown = false;
   function showUnlocks() {
     if (unlockShown) return; unlockShown = true;
     const unlockAt = performance.now();
-    later(() => { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockSong.classList.add("show"); haptic(20); }, UNLOCK_SONG_AFTER_MS);
-    const waitHook = () => {
-      const lt = sound.lionTime();
-      if (lt == null || lt >= LION_HOOK_END_S || performance.now() - unlockAt > (LION_HOOK_END_S + 2) * 1000) {
-        unlockSong.classList.remove("show"); later(() => { unlockVideo.classList.add("show"); haptic(20); }, 450); return;
-      }
-      later(waitHook, 120);
+    // one card, three quarters of the way through the hook (by the song's own clock; with no sound, by the clock)
+    const at = LION_DROP_S + 0.75 * (LION_HOOK_END_S - LION_DROP_S);
+    const wait = () => {
+      const lt = sound.lionTime(), t = lt != null && lt > 0.02 ? lt : (performance.now() - unlockAt) / 1000 + LION_DROP_S;
+      if (t >= at) { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show"); haptic(20); return; }
+      later(wait, 100);
     };
-    later(waitHook, UNLOCK_SONG_AFTER_MS + 600);
+    wait();
   }
-  const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockSong.classList.remove("show"); unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
+  const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
   on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
   let summonAt = 0;
