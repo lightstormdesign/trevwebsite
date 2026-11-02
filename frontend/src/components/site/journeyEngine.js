@@ -31,7 +31,7 @@
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt } from "@/utils/sound";
+import { sound, tilt, LION_DROP_S, LION_HOOK_END_S } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 import { createFinale, FINALE } from "./finale";
 
@@ -315,6 +315,8 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
+const USE_FINALE_VIDEO = false;     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
+const UNLOCK_SONG_AFTER_MS = 1600;  // after the roar, "You've unlocked a new song"
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
@@ -422,6 +424,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       </div>
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
+    <div class="tj-unlock" hidden>
+      <div class="tj-unlockCard tj-unlockSong" role="status"><span class="tj-unlockIcon" aria-hidden="true">✦</span>
+        <p><small>You've unlocked</small>A new song<em>Kingdom</em></p></div>
+      <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="Unreleased music video">
+        <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
+        <span class="tj-unlockIcon" aria-hidden="true">✦</span>
+        <p><small>You've unlocked</small>An unreleased music video</p>
+        <span class="tj-unlockSub">Drop your number and I'll text it to you first.</span>
+        <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Send it to me</a>
+      </div>
+    </div>
     <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
       <span class="tj-bubbleIcon" aria-hidden="true">✦</span>
       <span class="tj-bubbleText"><b>High-vibe texts from TREV</b><span>Unreleased music &amp; new shows, first</span></span>
@@ -625,8 +638,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // The finale (finale.js): the lion's tap starts the baked video, hidden; the roar (unchanged: focus,
   // charge, roar) begins so it lands on the video's "K-ingdom", by the video's own clock; the video
   // takes over at FINALE.reveal and the world waits under it. If the video won't start, he roars anyway.
-  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = 7;
-  const finale = createFinale(root, {
+  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = USE_FINALE_VIDEO ? 7 : 2.5;
+  // (the baked finale video is set aside for now: USE_FINALE_VIDEO)
+  const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, start() {}, time: () => null, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
     onEnd: () => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); },
     onPlaying: () => sound.hush(),   // the intro song only stops once the video is actually playing
@@ -670,21 +684,44 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     wrap.appendChild(layer);
   }
   off.push(() => finale.destroy());
+  // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
+  const unlock = $(".tj-unlock"), unlockSong = $(".tj-unlockSong"), unlockVideo = $(".tj-unlockVideo");
+  let unlockShown = false;
+  function showUnlocks() {
+    if (unlockShown) return; unlockShown = true;
+    const unlockAt = performance.now();
+    later(() => { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockSong.classList.add("show"); haptic(20); }, UNLOCK_SONG_AFTER_MS);
+    const waitHook = () => {
+      const lt = sound.lionTime();
+      if (lt == null || lt >= LION_HOOK_END_S || performance.now() - unlockAt > (LION_HOOK_END_S + 2) * 1000) {
+        unlockSong.classList.remove("show"); later(() => { unlockVideo.classList.add("show"); haptic(20); }, 450); return;
+      }
+      later(waitHook, 120);
+    };
+    later(waitHook, UNLOCK_SONG_AFTER_MS + 600);
+  }
+  const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockSong.classList.remove("show"); unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
+  on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
+  on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
   let summonAt = 0;
   function summon() {
     if (summonAt || roaring || frozen) return;
-    summonAt = performance.now(); finale.start(sound.muted);
-    focus();   // the spotlight closes in at once (the tap is answered while the video loads); then the charge and roar
-    docEl.classList.add("tj-finale-on");   // (the speaker, the hints and the totems step back)
+    summonAt = performance.now();
+    if (USE_FINALE_VIDEO) finale.start(sound.muted); else sound.lion();   // "Welcome to my..." fades up
+    focus();   // the spotlight closes in at once; then the charge and the roar on "K-ingdom"
     awaitDrop();
   }
   function awaitDrop() {
-    const t = finale.time(), since = (performance.now() - summonAt) / 1000;
-    const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);   // (focused at the tap: the charge, at least, is still to come)
-    if (t != null && t >= FINALE.drop - lead - 0.03) return roar();   // (0.03: the roar's own timers run a touch long)
-    // a slow start (Low Power Mode doesn't preload video): wait for it; only if it never comes does he
-    // roar without it (and the intro song, never stopped, plays on)
-    if (since > FINALE_GIVE_UP_S || finale.failed) { finale.stop(); docEl.classList.remove("tj-finale-on"); return roar(); }
+    const since = (performance.now() - summonAt) / 1000;
+    const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);
+    const t = USE_FINALE_VIDEO ? finale.time() : sound.lionTime(), drop = USE_FINALE_VIDEO ? FINALE.drop : LION_DROP_S;
+    if (t != null && t > 0.02 && t >= drop - lead - 0.03) { showUnlocks(); return roar(); }
+    // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
+    const muted = !USE_FINALE_VIDEO && sound.lionTime() == null;
+    if ((muted && since >= drop - lead) || since > FINALE_GIVE_UP_S || finale.failed) {
+      if (USE_FINALE_VIDEO) { finale.stop(); docEl.classList.remove("tj-finale-on"); }
+      showUnlocks(); return roar();
+    }
     later(awaitDrop, 8);
   }
   function release() {
@@ -730,8 +767,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
   on(window, "pointerdown", (e) => { if (overBison(e.clientX, e.clientY, 30)) lightBison(); }, { passive: true, capture: true });
-  on(window, "touchend", () => finale.kick(), { passive: true, capture: true });
-  on(window, "click", () => finale.kick(), { capture: true });
+  on(window, "touchend", () => { finale.kick(); if (summonAt) sound.kick(); }, { passive: true, capture: true });
+  on(window, "click", () => { finale.kick(); if (summonAt) sound.kick(); }, { capture: true });
   on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overBison(t.clientX, t.clientY, 30)) lightBison(); }, { passive: true, capture: true });
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
     const h = overBison(e.clientX, e.clientY, 10);
@@ -1121,6 +1158,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function bisonMoment() {
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
+    sound.fadeIntro();   // the intro song fades away as he turns to you
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
     haptic([40, 40, 80]);
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");

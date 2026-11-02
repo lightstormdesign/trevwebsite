@@ -12,7 +12,8 @@
 // Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
 // player's file makes iPhone start late).
 const SRC = "/journey/trev-kingdom-intro.m4a?v=3";   // bump with the file (phones cache it)
-const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=2", LION_FROM = 26.55;
+const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=3", LION_FROM = 26.55;   // (now through the hook: it fades out across the breakdown, silent by 55.6 s)
+export const LION_HOOK_END_S = 28.4;   // into the lion cut: the hook is over (the fade is nearly done)
 export const LION_DROP_S = 0.94;   // into the lion cut: "K-ingdom" and the bass, together (27.49s in the song): the roar
 const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
 const BEAT_FPS = 30;
@@ -41,6 +42,7 @@ function lionEl() {
   lionAudio.preload = "auto";
   lionAudio.src = LION_SRC;
   ["play", "pause", "ended"].forEach((t) => lionAudio.addEventListener(t, emit));
+  lionAudio.addEventListener("ended", () => { mode = "intro"; started = false; emit(); });   // the hook is over: the speaker starts the intro again
   return lionAudio;
 }
 const cur = () => (mode === "lion" ? lionEl() : el());
@@ -87,7 +89,27 @@ export const sound = {
     if (audio) audio.pause();
     mode = "lion"; started = true;
     try { l.currentTime = 0; } catch (e) { /* starts at 0 anyway */ }
-    l.play().catch(() => { mode = "intro"; emit(); });
+    l.play().catch(() => {});   // (refused: the next touch starts it, sound.kick)
+  },
+  // a touch after the lion's tap: on iPhone only some touches let audio start, so any of them may
+  kick() { if (mode === "lion" && lionAudio && lionAudio.paused && !userMuted && lionAudio.currentTime < 1) lionAudio.play().catch(() => {}); },
+  // the intro fades away (the bison's final tap). iPhone ignores .volume, so there the fade runs
+  // through Web Audio (started in this tap); if that isn't possible, it stops
+  fadeIntro(ms = 1800) {
+    const a = audio; if (!a || a.paused || mode !== "intro") return;
+    a.volume = 0.999;
+    if (a.volume === 0.999) {   // the volume can be set: fade it
+      const t0 = performance.now(), step = () => { const k = 1 - (performance.now() - t0) / ms;
+        if (k <= 0 || mode !== "intro") { a.pause(); a.volume = 1; return; } a.volume = Math.max(0, k * k); requestAnimationFrame(step); };
+      return requestAnimationFrame(step);
+    }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC(), g = ctx.createGain(); ctx.createMediaElementSource(a).connect(g); g.connect(ctx.destination);
+      ctx.resume();
+      g.gain.setValueAtTime(1, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + ms / 1000);
+      setTimeout(() => { a.pause(); }, ms + 50);
+    } catch (e) { a.pause(); }
   },
   // seconds into the lion cut (null when it isn't the lion cut that's playing, or sound is off)
   lionTime() { return mode === "lion" && lionAudio && !userMuted ? lionAudio.currentTime : null; },
