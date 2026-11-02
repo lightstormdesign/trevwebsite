@@ -31,7 +31,7 @@
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt, LION_DROP_S, LION_HOOK_END_S } from "@/utils/sound";
+import { sound, tilt, LION_DROP_S } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 import { createFinale, FINALE } from "./finale";
 
@@ -315,7 +315,8 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
-const USE_FINALE_VIDEO = false;     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
+const USE_FINALE_VIDEO = false;
+const UNLOCK_AFTER_ROAR_MS = 1200;   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
@@ -683,17 +684,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
   const unlock = $(".tj-unlock"), unlockVideo = $(".tj-unlockVideo");
   let unlockShown = false;
-  function showUnlocks() {
+  function showUnlocks() {   // (called as he roars)
     if (unlockShown) return; unlockShown = true;
-    const unlockAt = performance.now();
-    // one card, once the hook has played through (by the song's own clock; with no sound, by the clock)
-    const at = LION_HOOK_END_S;
-    const wait = () => {
-      const lt = sound.lionTime(), t = lt != null && lt > 0.02 ? lt : (performance.now() - unlockAt) / 1000 + LION_DROP_S;
-      if (t >= at) { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show"); haptic(20); return; }
-      later(wait, 100);
-    };
-    wait();
+    // the card rises right after the roar, once the shake has settled; the hook plays on under it
+    later(() => { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show"); haptic(20); }, UNLOCK_AFTER_ROAR_MS);
   }
   const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
