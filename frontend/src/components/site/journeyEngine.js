@@ -686,8 +686,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function showUnlocks() {
     if (unlockShown) return; unlockShown = true;
     const unlockAt = performance.now();
-    // one card, three quarters of the way through the hook (by the song's own clock; with no sound, by the clock)
-    const at = LION_DROP_S + 0.75 * (LION_HOOK_END_S - LION_DROP_S);
+    // one card, once the hook has played through (by the song's own clock; with no sound, by the clock)
+    const at = LION_HOOK_END_S;
     const wait = () => {
       const lt = sound.lionTime(), t = lt != null && lt > 0.02 ? lt : (performance.now() - unlockAt) / 1000 + LION_DROP_S;
       if (t >= at) { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show"); haptic(20); return; }
