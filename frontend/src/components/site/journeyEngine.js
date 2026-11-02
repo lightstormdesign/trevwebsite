@@ -625,10 +625,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // The finale (finale.js): the lion's tap starts the baked video, hidden; the roar (unchanged: focus,
   // charge, roar) begins so it lands on the video's "K-ingdom", by the video's own clock; the video
   // takes over at FINALE.reveal and the world waits under it. If the video won't start, he roars anyway.
-  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000;
+  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = 7;
   const finale = createFinale(root, {
     onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
     onEnd: () => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); },
+    onPlaying: () => sound.hush(),   // the intro song only stops once the video is actually playing
   });
   // The roar's Flower of Life rings carry on over the video: at the takeover each ring is picked up
   // exactly where it is in the world (its place, size, turn and brightness, the same moment the video's
@@ -672,14 +673,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   let summonAt = 0;
   function summon() {
     if (summonAt || roaring || frozen) return;
-    summonAt = performance.now(); sound.hush(); finale.start(sound.muted);
+    summonAt = performance.now(); finale.start(sound.muted);
+    focus();   // the spotlight closes in at once (the tap is answered while the video loads); then the charge and roar
     docEl.classList.add("tj-finale-on");   // (the speaker, the hints and the totems step back)
     awaitDrop();
   }
   function awaitDrop() {
     const t = finale.time(), since = (performance.now() - summonAt) / 1000;
-    if (t != null && t >= FINALE.drop - ROAR_LEAD_S - 0.03) return roar();   // (0.03: the roar's own timers run a touch long)
-    if (since > 1.2 || finale.failed) { finale.stop(); docEl.classList.remove("tj-finale-on"); return roar(); }   // the video never came: he roars anyway
+    const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);   // (focused at the tap: the charge, at least, is still to come)
+    if (t != null && t >= FINALE.drop - lead - 0.03) return roar();   // (0.03: the roar's own timers run a touch long)
+    // a slow start (Low Power Mode doesn't preload video): wait for it; only if it never comes does he
+    // roar without it (and the intro song, never stopped, plays on)
+    if (since > FINALE_GIVE_UP_S || finale.failed) { finale.stop(); docEl.classList.remove("tj-finale-on"); return roar(); }
     later(awaitDrop, 8);
   }
   function release() {
@@ -725,6 +730,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
   on(window, "pointerdown", (e) => { if (overBison(e.clientX, e.clientY, 30)) lightBison(); }, { passive: true, capture: true });
+  on(window, "touchend", () => finale.kick(), { passive: true, capture: true });
+  on(window, "click", () => finale.kick(), { capture: true });
   on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overBison(t.clientX, t.clientY, 30)) lightBison(); }, { passive: true, capture: true });
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
     const h = overBison(e.clientX, e.clientY, 10);
