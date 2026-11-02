@@ -39,8 +39,13 @@ export function createFinale(root, { onEnd, onReveal, onPlaying }) {
     }).catch(() => { v.src = HLS_URL; });
     return loading;
   }
+  // true full screen where the browser allows it (Android, desktop; iPhone doesn't let a page do this),
+  // asked for inside a tap
+  const fsOK = () => document.fullscreenEnabled && !document.fullscreenElement && wrap.requestFullscreen;
+  function goFull() { if (fsOK()) wrap.requestFullscreen({ navigationUI: "hide" }).catch(() => {}); }
   // in the lion's tap (that's what lets it play with sound)
   function start(muted) {
+    if (matchMedia("(pointer: coarse)").matches) goFull();   // phones/tablets that allow it: edge to edge from the start
     if (v.error && !hls) { v.removeAttribute("src"); v.load(); loading = null; }   // a failed early load: start afresh
     preload();
     active = true; shown = false; wide = false;
@@ -69,6 +74,7 @@ export function createFinale(root, { onEnd, onReveal, onPlaying }) {
     if (!active) return;
     active = false; cancelAnimationFrame(raf);
     wrap.classList.remove("show", "wide", "turn", "controls"); wrap.setAttribute("aria-hidden", "true");
+    if (document.fullscreenElement === wrap) document.exitFullscreen().catch(() => {});
     if (!shown) v.pause();   // never shown: stop it now (a late arrival mustn't play under the world)
     setTimeout(() => { v.pause(); wrap.querySelectorAll(".tj-finaleRings").forEach((e) => e.remove()); }, 600);
     onEnd();
@@ -79,6 +85,7 @@ export function createFinale(root, { onEnd, onReveal, onPlaying }) {
   wrap.addEventListener("click", (e) => {
     if (!shown) return;
     if (e.target.closest(".tj-finaleClose")) return stop();
+    goFull();   // (desktop: a click on the video takes it full screen)
     wrap.classList.add("controls"); clearTimeout(hideClose);
     hideClose = setTimeout(() => wrap.classList.remove("controls"), 3000);
   });

@@ -820,7 +820,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
    middle; once the music video fills the frame (sideways, bottom to the right) it's turned back, wide */
 @media (orientation: landscape) {
   .tj-finale video { object-fit: contain; }
-  .tj-finale.wide video { width: 100vh; width: 100lvh; height: 100vw; object-fit: cover; transform: translate(-50%, -50%) rotate(90deg); transition: transform .5s cubic-bezier(.3,.1,.3,1); }
+  /* no transition: it snaps in the same instant the phone's own rotation lands (one turn, not two) */
+  .tj-finale.wide video { width: 100vh; width: 100lvh; height: 100vw; object-fit: cover; transform: translate(-50%, -50%) rotate(90deg); transition: none; }
 }
 /* phones held upright: a moment's sign to turn the phone (clockwise) */
 .tj-finaleTurn { position: absolute; left: 50%; top: 50%; width: 76px; height: 76px; margin: -38px 0 0 -38px; color: #fff; opacity: 0; pointer-events: none;
@@ -842,3 +843,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* from the lion's tap: the speaker, the scroll hint and the totems step back (they return with the world) */
 html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .tj-progressHint, html.tj-finale-on .tj-totems, html.tj-finale-on .tj-bubble { opacity: 0 !important; pointer-events: none !important; transition: opacity .4s ease !important; }
+
+/* in true full screen (Android, desktop) the finale is the whole screen */
+.tj-finale:fullscreen { background: #000; }
+.tj-finale:fullscreen video { height: 100vh; }
