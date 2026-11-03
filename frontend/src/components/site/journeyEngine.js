@@ -33,7 +33,7 @@
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
 import { sound, tilt, LION_DROP_S } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
-import { createFinale, FINALE } from "./finale";
+import { createFinale } from "./finale";
 
 const A = "/journey/";
 // Cache-buster for re-encoded media (Burnell's MEDIA_V): bump it whenever a video, the song or the
@@ -318,7 +318,6 @@ const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js), hosted with the site
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song clock (its first frame lands on the K)
 const RING_PULSES_AFTER = 2, RING_PULSE_GAP_MS = 450;   // the roar's pulse of rings goes on over the video this many more times
-const ROAR_EARLY_VIDEO_S = 0.12;   // ...by the finale video's clock (a playing video reports its time a little behind what's heard)
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -559,7 +558,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   function transform() {
     if (lionMode) return;
-    lionMode = true; bison.classList.add("is-on", "facing"); finale.preload();   // the bison turns to you, aura blazing, then...
+    lionMode = true; bison.classList.add("is-on", "facing"); finale.prepare();   // (the finale video loaded, ready for his tap)   // the bison turns to you, aura blazing, then...
     root.classList.add("transforming");
     callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
@@ -645,16 +644,16 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       for (let i = 0; i < ticks; i++) later(() => hapticSwitch.click(), i * 70);
     } catch (e) { /* no haptics here */ }
   }
-  // The finale (finale.js): the lion's tap starts the baked video, hidden; the roar (unchanged: focus,
-  // charge, roar) begins so it lands on the video's "K-ingdom", by the video's own clock; the video
-  // takes over at FINALE.reveal and the world waits under it. If the video won't start, he roars anyway.
-  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = USE_FINALE_VIDEO ? 7 : 2.5;
-  // (the baked finale video is set aside for now: USE_FINALE_VIDEO)
-  const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, start() {}, time: () => null, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
+  // The finale (finale.js): the lion's tap starts the song (the lion's cut) and the baked video, loaded
+  // beforehand, silent and hidden, kept on the song. The roar lands on the song's "K-ingdom", by the
+  // song's own clock (as without the video); the video takes over at its reveal frame and the world
+  // waits under it. If the video won't get going, the world simply carries on, and the card comes.
+  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = 2.5;
+  const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, prepare() {}, start() {}, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
-    onOutro: () => showUnlocks(0),   // the card rises over the video's last frame (held there until the card is closed)
-    onEnd: () => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); },
-    onPlaying: () => sound.hush(),   // the intro song only stops once the video is actually playing
+    clock: () => sound.lionTime(),   // the video follows the song (the lion's cut, heard from the site's player)
+    onOutro: () => { sound.hush(); showUnlocks(0); },   // the card rises over the video's last frame (held there until the card is closed)
+    onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (!played) showUnlocks(1200); },   // (it never got going: the card anyway)
   });
   // The roar's Flower of Life rings carry on over the video: at the takeover the very same rings (both
   // sets: behind the lion and the faint one over him) are lifted onto the video exactly where they are,
@@ -715,7 +714,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function summon() {
     if (summonAt || roaring || frozen) return;
     summonAt = performance.now();
-    if (USE_FINALE_VIDEO) finale.start(sound.muted); else sound.lion();   // "Welcome to my..." fades up
+    sound.lion();   // "Welcome to my..." fades up
+    if (USE_FINALE_VIDEO) finale.start();   // (already loaded: it plays hidden, on the song, until the takeover)
     focus();   // the spotlight closes in at once; then the charge and the roar on "K-ingdom"
     awaitDrop();
   }
@@ -725,19 +725,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   let songLed = false;
   function awaitDrop() {
     const since = (performance.now() - summonAt) / 1000;
-    const t = USE_FINALE_VIDEO ? finale.time() : sound.lionTime(), drop = USE_FINALE_VIDEO ? FINALE.drop : LION_DROP_S;
+    const t = sound.lionTime(), drop = LION_DROP_S;
     if (t != null && t > 0.02) {
       songLed = true;
       if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
-      if (t >= drop - (USE_FINALE_VIDEO ? ROAR_EARLY_VIDEO_S : ROAR_EARLY_S)) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
+      if (t >= drop - ROAR_EARLY_S) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
       return requestAnimationFrame(awaitDrop);
     }
     // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
-    const muted = !USE_FINALE_VIDEO && sound.lionTime() == null;
+    const muted = sound.lionTime() == null;
     const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);
-    if ((muted && since >= drop - lead) || since > FINALE_GIVE_UP_S || finale.failed) {
-      if (USE_FINALE_VIDEO) { finale.stop(); docEl.classList.remove("tj-finale-on"); }
-      songLed = false; showUnlocks(); return roar();
+    if ((muted && since >= drop - lead) || since > FINALE_GIVE_UP_S) {
+      songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar();
     }
     requestAnimationFrame(awaitDrop);
   }
@@ -1246,7 +1245,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
-    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.preload(), 8000); }   // already awake (the finale downloads once the world has settled)
+    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.prepare(), 8000); }   // already awake (the finale loads once the world has settled)
     paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
