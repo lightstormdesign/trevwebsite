@@ -1,42 +1,40 @@
-// The finale: one baked video (Cloudflare Stream) that carries everything from the lion's tap on:
+// The finale: one baked video (hosted with the site, downloaded whole into memory while they play) that carries everything from the lion's tap on:
 // "Welcome to my K-ingdom" (its audio), the flight into the lion's eye (Kling), and the music video
 // opening out of his pupil. The lion's tap starts it (so it plays with sound); it stays hidden while
 // the site's own lion roars on its "K" (FINALE.drop), and takes over from the live world at
-// FINALE.reveal, on the exact frame. From FINALE.wide the music video fills the frame, turned
-// sideways (its bottom to the right): a phone turned clockwise reads it upright; a landscape screen
-// (desktop, or a phone with rotation unlocked) turns it back.
+// FINALE.reveal, on the exact frame. It's vertical throughout (the music video reframed to 9:16), so a
+// phone stays upright; a landscape screen shows it whole in the middle.
 export const FINALE = {
-  id: "12f78bf1b2189445e54f7eec90a4b5a5",
-  drop: 0.92,     // "K-ingdom" and the drums: the roar
-  reveal: 1.82,   // the video takes over from the world (the roar's frame 0.9 s on)
-  wide: 10.77,    // the music video fills the frame
+  hevc: "trev-finale-hevc.mp4",   // 7.5 MB (iPhone, Mac, most Android)
+  h264: "trev-finale.mp4",        // 9.8 MB (everything else)
+  drop: 0.94,     // "K-ingdom" and the drums: the roar
+  reveal: 1.79,   // the video takes over from the world (its first frame: the roar's frame 0.9 s on)
+  outro: 1.6,     // the unlock card starts rising this long before the end (as the song fades out)
 };
-const HLS_URL = `https://videodelivery.net/${FINALE.id}/manifest/video.m3u8`;
+const A = "/journey/";
 
-export function createFinale(root, { onEnd, onReveal, onPlaying }) {
+export function createFinale(root, { onEnd, onReveal, onPlaying, onOutro }) {
   const wrap = document.createElement("div");
   wrap.className = "tj-finale";
   wrap.setAttribute("aria-hidden", "true");
   wrap.innerHTML = `<video playsinline preload="auto" tabindex="-1"></video>
-    <div class="tj-finaleTurn" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="16" y="6" width="16" height="30" rx="3"/><path d="M38 20a14 14 0 0 1-6 20"/><path d="M30 37l2.5 3.5L36 38"/></svg></div>
     <button class="tj-finaleClose" type="button" aria-label="Close the video">&times;</button>`;
   root.appendChild(wrap);
   const v = wrap.querySelector("video");
-  let hls = null, loading = null, active = false, shown = false, wide = false, raf = 0, hideClose = 0, wantMuted = false;
+  let loading = null, blobUrl = null, active = false, shown = false, outro = false, raf = 0, hideClose = 0, wantMuted = false;
   // it's "heard" once it's playing with sound (or playing at all, if they'd muted the site)
   const heard = () => { if (active && !v.paused && v.readyState >= 3 && (!v.muted || wantMuted) && onPlaying) onPlaying(); };   // (frames actually showing)
 
-  // start fetching (when the lion appears): native HLS on Apple devices, hls.js elsewhere
+  // start downloading (at the first totem): the whole file into memory, so it starts the instant the
+  // lion is tapped and never stalls; if the download fails it plays from the network instead
+  const url = A + (v.canPlayType('video/mp4; codecs="hvc1"') ? FINALE.hevc : FINALE.h264);
   function preload() {
     if (loading) return loading;
-    if (v.canPlayType("application/vnd.apple.mpegurl")) { v.src = HLS_URL; v.load(); return (loading = Promise.resolve()); }
-    loading = import("hls.js").then(({ default: Hls }) => {
-      if (!Hls.isSupported()) { v.src = HLS_URL; return; }
-      hls = new Hls({ maxBufferLength: 20, startLevel: -1 });
-      hls.on(Hls.Events.ERROR, (e, d) => { if (d && d.fatal) { hls.destroy(); hls = null; loading = null; } });   // (the lion's tap tries again)
-      hls.loadSource(HLS_URL); hls.attachMedia(v);
-    }).catch(() => { v.src = HLS_URL; });
+    const direct = () => { if (!v.src) { v.src = url; v.preload = "auto"; v.load(); } };
+    loading = fetch(url)
+      .then((r) => (r.ok ? r.blob() : Promise.reject()))
+      .then((b) => { if (active && v.src) return; blobUrl = URL.createObjectURL(b); v.src = blobUrl; v.preload = "auto"; v.load(); })
+      .catch(direct);
     return loading;
   }
   // true full screen where the browser allows it (Android, desktop; iPhone doesn't let a page do this),
@@ -46,10 +44,11 @@ export function createFinale(root, { onEnd, onReveal, onPlaying }) {
   // in the lion's tap (that's what lets it play with sound)
   function start(muted) {
     if (matchMedia("(pointer: coarse)").matches) goFull();   // phones/tablets that allow it: edge to edge from the start
-    if (v.error && !hls) { v.removeAttribute("src"); v.load(); loading = null; }   // a failed early load: start afresh
+    if (v.error) { v.removeAttribute("src"); v.load(); if (blobUrl) URL.revokeObjectURL(blobUrl); blobUrl = null; loading = null; }   // a failed load: start afresh
+    if (!v.src) { v.src = url; v.preload = "auto"; v.load(); }   // still downloading: play from the network
     preload();
-    active = true; shown = false; wide = false;
-    wrap.classList.remove("show", "wide", "turn", "controls");
+    active = true; shown = false; outro = false;
+    wrap.classList.remove("show", "controls");
     wantMuted = !!muted; v.muted = wantMuted;
     try { v.currentTime = 0; } catch (e) { /* not loaded yet */ }
     const go = () => { if (!active) return; const p = v.play();
@@ -65,19 +64,16 @@ export function createFinale(root, { onEnd, onReveal, onPlaying }) {
     raf = requestAnimationFrame(tick);
     const t = v.currentTime;
     if (!shown && t >= FINALE.reveal) { shown = true; wrap.classList.add("show"); wrap.setAttribute("aria-hidden", "false"); if (onReveal) onReveal(wrap); }
-    if (!wide && t >= FINALE.wide) {
-      wide = true; wrap.classList.add("wide");
-      if (matchMedia("(orientation: portrait)").matches) { wrap.classList.add("turn"); setTimeout(() => wrap.classList.remove("turn"), 2800); }
-    }
+    if (!outro && v.duration > 0 && t >= v.duration - FINALE.outro) { outro = true; if (onOutro) onOutro(); }
   }
   function stop() {
     if (!active) return;
     active = false; cancelAnimationFrame(raf);
-    wrap.classList.remove("show", "wide", "turn", "controls"); wrap.setAttribute("aria-hidden", "true");
+    wrap.classList.remove("show", "controls"); wrap.setAttribute("aria-hidden", "true");
     if (document.fullscreenElement === wrap) document.exitFullscreen().catch(() => {});
     if (!shown) v.pause();   // never shown: stop it now (a late arrival mustn't play under the world)
     setTimeout(() => { v.pause(); wrap.querySelectorAll(".tj-finaleRings").forEach((e) => e.remove()); }, 600);
-    onEnd();
+    onEnd(shown);   // (shown: it played; not: it failed before the takeover)
   }
   v.addEventListener("ended", stop);
   v.addEventListener("playing", heard); v.addEventListener("volumechange", heard); v.addEventListener("canplay", heard);
@@ -101,6 +97,6 @@ export function createFinale(root, { onEnd, onReveal, onPlaying }) {
     get playing() { return active && !v.paused && v.readyState >= 2; },
     get active() { return active; },
     get failed() { return active && !shown && v.error != null; },
-    destroy() { cancelAnimationFrame(raf); if (hls) hls.destroy(); v.removeAttribute("src"); wrap.remove(); },
+    destroy() { cancelAnimationFrame(raf); v.removeAttribute("src"); if (blobUrl) URL.revokeObjectURL(blobUrl); wrap.remove(); },
   };
 }

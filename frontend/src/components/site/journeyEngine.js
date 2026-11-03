@@ -315,7 +315,7 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
-const USE_FINALE_VIDEO = false;
+const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js), hosted with the site
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song clock (its first frame lands on the K)
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -650,7 +650,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // (the baked finale video is set aside for now: USE_FINALE_VIDEO)
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, start() {}, time: () => null, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
-    onEnd: () => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); },
+    onOutro: () => showUnlocks(0),   // the card rises over the video's last moments, as the song fades
+    onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (played) showUnlocks(0); },
     onPlaying: () => sound.hush(),   // the intro song only stops once the video is actually playing
   });
   // The roar's Flower of Life rings carry on over the video: at the takeover each ring is picked up
@@ -695,13 +696,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
   const unlock = $(".tj-unlock"), unlockVideo = $(".tj-unlockVideo");
   let unlockShown = false;
-  function showUnlocks() {   // (called as he roars)
+  function showUnlocks(after = UNLOCK_AFTER_ROAR_MS) {   // (called as he roars, or at the finale video's end)
     if (unlockShown) return; unlockShown = true;
     // the card rises right after the roar, once the shake has settled; the hook plays on under it
     later(() => {
       unlock.hidden = false; unlockVideo.style.setProperty("--h", unlockVideo.offsetHeight + "px");
       void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show");
-    }, UNLOCK_AFTER_ROAR_MS);
+    }, after);
   }
   const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
@@ -724,7 +725,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (t != null && t > 0.02) {
       songLed = true;
       if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
-      if (t >= drop - ROAR_EARLY_S) { songLed = false; showUnlocks(); return roar(true); }            // the roar, on the K
+      if (t >= drop - ROAR_EARLY_S) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
       return requestAnimationFrame(awaitDrop);
     }
     // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
@@ -1182,7 +1183,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   function wake(k) {
     if (!TOTEMS.includes(k) || awake.has(k)) return;
-    awake.add(k); paintTotems();
+    awake.add(k); paintTotems(); finale.preload();   // the finale video starts downloading at the first totem
     const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
     try { sessionStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
   }
