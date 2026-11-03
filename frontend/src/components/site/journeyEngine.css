@@ -815,6 +815,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
    fade on their own), and it's clear around the picture, so a wide screen keeps the world's sides */
 .tj-finale { position: fixed; inset: 0; z-index: 30; opacity: 0; pointer-events: none; transition: opacity 1s ease; overflow: hidden; }
 .tj-finale.show { opacity: 1; pointer-events: auto; transition: opacity .12s linear; }   /* in on the exact frame, out slowly under the card */
+.tj-finale.held { pointer-events: none; }   /* held on its last frame under the unlock card: taps go to the card */
 .tj-finale video { position: absolute; left: 50%; top: 50%; width: 100vw; height: 100vh; height: 100lvh; transform: translate(-50%, -50%); object-fit: cover; background: transparent; }
 /* a landscape screen (desktop, or a phone with rotation unlocked): the vertical video sits whole in the middle */
 @media (orientation: landscape) { .tj-finale video { object-fit: contain; } }
@@ -824,8 +825,10 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-finale.controls .tj-finaleClose { opacity: 1; pointer-events: auto; }
 
 /* the roar's rings, carried over the video (journeyEngine.js carryRings) */
-.tj-finaleRings { position: absolute; pointer-events: none; transform: translate(-0%, -0%); }
-.tj-finaleRings img { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 50%; will-change: transform, opacity; }
+.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; }
+.tj-finaleRingSet { position: absolute; inset: 0; }
+.tj-finaleRings .wave { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; backface-visibility: hidden; }
+.tj-finaleRings .wave img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* once the video has the screen, the site's own furniture steps back, and the world's vignette lifts */
 .tj.finale .tj-header, .tj.finale .tj-totems, .tj.finale .tj-progress, .tj.finale .tj-dust, .tj.finale .tj-bubble, .tj.finale .tj-sound { opacity: 0 !important; pointer-events: none !important; transition: opacity .6s ease; }
 .tj.finale .tj-vignette { opacity: 0 !important; transition: opacity 1.6s ease !important; }
@@ -833,9 +836,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* from the lion's tap: the speaker, the scroll hint and the totems step back (they return with the world) */
 html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .tj-progressHint, html.tj-finale-on .tj-totems, html.tj-finale-on .tj-bubble { opacity: 0 !important; pointer-events: none !important; transition: opacity .4s ease !important; }
 
-/* in true full screen (Android, desktop) the finale is the whole screen */
-.tj-finale:fullscreen { background: #000; }
-.tj-finale:fullscreen video { height: 100vh; }
+/* in true full screen (Android, desktop: the whole page) the finale is the whole screen */
+html:fullscreen .tj-finale video { height: 100vh; }
 
 /* the unlock card, after the lion's roar: the world's sky, darkened, framed by the world itself
    (clouds above, the aspen and the juniper at the sides, the red rocks below); the photo with the

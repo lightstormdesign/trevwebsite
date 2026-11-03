@@ -317,6 +317,8 @@ const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js), hosted with the site
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song clock (its first frame lands on the K)
+const RING_PULSES_AFTER = 2, RING_PULSE_GAP_MS = 450;   // the roar's pulse of rings goes on over the video this many more times
+const ROAR_EARLY_VIDEO_S = 0.12;   // ...by the finale video's clock (a playing video reports its time a little behind what's heard)
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -650,45 +652,46 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // (the baked finale video is set aside for now: USE_FINALE_VIDEO)
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, start() {}, time: () => null, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
-    onOutro: () => showUnlocks(0),   // the card rises over the video's last moments, as the song fades
-    onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (played) showUnlocks(0); },
+    onOutro: () => showUnlocks(0),   // the card rises over the video's last frame (held there until the card is closed)
+    onEnd: () => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); },
     onPlaying: () => sound.hush(),   // the intro song only stops once the video is actually playing
   });
-  // The roar's Flower of Life rings carry on over the video: at the takeover each ring is picked up
-  // exactly where it is in the world (its place, size, turn and brightness, the same moment the video's
-  // first frame shows) and keeps rippling outward over the footage, fading as it goes.
+  // The roar's Flower of Life rings carry on over the video: at the takeover the very same rings (both
+  // sets: behind the lion and the faint one over him) are lifted onto the video exactly where they are,
+  // each with its own animation at the same moment, so the emanation simply keeps rippling outward over
+  // the footage, and the same pulse rises from the lion again (RING_PULSES_AFTER times) as the camera
+  // takes off. Nothing new: the same rings, the same motion.
   function carryRings(wrap) {
-    const src = CREATURES.find((c) => c.kind === "roarwave" && !c.over);
-    if (!src) return;
-    const box = src.el.firstChild.getBoundingClientRect();
     const layer = document.createElement("div");
     layer.className = "tj-finaleRings";
-    Object.assign(layer.style, { left: box.left + "px", top: box.top + "px", width: box.width + "px", height: box.height + "px" });
-    src.el.querySelectorAll(".wave").forEach((w) => {
-      const cs = getComputedStyle(w), o = parseFloat(cs.opacity);
-      if (!(o > 0.01)) return;
-      const m = new DOMMatrixReadOnly(cs.transform === "none" ? undefined : cs.transform);
-      const k = Math.hypot(m.a, m.b), deg = Math.atan2(m.b, m.a) * 180 / Math.PI;
-      const ring = document.createElement("img");
-      ring.src = A + "trev-roar-ring.webp"; ring.alt = "";
-      layer.appendChild(ring);
-      ring.animate([
-        { transform: `rotate(${deg.toFixed(2)}deg) scale(${k.toFixed(3)})`, opacity: o },
-        { transform: `rotate(${(deg + 12).toFixed(2)}deg) scale(${(k * 2.4).toFixed(3)})`, opacity: 0 },
-      ], { duration: 1300, easing: "cubic-bezier(.2,.6,.3,1)", fill: "forwards" });
-    });
-    // ...and the roar keeps radiating: a fresh set of rings rises from the lion and ripples out over the
-    // whole screen as the camera takes off
-    for (let i = 0; i < 3; i++) {
-      const ring = document.createElement("img");
-      ring.src = A + "trev-roar-ring.webp"; ring.alt = "";
-      layer.appendChild(ring);
-      ring.animate([
-        { transform: `rotate(${i * 10}deg) scale(3.4)`, opacity: 0 },     // born at the size of his aura (he stays clear)
-        { opacity: 0.5, offset: 0.16 },
-        { opacity: 0.28, offset: 0.6 },
-        { transform: `rotate(${i * 10 + 30}deg) scale(15)`, opacity: 0 },
-      ], { duration: 1600, delay: i * 160, easing: "cubic-bezier(.25,.55,.35,1)", fill: "both" });
+    for (const src of CREATURES.filter((c) => c.kind === "roarwave" && c.el)) {
+      const body = src.el.querySelector(".tj-crBody");
+      if (!body) continue;
+      const box = body.getBoundingClientRect(), set = document.createElement("div"), at = document.createElement("div");
+      set.className = "tj-finaleRingSet"; set.style.opacity = getComputedStyle(body).opacity;
+      Object.assign(at.style, { position: "absolute", left: box.left + "px", top: box.top + "px", width: box.width + "px", height: box.height + "px" });
+      set.appendChild(at);
+      // the set from behind the lion: in the world he hides its middle, so over the video it stays clear of him
+      const lion = !src.over && $(".tj-cr-lion .tj-crBody");
+      if (lion) {
+        const L = lion.getBoundingClientRect(), cx = L.left + L.width / 2, cy = L.top + L.height / 2, rad = Math.min(L.width, L.height) * 0.5;
+        set.style.webkitMaskImage = set.style.maskImage = `radial-gradient(circle at ${cx.toFixed(0)}px ${cy.toFixed(0)}px, transparent ${(rad * 0.7).toFixed(0)}px, #000 ${(rad * 1.05).toFixed(0)}px)`;
+      }
+      body.querySelectorAll(".wave").forEach((w) => {
+        const anim = w.getAnimations().find((x) => x.animationName === "tj-roarWave");
+        if (!anim || anim.playState === "finished") return;
+        const ring = w.cloneNode(true);
+        at.appendChild(ring);
+        const copy = ring.animate(anim.effect.getKeyframes(), anim.effect.getTiming());
+        copy.currentTime = anim.currentTime;
+        // ...and it keeps emanating: the same pulse (the same rings, motion and spacing) twice more
+        for (let k = 0; k < RING_PULSES_AFTER; k++) {
+          const again = w.cloneNode(true), tm = anim.effect.getTiming();
+          at.appendChild(again);
+          again.animate(anim.effect.getKeyframes(), { ...tm, delay: tm.delay - 100 + k * RING_PULSE_GAP_MS });
+        }
+      });
+      layer.appendChild(set);
     }
     wrap.appendChild(layer);
   }
@@ -704,7 +707,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show");
     }, after);
   }
-  const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
+  const closeUnlock = () => { finale.stop(); unlock.classList.remove("show");   // (and the held video gives way to the world)
+    later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
   on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
   let summonAt = 0;
@@ -725,7 +729,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (t != null && t > 0.02) {
       songLed = true;
       if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
-      if (t >= drop - ROAR_EARLY_S) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
+      if (t >= drop - (USE_FINALE_VIDEO ? ROAR_EARLY_VIDEO_S : ROAR_EARLY_S)) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
       return requestAnimationFrame(awaitDrop);
     }
     // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
