@@ -1246,7 +1246,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
-    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); finale.preload(); }   // already awake
+    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.preload(), 8000); }   // already awake (the finale downloads once the world has settled)
     paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;

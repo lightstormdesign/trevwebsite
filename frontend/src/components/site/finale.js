@@ -25,15 +25,16 @@ export function createFinale(root, { onEnd, onReveal, onPlaying, onOutro }) {
   const heard = () => { if (active && !v.paused && v.readyState >= 3 && (!v.muted || wantMuted) && onPlaying) onPlaying(); };   // (frames actually showing)
 
   // start downloading (at the first totem): the whole file into memory, so it starts the instant the
-  // lion is tapped and never stalls; if the download fails it plays from the network instead
+  // lion is tapped and never stalls; if the download fails it plays from the network instead. Only the
+  // file is fetched: the video itself isn't loaded until the lion's tap (a second video loading while the
+  // world is drawing is what an iPhone struggles with)
   const url = A + (v.canPlayType('video/mp4; codecs="hvc1"') ? FINALE.hevc : FINALE.h264);
   function preload() {
     if (loading) return loading;
-    const direct = () => { if (!v.src) { v.src = url; v.preload = "auto"; v.load(); } };
-    loading = fetch(url)
+    loading = fetch(url, { priority: "low" })
       .then((r) => (r.ok ? r.blob() : Promise.reject()))
-      .then((b) => { if (active && v.src) return; blobUrl = URL.createObjectURL(b); v.src = blobUrl; v.preload = "auto"; v.load(); })
-      .catch(direct);
+      .then((b) => { blobUrl = URL.createObjectURL(b); })
+      .catch(() => {});   // (the lion's tap plays it from the network)
     return loading;
   }
   // true full screen where the browser allows it (Android, desktop; iPhone doesn't let a page do this),
@@ -45,8 +46,8 @@ export function createFinale(root, { onEnd, onReveal, onPlaying, onOutro }) {
   // in the lion's tap (that's what lets it play with sound)
   function start(muted) {
     if (matchMedia("(pointer: coarse)").matches) goFull();   // phones/tablets that allow it: edge to edge from the start
-    if (v.error) { v.removeAttribute("src"); v.load(); if (blobUrl) URL.revokeObjectURL(blobUrl); blobUrl = null; loading = null; }   // a failed load: start afresh
-    if (!v.src) { v.src = url; v.preload = "auto"; v.load(); }   // still downloading: play from the network
+    if (v.error) { v.removeAttribute("src"); v.load(); }   // a failed load: start afresh
+    if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); }   // from memory (or, still downloading, the network)
     preload();
     active = true; shown = false; held = false;
     wrap.classList.remove("show", "controls");
@@ -55,7 +56,6 @@ export function createFinale(root, { onEnd, onReveal, onPlaying, onOutro }) {
     const go = () => { if (!active) return; const p = v.play();
       if (p && p.catch) p.catch(() => { if (!v.muted) { v.muted = true; v.play().catch(() => {}); } }); };   // refused with sound: silently, rather than not at all
     go();
-    if (loading) loading.then(go);
     v.addEventListener("canplay", go, { once: true });
     cancelAnimationFrame(raf); raf = requestAnimationFrame(tick);
   }
@@ -87,7 +87,9 @@ export function createFinale(root, { onEnd, onReveal, onPlaying, onOutro }) {
     wrap.classList.remove("show", "controls", "held"); wrap.setAttribute("aria-hidden", "true");
     if (document.fullscreenElement === fsEl) document.exitFullscreen().catch(() => {});
     if (!shown) v.pause();   // never shown: stop it now (a late arrival mustn't play under the world)
-    setTimeout(() => { v.pause(); wrap.querySelectorAll(".tj-finaleRings").forEach((e) => e.remove()); }, 600);
+    // once it's faded: let the video go entirely (an iPhone keeps a loaded video's decoder and memory
+    // otherwise, and the world is all images); the file stays in memory for another go
+    setTimeout(() => { if (active) return; v.pause(); v.removeAttribute("src"); v.load(); wrap.querySelectorAll(".tj-finaleRings").forEach((e) => e.remove()); }, 1100);
     onEnd(shown);   // (shown: it played; not: it failed before the takeover)
   }
   v.addEventListener("ended", () => (shown ? hold() : stop()));
