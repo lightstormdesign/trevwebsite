@@ -12,7 +12,7 @@
 // Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
 // player's file makes iPhone start late).
 const SRC = "/journey/trev-kingdom-intro.m4a?v=3";   // bump with the file (phones cache it)
-const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=4", LION_FROM = 26.55;   // (35 s: the finale video's whole length, fading out over its last 1.5 s)
+const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=5", LION_FROM = 26.55;   // (through the hook: it fades out across the breakdown)
 export const LION_HOOK_END_S = 28.4;   // into the lion cut: the hook is over (the fade is nearly done)
 export const LION_DROP_S = 0.94;   // into the lion cut: "K-ingdom" and the bass, together (27.49s in the song): the roar
 const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
