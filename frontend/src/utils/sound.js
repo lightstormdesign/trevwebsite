@@ -24,7 +24,8 @@ let started = false;
 let beatMap = null;
 const subs = new Set();
 let beckoning = false;
-let mode = "intro", userMuted = false;   // userMuted: they turned it off at the speaker
+let mode = "intro", userMuted = false;
+let fadeCtx = null;   // (the intro's fade on iPhone, made only when it's needed)   // userMuted: they turned it off at the speaker
 
 function el() {
   if (audio) return audio;
@@ -95,21 +96,38 @@ export const sound = {
   kick() { if (mode === "lion" && lionAudio && lionAudio.paused && !userMuted && lionAudio.currentTime < 1) lionAudio.play().catch(() => {}); },
   // the intro fades away (the bison's final tap). iPhone ignores .volume, so there the fade runs
   // through Web Audio (started in this tap); if that isn't possible, it stops
-  fadeIntro(ms = 1800) {
-    const a = audio; if (!a || a.paused || mode !== "intro") return;
+  fadeIntro(ms = 4500) {
+    const a = audio; if (!a || a.paused || mode !== "intro" || a.__fading) return;
+    a.__fading = true;
+    const done = () => { a.pause(); a.__fading = false; };
     a.volume = 0.999;
-    if (a.volume === 0.999) {   // the volume can be set: fade it
+    if (a.volume === 0.999) {   // the volume can be set (not iPhone): a straight fade, 100% to 0
       const t0 = performance.now(), step = () => { const k = 1 - (performance.now() - t0) / ms;
-        if (k <= 0 || mode !== "intro") { a.pause(); a.volume = 1; return; } a.volume = Math.max(0, k * k); requestAnimationFrame(step); };
+        if (k <= 0 || mode !== "intro") { done(); a.volume = 1; return; } a.volume = Math.max(0, k); requestAnimationFrame(step); };
       return requestAnimationFrame(step);
     }
+    // iPhone ignores .volume: the fade runs through Web Audio. It's only switched over once Web Audio
+    // is actually running (iPhone wakes it at the end of a touch, not its start), so the song never
+    // drops out; it keeps playing at full volume until then, and then fades
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AC(), g = ctx.createGain(); ctx.createMediaElementSource(a).connect(g); g.connect(ctx.destination);
-      ctx.resume();
-      g.gain.setValueAtTime(1, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + ms / 1000);
-      setTimeout(() => { a.pause(); }, ms + 50);
-    } catch (e) { a.pause(); }
+      const ctx = fadeCtx || (fadeCtx = new AC());
+      const go = () => {
+        if (ctx.state !== "running" || mode !== "intro" || a.paused) return false;
+        const g = ctx.createGain(); (a.__src || (a.__src = ctx.createMediaElementSource(a))).connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(1, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + ms / 1000);
+        // once it's silent: stopped, and straight through again (so the speaker can bring it back at full volume)
+        setTimeout(() => { done(); try { a.__src.disconnect(); a.__src.connect(ctx.destination); } catch (e) { /* gone */ } }, ms + 60);
+        return true;
+      };
+      const tryNow = () => { ctx.resume().then(() => { if (!go()) arm(); }).catch(arm); };
+      const arm = () => {   // the next touch/click wakes it
+        const once = () => { window.removeEventListener("touchend", once, true); window.removeEventListener("click", once, true); tryNow(); };
+        window.addEventListener("touchend", once, true); window.addEventListener("click", once, true);
+        setTimeout(() => { if (a.__fading && !a.__src) { done(); } }, 8000);   // never woke: it stops in its own time
+      };
+      if (ctx.state === "running") { if (!go()) done(); } else tryNow();
+    } catch (e) { done(); }
   },
   // seconds into the lion cut (null when it isn't the lion cut that's playing, or sound is off)
   lionTime() { return mode === "lion" && lionAudio && !userMuted ? lionAudio.currentTime : null; },

@@ -851,22 +851,24 @@ html.tj-finale-on .tj-sound, html.tj-finale-on .tj-progress, html.tj-finale-on .
 /* the unlock card, after the lion's roar: the world's sky, darkened, framed by the world itself
    (clouds above, the aspen and the juniper at the sides, the red rocks below); the photo with the
    portal's Flower of Life; Cormorant and Cinzel */
-.tj-unlock { position: fixed; left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 8px; }
+/* a little above the middle of the screen */
+.tj-unlock { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 14px 12vh; }
 .tj-unlockCard { grid-area: 1 / 1; position: relative; width: min(100%, 380px); color: #f4e4c4;
-  opacity: 0; transform: translateY(22px) scale(.97); pointer-events: none; transition: opacity .7s ease, transform .8s cubic-bezier(.2,.8,.3,1); }
+  opacity: 0; transform: translateY(14px) scale(.985); pointer-events: none; transition: opacity 3s linear, transform 3s cubic-bezier(.2,.7,.25,1); }   /* 0 to 100% over 3 s */
 .tj-unlockCard.show { opacity: 1; transform: none; pointer-events: auto; }
 /* the darkened sky: no edge of its own, it fades out under the frame */
-.tj-unlockCard::before { content: ""; position: absolute; inset: 14px 30px 22px; z-index: 0; border-radius: 30px;
+.tj-unlockCard::before { content: ""; position: absolute; inset: 14px 16px 22px; z-index: 0; border-radius: 30px;
   background: var(--sky) center 30% / cover no-repeat, #1c1420;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 10%, #000 90%, transparent);
   -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 10%, #000 90%, transparent); mask-composite: intersect; }
-.tj-unlockInner { position: relative; z-index: 2; padding: 58px 80px 84px; text-align: center; }
+.tj-unlockInner { position: relative; z-index: 2; padding: 58px 52px 84px; text-align: center; }
 .tj-unlockDeco { position: absolute; pointer-events: none; z-index: 3; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
 .tj-unlockDeco.clouds { left: -6%; top: -4px; width: 112%; }
 .tj-unlockDeco.rocks { left: -6%; bottom: -8px; width: 112%; }
-.tj-unlockDeco.aspen { left: -18px; top: 0; height: 100%; }
-.tj-unlockDeco.juniper { right: -30px; bottom: 7%; height: 54%; }
-.tj-unlockDeco.aspen.right { left: auto; right: -58px; transform: scaleX(-1); }   /* the right edge, top to bottom, behind the juniper */
+/* the clouds also run down both sides, turned on end, the card's full height (--h, set as it shows) */
+.tj-unlockDeco.clouds.side { top: 50%; width: calc(var(--h, 420px) * 1.04); z-index: 2; }
+.tj-unlockDeco.clouds.side.left { left: 14px; transform: translate(-50%, -50%) rotate(-90deg); }
+.tj-unlockDeco.clouds.side.right { left: calc(100% - 14px); transform: translate(-50%, -50%) rotate(90deg); }
 .tj-unlockPhoto { position: relative; aspect-ratio: 900 / 564; overflow: hidden; border-radius: 8px; border: 1px solid rgba(232,190,130,.45); box-shadow: 0 6px 18px rgba(0,0,0,.45); }
 .tj-unlockPhoto > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* the portal's Flower of Life (PORTAL_FLOWER, .tj-flower), in the photo's top-right corner, as on the portal */

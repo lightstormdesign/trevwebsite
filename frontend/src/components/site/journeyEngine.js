@@ -316,7 +316,8 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = false;
-const UNLOCK_AFTER_ROAR_MS = 1200;   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
+const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song clock (its first frame lands on the K)
+const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
@@ -427,9 +428,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-unlock" hidden>
       <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp)">
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
-        <img class="tj-unlockDeco aspen" src="${A}trev-unlock-aspen.webp" alt="" aria-hidden="true">
-        <img class="tj-unlockDeco aspen right" src="${A}trev-unlock-aspen.webp" alt="" aria-hidden="true">
-        <img class="tj-unlockDeco juniper" src="${A}trev-unlock-juniper.webp" alt="" aria-hidden="true">
+        <img class="tj-unlockDeco clouds side left" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
+        <img class="tj-unlockDeco clouds side right" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <div class="tj-unlockInner">
           <div class="tj-unlockPhoto">
             <img src="${A}trev-unlock-photo.webp" alt="TREV on a red rock ledge above Sedona">
@@ -698,7 +698,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function showUnlocks() {   // (called as he roars)
     if (unlockShown) return; unlockShown = true;
     // the card rises right after the roar, once the shake has settled; the hook plays on under it
-    later(() => { unlock.hidden = false; void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show"); haptic(20); }, UNLOCK_AFTER_ROAR_MS);
+    later(() => {
+      unlock.hidden = false; unlockVideo.style.setProperty("--h", unlockVideo.offsetHeight + "px");
+      void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show");
+    }, UNLOCK_AFTER_ROAR_MS);
   }
   const closeUnlock = () => { unlock.classList.remove("show"); later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
@@ -711,34 +714,47 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     focus();   // the spotlight closes in at once; then the charge and the roar on "K-ingdom"
     awaitDrop();
   }
+  // Led by the song's own clock, frame by frame (no timers to run late on a busy phone): the charge
+  // starts CHARGE_MS before the "K", and the roar fires on it (ROAR_EARLY_S ahead, so its first frame,
+  // the shake and the rings, is on screen as the "K" is heard)
+  let songLed = false;
   function awaitDrop() {
     const since = (performance.now() - summonAt) / 1000;
-    const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);
     const t = USE_FINALE_VIDEO ? finale.time() : sound.lionTime(), drop = USE_FINALE_VIDEO ? FINALE.drop : LION_DROP_S;
-    if (t != null && t > 0.02 && t >= drop - lead - 0.03) { showUnlocks(); return roar(); }
+    if (t != null && t > 0.02) {
+      songLed = true;
+      if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
+      if (t >= drop - ROAR_EARLY_S) { songLed = false; showUnlocks(); return roar(true); }            // the roar, on the K
+      return requestAnimationFrame(awaitDrop);
+    }
     // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
     const muted = !USE_FINALE_VIDEO && sound.lionTime() == null;
+    const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);
     if ((muted && since >= drop - lead) || since > FINALE_GIVE_UP_S || finale.failed) {
       if (USE_FINALE_VIDEO) { finale.stop(); docEl.classList.remove("tj-finale-on"); }
-      showUnlocks(); return roar();
+      songLed = false; showUnlocks(); return roar();
     }
-    later(awaitDrop, 8);
+    requestAnimationFrame(awaitDrop);
   }
   function release() {
     root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
   }
-  function roar() {
+  function roar(force) {
     if (roaring) return;
+    if (force) { roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging"); return roarNow(); }
     if (!frozen) { focus(); return later(roar, FOCUS_MS); }
     const wait = FOCUS_MS - (performance.now() - focusAt);
     if (wait > 0) return later(roar, wait);
     // the charge: the vignette drops hard around the lion at once, then he roars
     if (!root.classList.contains("charging")) {
       aimFocus(); root.classList.add("charging"); haptic(25); chargeAt = performance.now();
-      return later(roar, CHARGE_MS);
+      return songLed ? undefined : later(roar, CHARGE_MS);   // (led by the song: the song's clock fires the roar)
     }
     if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
     roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
+    roarNow();
+  }
+  function roarNow() {
     haptic([70, 30, 90, 30, 120, 40, 180]);
     scatter();
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
@@ -1158,7 +1174,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function bisonMoment() {
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
-    sound.fadeIntro(3000);   // the intro song fades away, slowly, as he turns to you
+    sound.fadeIntro(4500);   // the intro song fades away, slowly (4.5 s), as he turns to you
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
     haptic([40, 40, 80]);
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
