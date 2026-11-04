@@ -316,7 +316,10 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js, hosted with the site)
-const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song clock (its first frame lands on the K)
+// the roar fires this much before the "K" by the song clock (its first frame lands on the K); an iPhone
+// shows it later than the clock says (TREV: consistently after the K, where the iPad is on it), so it fires
+// earlier there
+const ROAR_EARLY_S = 0.05 + (typeof navigator !== "undefined" && /iPhone/.test(navigator.userAgent) ? 0.2 : 0);
 const RING_PULSES_AFTER = 2, RING_PULSE_GAP_MS = 450;   // the roar's pulse of rings goes on over the video this many more times
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -762,7 +765,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const t = sound.lionTime(), drop = LION_DROP_S;
     if (t != null && t > 0.02) {
       songLed = true;
-      if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
+      if (!root.classList.contains("charging") && !roaring && t >= drop - (ROAR_EARLY_S - 0.05) - CHARGE_MS / 1000) roar();   // the charge (its full length before the roar)
       if (t >= drop - ROAR_EARLY_S) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
       return requestAnimationFrame(awaitDrop);
     }
