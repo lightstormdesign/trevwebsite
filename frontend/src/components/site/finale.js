@@ -13,6 +13,7 @@ export const FINALE = {
   giveUp: 2.5,    // not showing this long after the reveal time: the world carries on without it
 };
 const A = "/journey/";
+const IDLE_LOOP_S = 1.2, IDLE_MAX_MS = 120000;   // waiting for the tap, it runs round 0..this (all black, inside the hidden lead-in)
 const SYNC_SEEK_S = 0.3;    // further than this from the song: jump to it
 const SYNC_EVERY_MS = 500, SYNC_OK_S = 0.035, SYNC_NUDGE = 0.04;   // closer: within SYNC_OK_S it's on; else 4% faster/slower until it is
 
@@ -38,10 +39,31 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
       .catch(() => {});   // (it plays from the network instead)
     return loading;
   }
-  // load the video itself, ready for the tap (once the lion has appeared: the world is drawn by then)
+  // load the video itself, ready for the tap (once the lion has appeared: the world is drawn by then),
+  // and get it running, hidden, round and round its black lead-in: an iPhone stalls the page for half
+  // a second or more when a video first starts, so that's paid now, not in the lion's tap (where it
+  // made the roar late). The tap then only takes it back to the start.
+  let idling = false, idleTimer = 0;
   function prepare() {
-    preload().then(() => { if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); } });
+    preload().then(() => {
+      if (active) return;
+      if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); }
+      idle();
+    });
   }
+  function idle() {
+    if (active || idling) return;
+    idling = true;
+    const p = v.play();
+    if (p && p.catch) p.catch(() => { stopIdle(); });   // (refused, e.g. Low Power Mode: the tap starts it instead)
+    const until = performance.now() + IDLE_MAX_MS;
+    idleTimer = setInterval(() => {
+      if (active) return;
+      if (performance.now() > until) { stopIdle(); v.pause(); return; }   // (not forever: then the tap starts it cold)
+      if (!v.paused && v.currentTime > IDLE_LOOP_S) v.currentTime = 0;
+    }, 150);
+  }
+  function stopIdle() { clearInterval(idleTimer); idling = false; }
   // true full screen where the browser allows it (Android, desktop; iPhone doesn't let a page do this),
   // asked for inside a tap. The whole page goes full screen, so the unlock card can rise over it
   const fsEl = document.documentElement;
@@ -50,6 +72,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
   const go = () => { if (active && !held && v.paused) { const p = v.play(); if (p && p.catch) p.catch(() => {}); } };
   // in the lion's tap (a tap lets it start even where a phone holds videos back)
   function start() {
+    stopIdle();
     if (matchMedia("(pointer: coarse)").matches) goFull();
     if (v.error) { v.removeAttribute("src"); v.load(); }   // a failed load: start afresh
     if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); }
@@ -101,7 +124,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     active = false; held = false; cancelAnimationFrame(raf);
     wrap.classList.remove("show", "controls", "held"); wrap.setAttribute("aria-hidden", "true");
     if (document.fullscreenElement === fsEl) document.exitFullscreen().catch(() => {});
-    v.pause();
+    v.pause(); stopIdle();
     // once it's faded: let the video go entirely (an iPhone keeps a loaded video's decoder and memory
     // otherwise, and the world is all images); the file stays in memory, loaded again for another go
     setTimeout(() => { if (active) return; v.removeAttribute("src"); v.load(); wrap.querySelectorAll(".tj-finaleRings").forEach((e) => e.remove()); }, 1100);
@@ -123,6 +146,6 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     get shown() { return shown; },
     get held() { return held; },
     get failed() { return failed; },
-    destroy() { cancelAnimationFrame(raf); v.removeAttribute("src"); if (blobUrl) URL.revokeObjectURL(blobUrl); wrap.remove(); },
+    destroy() { stopIdle(); cancelAnimationFrame(raf); v.removeAttribute("src"); if (blobUrl) URL.revokeObjectURL(blobUrl); wrap.remove(); },
   };
 }
