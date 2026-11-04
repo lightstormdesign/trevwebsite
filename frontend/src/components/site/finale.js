@@ -43,7 +43,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
   // and get it running, hidden, round and round its black lead-in: an iPhone stalls the page for half
   // a second or more when a video first starts, so that's paid now, not in the lion's tap (where it
   // made the roar late). The tap then only takes it back to the start.
-  let idling = false, idleTimer = 0;
+  let idling = false, idleTimer = 0, idleNote = "not yet";
   function prepare() {
     preload().then(() => {
       if (active) return;
@@ -53,13 +53,13 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
   }
   function idle() {
     if (active || idling) return;
-    idling = true;
+    idling = true; idleNote = "starting";
     const p = v.play();
-    if (p && p.catch) p.catch(() => { stopIdle(); });   // (refused, e.g. Low Power Mode: the tap starts it instead)
+    if (p && p.then) p.then(() => { idleNote = "running"; }, (e) => { idleNote = "refused (" + (e && e.name) + ")"; stopIdle(); });   // (refused, e.g. Low Power Mode: the tap starts it instead)
     const until = performance.now() + IDLE_MAX_MS;
     idleTimer = setInterval(() => {
       if (active) return;
-      if (performance.now() > until) { stopIdle(); v.pause(); return; }   // (not forever: then the tap starts it cold)
+      if (performance.now() > until) { stopIdle(); v.pause(); idleNote = "stopped after 2 min"; return; }   // (not forever: then the tap starts it cold)
       if (!v.paused && v.currentTime > IDLE_LOOP_S) v.currentTime = 0;
     }, 150);
   }
@@ -146,6 +146,9 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     get shown() { return shown; },
     get held() { return held; },
     get failed() { return failed; },
+    // (for ?debug)
+    get state() { return { idle: idleNote, playing: !v.paused, t: +v.currentTime.toFixed(2), ready: v.readyState, rate: v.playbackRate, src: (v.src || "none").slice(0, 5) }; },
+    get videoTime() { return v.currentTime; },
     destroy() { stopIdle(); cancelAnimationFrame(raf); v.removeAttribute("src"); if (blobUrl) URL.revokeObjectURL(blobUrl); wrap.remove(); },
   };
 }

@@ -715,10 +715,43 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function summon() {
     if (summonAt || roaring || frozen) return;
     summonAt = performance.now();
+    if (DBG) dbgStart();
+    const t0 = performance.now();
     sound.lion();   // "Welcome to my..." fades up
+    const t1 = performance.now();
     if (USE_FINALE_VIDEO) finale.start();   // (already loaded: it plays hidden, on the song, until the takeover)
+    const t2 = performance.now();
     focus();   // the spotlight closes in at once; then the charge and the roar on "K-ingdom"
+    if (DBG) dbg.steps = `song ${(t1 - t0).toFixed(0)} · video ${(t2 - t1).toFixed(0)} · focus ${(performance.now() - t2).toFixed(0)} ms`;
     awaitDrop();
+  }
+  // ?debug: what the phone actually did from the lion's tap, on screen (for a screenshot)
+  const DBG = /[?&]debug/.test(location.search);
+  const dbg = {};
+  let dbgEl = null;
+  function dbgStart() {
+    if (!dbgEl) { dbgEl = document.createElement("pre"); Object.assign(dbgEl.style, { position: "fixed", left: "6px", top: "60px", zIndex: 99, margin: 0, padding: "6px 8px", font: "11px/1.35 ui-monospace, monospace", color: "#fff", background: "rgba(0,0,0,.72)", borderRadius: "6px", pointerEvents: "none", whiteSpace: "pre-wrap", maxWidth: "92vw" }); document.body.appendChild(dbgEl); }
+    Object.assign(dbg, { tap: performance.now(), before: USE_FINALE_VIDEO ? JSON.stringify(finale.state) : "no video", gaps: [], last: performance.now(), songStart: null, roar: null, show: null });
+    const frame = () => {
+      const now = performance.now(), el = (now - dbg.tap) / 1000, st = sound.lionTime();
+      dbg.gaps.push([el, now - dbg.last]); dbg.last = now;
+      if (dbg.songStart == null && st > 0) dbg.songStart = el - st;
+      if (dbg.show == null && root.classList.contains("finale")) dbg.show = { el, song: st, vid: USE_FINALE_VIDEO ? finale.videoTime : null };
+      const big = dbg.gaps.filter((g) => g[1] > 50).slice(0, 8).map((g) => `${g[1].toFixed(0)}ms@${g[0].toFixed(2)}s`).join(" ");
+      const r = dbg.roar, w = dbg.show;
+      dbgEl.textContent = [
+        `video before tap: ${dbg.before}`,
+        `in the tap: ${dbg.steps || "?"}`,
+        `song heard-clock started ${dbg.songStart == null ? "?" : dbg.songStart.toFixed(2) + "s after tap"}`,
+        `ROAR: ${r ? `${r.el.toFixed(2)}s after tap, song at ${r.song == null ? "-" : r.song.toFixed(2)} (K = 0.94)` : "…"}`,
+        `takeover: ${w ? `${w.el.toFixed(2)}s, song ${w.song == null ? "-" : w.song.toFixed(2)}, video ${w.vid == null ? "-" : w.vid.toFixed(2)} (want 1.80)` : "…"}`,
+        `frozen frames >50ms: ${big || "none"}`,
+        `max gap: ${Math.max(...dbg.gaps.map((g) => g[1])).toFixed(0)} ms`,
+        USE_FINALE_VIDEO ? `video now: ${JSON.stringify(finale.state)}` : "",
+      ].join("\n");
+      if (el < 6) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
   }
   // Led by the song's own clock, frame by frame (no timers to run late on a busy phone): the charge
   // starts CHARGE_MS before the "K", and the roar fires on it (ROAR_EARLY_S ahead, so its first frame,
@@ -760,6 +793,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     roarNow();
   }
   function roarNow() {
+    if (DBG && dbg.tap) dbg.roar = { el: (performance.now() - dbg.tap) / 1000, song: sound.lionTime() };
     haptic([70, 30, 90, 30, 120, 40, 180]);
     scatter();
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
