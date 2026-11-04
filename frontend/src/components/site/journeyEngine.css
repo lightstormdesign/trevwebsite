@@ -825,7 +825,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-finale.controls .tj-finaleClose { opacity: 1; pointer-events: auto; }
 
 /* the roar's rings, carried over the video (journeyEngine.js carryRings) */
-.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; }
+.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; transform-origin: 0 0; will-change: transform; transition: opacity .25s linear; }   /* (finale.js moves it with the camera) */
 .tj-finaleRingSet { position: absolute; inset: 0; }
 .tj-finaleRings .wave { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; backface-visibility: hidden; }
 .tj-finaleRings .wave img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
