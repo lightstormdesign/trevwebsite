@@ -12,7 +12,7 @@
 // Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
 // player's file makes iPhone start late).
 const SRC = "/journey/trev-kingdom-intro.m4a?v=3";   // bump with the file (phones cache it)
-const LION_SRC = "/journey/trev-kingdom-lion.m4a?v=5", LION_FROM = 26.55;   // (through the hook: it fades out across the breakdown)
+let LION_SRC = "/journey/trev-kingdom-lion.m4a?v=5"; const LION_FROM = 26.55;   // (through the hook: it fades out across the breakdown)
 export const LION_HOOK_END_S = 28.4;   // into the lion cut: the hook is over (the fade is nearly done)
 export const LION_DROP_S = 0.94;   // into the lion cut: "K-ingdom" and the bass, together (27.49s in the song): the roar
 const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
@@ -135,6 +135,13 @@ export const sound = {
   get muted() { return userMuted; },
   hush() { if (audio) audio.pause(); if (lionAudio) lionAudio.pause(); },
   setBeckon(on) { beckoning = on; emit(); },
+  // the lion's tap plays this instead of the lion's cut (the finale video's own edit of the song,
+  // which starts the same way: "Welcome to my", the K at LION_DROP_S)
+  setLionSrc(src) {
+    if (src === LION_SRC) return;
+    LION_SRC = src;
+    if (lionAudio && mode !== "lion") { lionAudio.src = src; lionAudio.load(); }
+  },
   // start downloading the song ahead of the tap (after the transition has its turn)
   preload() { el(); lionEl(); },
   // 0..1: how hard the bass is hitting right now (0 before the drop, or when it isn't playing)

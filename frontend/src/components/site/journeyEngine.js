@@ -33,7 +33,7 @@
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
 import { sound, tilt, LION_DROP_S } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
-import { createFinale } from "./finale";
+import { createFinale, FINALE } from "./finale";
 
 const A = "/journey/";
 // Cache-buster for re-encoded media (Burnell's MEDIA_V): bump it whenever a video, the song or the
@@ -315,7 +315,7 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
-const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js, hosted with the site): off until the new transition video is made
+const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js, hosted with the site)
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song clock (its first frame lands on the K)
 const RING_PULSES_AFTER = 2, RING_PULSE_GAP_MS = 450;   // the roar's pulse of rings goes on over the video this many more times
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
@@ -649,6 +649,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // song's own clock (as without the video); the video takes over at its reveal frame and the world
   // waits under it. If the video won't get going, the world simply carries on, and the card comes.
   const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = 2.5;
+  if (USE_FINALE_VIDEO) sound.setLionSrc(FINALE.song);   // the lion's tap plays the video's own edit of the song
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, prepare() {}, start() {}, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
     clock: () => sound.lionTime(),   // the video follows the song (the lion's cut, heard from the site's player)

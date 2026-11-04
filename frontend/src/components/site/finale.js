@@ -6,9 +6,10 @@
 // its last frame under the unlock card. Vertical throughout, so a phone stays upright; a landscape
 // screen shows it whole in the middle.
 export const FINALE = {
-  hevc: "trev-finale-hevc.mp4",   // 7.5 MB (iPhone, Mac, most Android)
-  h264: "trev-finale.mp4",        // 9.8 MB (everything else)
-  reveal: 1.79,   // the video takes over from the world (its first frame: the roar's frame 0.9 s on)
+  hevc: "trev-finale-hevc.mp4?v=2",   // 5.2 MB (iPhone, Mac, most Android)
+  h264: "trev-finale.mp4?v=2",        // 6.4 MB (everything else)
+  song: "/journey/trev-finale-song.m4a?v=1",   // TREV's edit's own audio (from "Welcome to my", K at 0.94 s): played as the lion's cut
+  reveal: 1.8,    // the video takes over from the world (its first frame: the roar's frame 0.9 s on; black before, never shown)
   giveUp: 2.5,    // not showing this long after the reveal time: the world carries on without it
 };
 const A = "/journey/";
@@ -69,7 +70,8 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (!v.paused && v.readyState >= 2) {
       // keep it on the song
       const d = v.currentTime - at;
-      if (Math.abs(d) > SYNC_SEEK_S) { try { v.currentTime = at + 0.05; } catch (e) { /* not seekable yet */ } }
+      if (v.seeking) { /* a jump under way: let it land (a new one each frame would restart it forever) */ }
+      else if (Math.abs(d) > SYNC_SEEK_S) { try { v.currentTime = at + 0.15; } catch (e) { /* not seekable yet */ } }   // (a little ahead: the jump takes a moment)
       else v.playbackRate = 1 - Math.max(-SYNC_MAX_RATE, Math.min(SYNC_MAX_RATE, d * SYNC_GAIN));
       // the takeover, once its frame is really on screen
       if (!shown && v.currentTime >= FINALE.reveal && at >= FINALE.reveal) {
