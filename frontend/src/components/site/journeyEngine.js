@@ -667,6 +667,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function carryRings(wrap) {
     const layer = document.createElement("div");
     layer.className = "tj-finaleRings";
+    const lionBox = $(".tj-cr-lion .tj-crBody");   // (finale.js carries the rings from the world's lion onto the video's)
+    if (lionBox) { const L = lionBox.getBoundingClientRect(); Object.assign(layer.dataset, { lx: L.left + L.width / 2, ly: L.top + L.height / 2, lw: L.width }); }
     for (const src of CREATURES.filter((c) => c.kind === "roarwave" && c.el)) {
       const body = src.el.querySelector(".tj-crBody");
       if (!body) continue;
