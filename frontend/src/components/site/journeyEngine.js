@@ -319,8 +319,7 @@ const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js, hosted wi
 // the roar fires this much before the "K" by the song clock (its first frame lands on the K); an iPhone
 // shows it later than the clock says (TREV: consistently after the K, where the iPad is on it), so it fires
 // earlier there
-const ROAR_EARLY_S = 0.05 + (typeof navigator !== "undefined" && /iPhone/.test(navigator.userAgent) ? 0.2 : 0);
-const RING_PULSES_AFTER = 2, RING_PULSE_GAP_MS = 450;   // the roar's pulse of rings goes on over the video this many more times
+const ROAR_EARLY_S = 0.05;
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -654,52 +653,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = 2.5;
   if (USE_FINALE_VIDEO) sound.setLionSrc(FINALE.song);   // the lion's tap plays the video's own edit of the song
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, prepare() {}, start() {}, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
-    onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
+    onReveal: () => root.classList.add("finale"),   // (the roar's rings simply fade out under it)
     clock: () => sound.lionTime(),   // the video follows the song (the lion's cut, heard from the site's player)
     onOutro: () => { sound.hush(); showUnlocks(0); },   // the card rises over the video's last frame (held there until the card is closed)
     onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (!played) showUnlocks(1200); },   // (it never got going: the card anyway)
   });
-  // The roar's Flower of Life rings carry on over the video: at the takeover the very same rings (both
-  // sets: behind the lion and the faint one over him) are lifted onto the video exactly where they are,
-  // each with its own animation at the same moment, so the emanation simply keeps rippling outward over
-  // the footage, and the same pulse rises from the lion again (RING_PULSES_AFTER times) as the camera
-  // takes off. Nothing new: the same rings, the same motion.
-  function carryRings(wrap) {
-    const layer = document.createElement("div");
-    layer.className = "tj-finaleRings";
-    const lionBox = $(".tj-cr-lion .tj-crBody");   // (finale.js carries the rings from the world's lion onto the video's)
-    if (lionBox) { const L = lionBox.getBoundingClientRect(); Object.assign(layer.dataset, { lx: L.left + L.width / 2, ly: L.top + L.height / 2, lw: L.width }); }
-    for (const src of CREATURES.filter((c) => c.kind === "roarwave" && c.el)) {
-      const body = src.el.querySelector(".tj-crBody");
-      if (!body) continue;
-      const box = body.getBoundingClientRect(), set = document.createElement("div"), at = document.createElement("div");
-      set.className = "tj-finaleRingSet"; set.style.opacity = getComputedStyle(body).opacity;
-      Object.assign(at.style, { position: "absolute", left: box.left + "px", top: box.top + "px", width: box.width + "px", height: box.height + "px" });
-      set.appendChild(at);
-      // the set from behind the lion: in the world he hides its middle, so over the video it stays clear of him
-      const lion = !src.over && $(".tj-cr-lion .tj-crBody");
-      if (lion) {
-        const L = lion.getBoundingClientRect(), cx = L.left + L.width / 2, cy = L.top + L.height / 2, rad = Math.min(L.width, L.height) * 0.5;
-        set.style.webkitMaskImage = set.style.maskImage = `radial-gradient(circle at ${cx.toFixed(0)}px ${cy.toFixed(0)}px, transparent ${(rad * 0.7).toFixed(0)}px, #000 ${(rad * 1.05).toFixed(0)}px)`;
-      }
-      body.querySelectorAll(".wave").forEach((w) => {
-        const anim = w.getAnimations().find((x) => x.animationName === "tj-roarWave");
-        if (!anim || anim.playState === "finished") return;
-        const ring = w.cloneNode(true);
-        at.appendChild(ring);
-        const copy = ring.animate(anim.effect.getKeyframes(), anim.effect.getTiming());
-        copy.currentTime = anim.currentTime;
-        // ...and it keeps emanating: the same pulse (the same rings, motion and spacing) twice more
-        for (let k = 0; k < RING_PULSES_AFTER; k++) {
-          const again = w.cloneNode(true), tm = anim.effect.getTiming();
-          at.appendChild(again);
-          again.animate(anim.effect.getKeyframes(), { ...tm, delay: tm.delay - 100 + k * RING_PULSE_GAP_MS });
-        }
-      });
-      layer.appendChild(set);
-    }
-    wrap.appendChild(layer);
-  }
   off.push(() => finale.destroy());
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
   const unlock = $(".tj-unlock"), unlockVideo = $(".tj-unlockVideo");
@@ -767,7 +725,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const t = sound.lionTime(), drop = LION_DROP_S;
     if (t != null && t > 0.02) {
       songLed = true;
-      if (!root.classList.contains("charging") && !roaring && t >= drop - (ROAR_EARLY_S - 0.05) - CHARGE_MS / 1000) roar();   // the charge (its full length before the roar)
+      if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
       if (t >= drop - ROAR_EARLY_S) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
       return requestAnimationFrame(awaitDrop);
     }

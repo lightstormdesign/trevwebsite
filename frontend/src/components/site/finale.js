@@ -11,13 +11,6 @@ export const FINALE = {
   song: "/journey/trev-finale-song.m4a?v=1",   // TREV's edit's own audio (from "Welcome to my", K at 0.94 s): played as the lion's cut
   reveal: 1.8,    // the video takes over from the world (its first frame: the roar's frame 0.9 s on; black before, never shown)
   giveUp: 2.5,    // not showing this long after the reveal time: the world carries on without it
-  // the camera's move around the lion from the takeover (tracked from the video itself: seconds after
-  // the reveal, then the scale and offset, in the video's own 720x1280 pixels, that carry the takeover
-  // frame onto that frame), so the roar's rings carried over the video stay on him as the camera moves.
-  // It ends at the cut to the lion's close-up; the rings are gone by then.
-  w: 720, h: 1280,
-  lion: { x: 361.8, y: 731, w: 119.8 },   // the lion at the takeover, in the video's pixels (his centre, his width)
-  track: [[0.0,1.0,0.0,0.0],[0.067,1.0,0.0,-0.0],[0.133,1.0005,-0.1,-0.4],[0.2,1.0031,-1.9,-2.7],[0.267,1.0062,-3.9,-5.2],[0.333,1.0157,-10.2,-13.3],[0.4,1.0392,-25.6,-32.9],[0.467,1.0874,-57.4,-73.5],[0.533,1.1393,-91.4,-117.2],[0.6,1.2544,-166.6,-214.1],[0.667,1.309,-203.0,-259.6],[0.733,1.3927,-257.1,-330.3],[0.8,1.5236,-342.9,-440.3],[0.867,1.6089,-398.2,-512.4],[0.933,1.6744,-440.4,-567.6],[1.0,1.723,-470.4,-609.4],[1.067,1.75,-486.3,-633.0],[1.133,1.7806,-502.3,-660.6],[1.2,1.7921,-507.0,-671.5],[1.267,1.8039,-509.8,-683.4],[1.333,1.8063,-508.6,-686.7],[1.4,1.8099,-507.9,-690.7],[1.467,1.8108,-504.8,-693.0],[1.533,1.8111,-502.9,-694.3],[1.6,1.8115,-500.5,-695.9],[1.667,1.8117,-499.3,-696.6],[1.733,1.8123,-499.7,-697.0],[1.8,1.8161,-504.7,-698.1],[1.867,1.8213,-510.0,-700.4],[1.933,1.8353,-518.4,-708.7],[2.0,1.8501,-525.0,-718.2],[2.067,1.8813,-533.9,-740.0],[2.133,1.9994,-566.8,-825.5],[2.2,2.1362,-601.4,-927.6],[2.267,2.4722,-681.6,-1180.4],[2.333,2.7754,-758.5,-1406.9],[2.4,3.3096,-905.9,-1800.8]],
 };
 const A = "/journey/";
 const IDLE_LOOP_S = 1.2, IDLE_MAX_MS = 120000;   // waiting for the tap, it runs round 0..this (all black, inside the hidden lead-in)
@@ -83,7 +76,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (matchMedia("(pointer: coarse)").matches) goFull();
     if (v.error) { v.removeAttribute("src"); v.load(); }   // a failed load: start afresh
     if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); }
-    active = true; shown = false; held = false; failed = false; fit = null; startedAt = performance.now();
+    active = true; shown = false; held = false; failed = false; startedAt = performance.now();
     wrap.classList.remove("show", "controls", "held");
     if (v.playbackRate !== 1) v.playbackRate = 1;
     nextCheck = 0; nextGo = 0;
@@ -102,7 +95,6 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (!active || held) return;
     raf = requestAnimationFrame(tick);
     const at = songTime(), now = performance.now();
-    if (shown) followCamera();
     if (!v.paused && v.readyState >= 2) {
       // the takeover, once its frame is really on screen
       if (!shown && v.currentTime >= FINALE.reveal && at >= FINALE.reveal) {
@@ -119,34 +111,6 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
       }
     } else if (now >= nextGo) { nextGo = now + 300; go(); }   // (not a play() every frame)
     if (!shown && (at > FINALE.reveal + FINALE.giveUp || v.error)) { failed = true; stop(); }
-  }
-  // the rings carried over the video (.tj-finaleRings) ride the camera's move: the tracked move, in the
-  // video's pixels, carried to the screen through the way the video is fitted to it
-  let fit = null;
-  function followCamera() {
-    const layer = wrap.querySelector(".tj-finaleRings");
-    if (!layer) return;
-    const tr = FINALE.track, t = v.currentTime - FINALE.reveal;
-    if (!fit) {
-      const b = v.getBoundingClientRect(), cover = getComputedStyle(v).objectFit !== "contain";
-      const k = (cover ? Math.max : Math.min)(b.width / FINALE.w, b.height / FINALE.h);
-      fit = { k, ox: b.left + (b.width - FINALE.w * k) / 2, oy: b.top + (b.height - FINALE.h * k) / 2 };
-      // the rings were placed on the world's lion; the video's lion can sit a little elsewhere on a given
-      // screen (Safari's bars, the screen's shape), so they're carried onto him: where he is on screen
-      // in the video, and his size there
-      const L = FINALE.lion, lx = +layer.dataset.lx, ly = +layer.dataset.ly, lw = +layer.dataset.lw;
-      fit.a = lw > 0 ? (L.w * k) / lw : 1;
-      fit.bx = lw > 0 ? fit.ox + L.x * k - fit.a * lx : 0;
-      fit.by = lw > 0 ? fit.oy + L.y * k - fit.a * ly : 0;
-    }
-    if (t >= tr[tr.length - 1][0]) { layer.style.opacity = "0"; return; }   // (the cut: they're gone)
-    let i = 0;
-    while (i < tr.length - 2 && tr[i + 1][0] <= t) i++;
-    const a = tr[i], b = tr[i + 1], f = Math.max(0, Math.min(1, (t - a[0]) / (b[0] - a[0])));
-    const sc = a[1] + (b[1] - a[1]) * f, tx = a[2] + (b[2] - a[2]) * f, ty = a[3] + (b[3] - a[3]) * f;
-    // (world lion -> video lion: a, b; then the camera: sc and the tracked offset)
-    const X = sc * fit.bx + fit.k * tx + fit.ox * (1 - sc), Y = sc * fit.by + fit.k * ty + fit.oy * (1 - sc);
-    layer.style.transform = `translate(${X.toFixed(1)}px, ${Y.toFixed(1)}px) scale(${(sc * fit.a).toFixed(4)})`;
   }
   // the end (or their X): it holds on the frame it's on and the unlock card rises over it; the world
   // only comes back once they're done with the card (stop)
