@@ -14,7 +14,7 @@ export const FINALE = {
 };
 const A = "/journey/";
 const SYNC_SEEK_S = 0.3;    // further than this from the song: jump to it
-const SYNC_GAIN = 0.6, SYNC_MAX_RATE = 0.06;   // closer: speed up / slow down a touch until it's on
+const SYNC_EVERY_MS = 500, SYNC_OK_S = 0.035, SYNC_NUDGE = 0.04;   // closer: within SYNC_OK_S it's on; else 4% faster/slower until it is
 
 export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
   const wrap = document.createElement("div");
@@ -55,7 +55,8 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); }
     active = true; shown = false; held = false; failed = false; startedAt = performance.now();
     wrap.classList.remove("show", "controls", "held");
-    v.playbackRate = 1;
+    if (v.playbackRate !== 1) v.playbackRate = 1;
+    nextCheck = 0; nextGo = 0;
     try { v.currentTime = 0; } catch (e) { /* not loaded yet */ }
     go();
     v.addEventListener("canplay", go, { once: true });
@@ -63,21 +64,29 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
   }
   // the song's time (or, with the sound off, the time since the tap)
   const songTime = () => { const t = clock ? clock() : null; return t != null && t > 0 ? t : (performance.now() - startedAt) / 1000; };
+  // Kept on the song lightly: a phone pays for every change of a video's speed (and every play()), so
+  // nothing is touched while the lion roars; it's checked twice a second, the speed only nudged
+  // (to one of three settings) when it has really drifted, and a jump only when it's far off.
+  let nextCheck = 0, nextGo = 0;
   function tick() {
     if (!active || held) return;
     raf = requestAnimationFrame(tick);
-    const at = songTime();
+    const at = songTime(), now = performance.now();
     if (!v.paused && v.readyState >= 2) {
-      // keep it on the song
-      const d = v.currentTime - at;
-      if (v.seeking) { /* a jump under way: let it land (a new one each frame would restart it forever) */ }
-      else if (Math.abs(d) > SYNC_SEEK_S) { try { v.currentTime = at + 0.15; } catch (e) { /* not seekable yet */ } }   // (a little ahead: the jump takes a moment)
-      else v.playbackRate = 1 - Math.max(-SYNC_MAX_RATE, Math.min(SYNC_MAX_RATE, d * SYNC_GAIN));
       // the takeover, once its frame is really on screen
       if (!shown && v.currentTime >= FINALE.reveal && at >= FINALE.reveal) {
         shown = true; wrap.classList.add("show"); wrap.setAttribute("aria-hidden", "false"); if (onReveal) onReveal(wrap);
       }
-    } else go();
+      if (now >= nextCheck && !v.seeking) {
+        nextCheck = now + SYNC_EVERY_MS;
+        const d = v.currentTime - at;
+        if (Math.abs(d) > SYNC_SEEK_S) { try { v.currentTime = at + 0.15; } catch (e) { /* not seekable yet */ } }   // (a little ahead: the jump takes a moment)
+        else if (shown || at > FINALE.reveal - 0.4) {   // (not while he roars)
+          const rate = Math.abs(d) < SYNC_OK_S ? 1 : d > 0 ? 1 - SYNC_NUDGE : 1 + SYNC_NUDGE;
+          if (v.playbackRate !== rate) v.playbackRate = rate;
+        }
+      }
+    } else if (now >= nextGo) { nextGo = now + 300; go(); }   // (not a play() every frame)
     if (!shown && (at > FINALE.reveal + FINALE.giveUp || v.error)) { failed = true; stop(); }
   }
   // the end (or their X): it holds on the frame it's on and the unlock card rises over it; the world
