@@ -844,7 +844,7 @@ html:fullscreen .tj-finale video { height: 100vh; }
 /* a little above the middle of the screen */
 .tj-unlock { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 14px 12vh; }
 /* behind the card the world goes dark and soft (it rests while the card is up, so the blur is cheap) */
-.tj-unlock::before { content: ""; position: fixed; inset: 0; background: rgba(4,3,6,.58); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+.tj-unlock::before { content: ""; position: fixed; inset: 0; background: rgba(4,3,6,.58); -webkit-backdrop-filter: blur(11px); backdrop-filter: blur(11px);
   opacity: 0; transition: opacity 1.2s ease; }
 .tj-unlock.show::before { opacity: 1; }
 .tj.carded .tj-world *, .tj.carded .tj-worldStage { animation-play-state: paused !important; }
