@@ -163,6 +163,7 @@
   animation: tj-chevron 1.9s ease-in-out infinite; }
 
 /* the text-list bubble, bottom left (Burnell's announcement bubble) */
+.tj-bubble { display: none !important; }   /* (the high-vibe texts pop-up: taken off) */
 .tj-bubble { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 44;
   display: flex; align-items: center; gap: 11px; padding: 11px 36px 11px 12px; border-radius: 18px; max-width: min(330px, calc(100vw - 32px));
   background: rgba(10,8,6,.78); border: 1px solid rgba(231,201,143,.35);   /* no backdrop blur: it re-blurs the moving world each frame */
@@ -446,8 +447,19 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 
 /* the totem row: one gold icon per sacred thing, lit as you wake it */
-.tj-totems { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 41; transform: translateX(-50%);
-  display: flex; gap: 9px; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
+.tj-totems { position: fixed; left: 50%; top: calc(62px + env(safe-area-inset-top, 0px)); z-index: 41; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
+.tj-totemRow { display: flex; gap: 9px; align-items: center; }
+/* the quest: gold, minimal, no box; it reads over the sky by its shadow alone */
+.tj-quest { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 11px; width: max-content; max-width: 92vw;
+  text-shadow: 0 1px 12px rgba(0,0,0,.9), 0 0 3px rgba(0,0,0,.75), 0 0 1px rgba(0,0,0,.6); }
+.tj-quest p { margin: 0; }
+.tj-questTitle { font: 600 11.5px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em; color: #f3d48e; }
+.tj-questSub { margin-top: 7px !important; font: italic 400 14px/1.15 "Cormorant Garamond", Georgia, serif; letter-spacing: .02em; color: rgba(243,223,176,.8); }
+.tj-questCount { margin-top: 6px !important; font: 500 10.5px/1 var(--tj-display); letter-spacing: .28em; margin-right: -.28em; color: rgba(243,212,142,.85); }
+.tj-questCount .n { color: #f6dc9c; }
+.tj-quest.done .tj-questCount { color: #f6dc9c; text-shadow: 0 0 10px rgba(240,200,110,.7), 0 1px 10px rgba(0,0,0,.75); }
+@media (min-width: 900px) { .tj-questTitle { font-size: 13px; } .tj-questSub { font-size: 16px; } .tj-questCount { font-size: 11.5px; } .tj-quest { margin-bottom: 13px; } }
 .tj-totems.show { opacity: 1; }
 .tj-totem { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; border: 1px solid rgba(231,201,143,.35);
   background: rgba(10,8,6,.55); transition: border-color .8s ease, box-shadow .8s ease, transform .5s cubic-bezier(.16,1,.3,1); }

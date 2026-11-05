@@ -480,8 +480,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
-    <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl", "salmon"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
-      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
+    <div class="tj-totems">
+      <div class="tj-quest" aria-live="polite">
+        <p class="tj-questTitle">Find the animal totems</p>
+        <p class="tj-questSub">Unlock them all to reveal the secret.</p>
+        <p class="tj-questCount"><span class="n">0</span>/5</p>
+      </div>
+      <div class="tj-totemRow">${["bison", "bluebird", "butterfly", "owl", "salmon"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
+      <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div></div>
     
     <div class="tj-dust" aria-hidden="true"></div>
     <header class="tj-header">
@@ -586,7 +592,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   function transform() {
     if (lionMode) return;
-    lionMode = true; bison.classList.add("is-on", "facing"); finale.prepare(); sound.preload();   // (his song loaded, ready for his tap)   // (the finale video loaded, ready for his tap)   // the bison turns to you, aura blazing, then...
+    lionMode = true; paintQuest(); bison.classList.add("is-on", "facing"); finale.prepare(); sound.preload();   // (his song loaded, ready for his tap)   // (the finale video loaded, ready for his tap)   // the bison turns to you, aura blazing, then...
     root.classList.add("transforming");
     callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
@@ -1171,7 +1177,22 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   try { awake = new Set(JSON.parse(sessionStorage.getItem("tj-totems") || "[]")); climaxed = sessionStorage.getItem("tj-awake") === "1"; } catch (e) { /* private mode */ }
   // the bison's totem is only half lit by its first tap; it fills at its moment (the last tap)
   const bisonReady = () => !climaxed && TOTEMS.every((t) => awake.has(t));
+  // the quest above the totems: how many are found (each once, from the same state as the icons), and,
+  // once all five are, where the secret is
+  const QUEST = {
+    find: ["Find the animal totems", "Unlock them all to reveal the secret."],
+    found: ["All five totems found", "Return to the bison to awaken the Kingdom."],
+    lion: ["The Kingdom awakens", "Tap the lion to reveal the secret."],
+  };
+  const paintQuest = () => {
+    const q = $(".tj-quest"); if (!q) return;
+    const n = TOTEMS.filter((t) => awake.has(t)).length, [title, sub] = QUEST[climaxed || lionMode ? "lion" : n >= TOTEMS.length ? "found" : "find"];
+    const set = (sel, v) => { const e = q.querySelector(sel); if (e.textContent !== v) e.textContent = v; };
+    set(".tj-questTitle", title); set(".tj-questSub", sub); set(".n", String(n));
+    q.classList.toggle("done", n >= TOTEMS.length);
+  };
   const paintTotems = () => {
+    paintQuest();
     TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k) && (k !== "bison" || climaxed)));
     const b = totemRow.querySelector('[data-k="bison"]');
     b.classList.toggle("half", awake.has("bison") && !climaxed);
