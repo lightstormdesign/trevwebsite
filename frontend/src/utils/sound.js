@@ -109,24 +109,31 @@ export const sound = {
     // iPhone ignores .volume: the fade runs through Web Audio. It's only switched over once Web Audio
     // is actually running (iPhone wakes it at the end of a touch, not its start), so the song never
     // drops out; it keeps playing at full volume until then, and then fades
+    // (the tap that calls this is a touchstart; an iPhone only lets Web Audio wake at the end of a touch,
+    // and may simply never answer a wake asked for before that, so the end of this same tap, or any touch
+    // after it, is listened for straight away)
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       const ctx = fadeCtx || (fadeCtx = new AC());
+      let begun = false;
       const go = () => {
+        if (begun) return true;
         if (ctx.state !== "running" || mode !== "intro" || a.paused) return false;
+        begun = true; unlisten();
         const g = ctx.createGain(); (a.__src || (a.__src = ctx.createMediaElementSource(a))).connect(g); g.connect(ctx.destination);
         g.gain.setValueAtTime(1, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + ms / 1000);
         // once it's silent: stopped, and straight through again (so the speaker can bring it back at full volume)
-        setTimeout(() => { done(); try { a.__src.disconnect(); a.__src.connect(ctx.destination); } catch (e) { /* gone */ } }, ms + 60);
+        setTimeout(() => { done(); try { a.__src.disconnect(); g.disconnect(); a.__src.connect(ctx.destination); } catch (e) { /* gone */ } }, ms + 60);
         return true;
       };
-      const tryNow = () => { ctx.resume().then(() => { if (!go()) arm(); }).catch(arm); };
-      const arm = () => {   // the next touch/click wakes it
-        const once = () => { window.removeEventListener("touchend", once, true); window.removeEventListener("click", once, true); tryNow(); };
-        window.addEventListener("touchend", once, true); window.addEventListener("click", once, true);
-        setTimeout(() => { if (a.__fading && !a.__src) { done(); } }, 8000);   // never woke: it stops in its own time
+      const wake = () => {
+        if (go()) return;
+        try { const p = ctx.resume(); if (p && p.then) p.then(go, () => {}); } catch (e) { /* not now */ }
       };
-      if (ctx.state === "running") { if (!go()) done(); } else tryNow();
+      const unlisten = () => { window.removeEventListener("touchend", wake, true); window.removeEventListener("click", wake, true); };
+      window.addEventListener("touchend", wake, true); window.addEventListener("click", wake, true);
+      setTimeout(() => { if (!begun && a.__fading) { unlisten(); done(); } }, 8000);   // never woke: it stops in its own time
+      wake();
     } catch (e) { done(); }
   },
   // seconds into the lion cut (null when it isn't the lion cut that's playing, or sound is off)
