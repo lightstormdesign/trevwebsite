@@ -409,6 +409,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-box">
         <img class="tj-plate tj-plateStill" alt="">
         <video class="tj-plate tj-hidden" muted loop playsinline autoplay preload="auto"></video>
+        <img class="tj-heroPatch" src="${A}trev-hero-mobile-patch.webp${MV}" alt="" aria-hidden="true">
         <img class="tj-tree left" src="${A}trev-portal-tree-left.webp${MV}" alt="" aria-hidden="true">
         <img class="tj-tree right" src="${A}trev-portal-tree-right.webp${MV}" alt="" aria-hidden="true">
         <canvas class="tj-me"></canvas>
@@ -1339,6 +1340,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       // the two trees (cut from the phone plate, so on a phone only): the middle plane, between the
       // still sky and TREV
       trees.forEach((tr) => { tr.hidden = set.w > set.h; Object.assign(tr.style, { width: set.w + "px", height: set.h + "px" }); });
+      $(".tj-heroPatch").hidden = set.w > set.h;   // (the phone plate's patch)
 
       plate.play().then(() => afterFirstFrame(plate, () => later(warmUp, WARM_DELAY_MS))).catch(() => {});  // Low Power Mode: the poster stays
       let loaded = 0; const done = () => { if (++loaded === 2) { box.classList.add("ready"); readyAt = readyAt || performance.now(); } };

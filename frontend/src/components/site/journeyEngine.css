@@ -775,6 +775,10 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 
 /* the portal's two trees, a middle plane: they spread from the frame's centre as TREV comes in */
 .tj-tree { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .9; will-change: transform; }
+/* the phone plate's gap under the red rock (left of it), filled from TREV's original photo: aligned to
+   the plate pixel for pixel, graded and softened to it, feathered in (above the plate, under the trees) */
+.tj-heroPatch { position: absolute; left: 257px; top: 880px; width: 262px; height: 214px; pointer-events: none; }
+.tj-hero.thru .tj-heroPatch { visibility: hidden; }
 .tj-tree.left { transform-origin: 0% 32%; }    /* each grows from its own side of the frame, so it never slides */
 .tj-tree.right { transform-origin: 100% 45%; }
 
