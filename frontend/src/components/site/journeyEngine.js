@@ -31,7 +31,7 @@
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt } from "@/utils/sound";
+import { sound, tilt, LION_DROP_S } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 import { createFinale, FINALE } from "./finale";
 
@@ -316,6 +316,7 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. The lion simply roars, and the unlock card follows
+const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song's clock (its first frame lands on the K)
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -556,7 +557,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   function transform() {
     if (lionMode) return;
-    lionMode = true; bison.classList.add("is-on", "facing"); finale.prepare();   // (the finale video loaded, ready for his tap)   // the bison turns to you, aura blazing, then...
+    lionMode = true; bison.classList.add("is-on", "facing"); finale.prepare(); sound.preload();   // (his song loaded, ready for his tap)   // (the finale video loaded, ready for his tap)   // the bison turns to you, aura blazing, then...
     root.classList.add("transforming");
     callHome();   // the bluebird, butterfly and owl come back to their places as the lion forms
     later(() => root.classList.add("lion"), 900);
@@ -670,13 +671,29 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
   on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
   let summonAt = 0;
-  // The lion's tap: kept as light as it can be. The intro song plays on (it loops); the spotlight closes
-  // in (FOCUS_MS), he charges (CHARGE_MS) and roars, and the unlock card follows the roar.
+  // The lion's tap: kept light. "Welcome to my K-ingdom" (the lion's cut of the song) starts; the
+  // spotlight closes in, he charges and roars on the song's "K" (read from the song's own clock each
+  // frame), and the unlock card follows the roar.
   function summon() {
     if (summonAt || roaring || frozen) return;
     summonAt = performance.now();
+    sound.lion();
     focus();
-    later(roar, FOCUS_MS);   // (roar() runs the charge, then the roar)
+    awaitDrop();
+  }
+  let songLed = false;
+  function awaitDrop() {
+    const since = (performance.now() - summonAt) / 1000, t = sound.lionTime();
+    if (t != null && t > 0.02) {
+      songLed = true;
+      if (!root.classList.contains("charging") && !roaring && t >= LION_DROP_S - CHARGE_MS / 1000) roar();   // the charge
+      if (t >= LION_DROP_S - ROAR_EARLY_S) { songLed = false; return roar(true); }                           // the roar, on the K
+      return requestAnimationFrame(awaitDrop);
+    }
+    // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
+    const lead = Math.max(CHARGE_MS / 1000, (FOCUS_MS + CHARGE_MS) / 1000 - since);
+    if ((t == null && since >= LION_DROP_S - lead) || since > 2.5) { songLed = false; return roar(); }
+    requestAnimationFrame(awaitDrop);
   }
   function release() {
     root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
@@ -690,7 +707,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the charge: the vignette drops hard around the lion at once, then he roars
     if (!root.classList.contains("charging")) {
       aimFocus(); root.classList.add("charging"); haptic(25); chargeAt = performance.now();
-      return later(roar, CHARGE_MS);
+      return songLed ? undefined : later(roar, CHARGE_MS);   // (led by the song: its clock fires the roar)
     }
     if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
     roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
@@ -726,8 +743,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
   on(window, "pointerdown", (e) => { if (overBison(e.clientX, e.clientY, 30)) lightBison(); }, { passive: true, capture: true });
-  on(window, "touchend", () => finale.kick(), { passive: true, capture: true });
-  on(window, "click", () => finale.kick(), { capture: true });
+  // (on iPhone only some touches let audio start: any touch after the lion's tap may get the song going)
+  on(window, "touchend", () => { finale.kick(); if (summonAt) sound.kick(); }, { passive: true, capture: true });
+  on(window, "click", () => { finale.kick(); if (summonAt) sound.kick(); }, { capture: true });
   on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overBison(t.clientX, t.clientY, 30)) lightBison(); }, { passive: true, capture: true });
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
     const h = overBison(e.clientX, e.clientY, 10);
@@ -1183,7 +1201,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
-    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.prepare(), 8000); }   // already awake (the finale loads once the world has settled)
+    if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.prepare(), 8000); sound.preload(); }   // already awake (the finale loads once the world has settled)
     paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;

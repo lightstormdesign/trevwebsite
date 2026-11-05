@@ -31,7 +31,7 @@ function el() {
   if (audio) return audio;
   audio = new Audio();
   audio.preload = "auto";
-  audio.loop = true;   // the intro plays on and on (the lion no longer takes the song over)
+  audio.loop = true;   // the intro plays on and on (until the lion's tap; and again after his cut)
   audio.src = SRC;
   ["play", "pause", "ended"].forEach((t) => audio.addEventListener(t, emit));
   audio.addEventListener("ended", () => { if (mode === "intro") { started = false; emit(); } });
@@ -44,7 +44,7 @@ function lionEl() {
   lionAudio.preload = "auto";
   lionAudio.src = LION_SRC;
   ["play", "pause", "ended"].forEach((t) => lionAudio.addEventListener(t, emit));
-  lionAudio.addEventListener("ended", () => { mode = "intro"; started = false; emit(); });   // the hook is over: the speaker starts the intro again
+  lionAudio.addEventListener("ended", () => { if (!userMuted) sound.start(); else { mode = "intro"; started = false; emit(); } });   // the hook is over: the intro loops on again
   return lionAudio;
 }
 const cur = () => (mode === "lion" ? lionEl() : el());
@@ -151,7 +151,7 @@ export const sound = {
     if (lionAudio && mode !== "lion") { lionAudio.src = src; lionAudio.load(); }
   },
   // start downloading the song ahead of the tap (after the transition has its turn)
-  preload() { el(); },   // (the lion's cut isn't used: the intro plays on through the lion)
+  preload() { el(); lionEl(); },
   // 0..1: how hard the bass is hitting right now (0 before the drop, or when it isn't playing)
   beat() {
     if (!lionAudio || lionAudio.paused || !beatMap || mode !== "lion") return 0;   // (the intro never reaches the drop)
