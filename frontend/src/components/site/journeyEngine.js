@@ -236,7 +236,7 @@ const CREATURES = [
       if (u >= 1 || u < 0) c.returnAt = 0;
       else { const e = smooth(u); return { x: PERCH.x + 430 * (1 - e), y: PERCH.y - 170 * (1 - e) - 40 * Math.sin(Math.PI * e), flying: true, face: -1, scale: 0.7 + 0.3 * e }; }
     }
-    const d = c.flyAt ? (t - c.flyAt) * (c.roarFly && USE_FINALE_VIDEO ? ROAR_FLIGHT_K : 1) : -1;   // (slowed only for the finale video's first frame)
+    const d = c.flyAt ? (t - c.flyAt) * (c.roarFly ? ROAR_FLIGHT_K : 1) : -1;   // (the roar's flight at half speed: it matches the finale video's first frame, should it come back)
     if (d < 0) return { x: PERCH.x, y: PERCH.y, flying: false };
     if (d < 2.6) { const e = Math.pow(d / 2.6, 1.5);
       // depth: she banks toward the camera as she goes, growing, then pulls away into the sky
@@ -323,6 +323,21 @@ const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. The lion simply roars, and the unlock card follows
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song's clock (its first frame lands on the K)
+// The card's frame: "clouds" (the world's clouds and rocks), or "thin": a fine double gold line with the
+// canyon's strata flowing round each corner and a Sedona butte on the top (try it with ?frame=thin)
+const UNLOCK_FRAME = typeof location !== "undefined" && /[?&]frame=thin/.test(location.search) ? "thin" : "clouds";
+const STRATA = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M5 62 C6 41 14 27 29 19 C39 14 50 11 62 10" stroke-width="1.2"/>
+  <path d="M11 62 C12 47 20 35 33 28 C43 23 53 21 62 20.5" stroke-width="1" opacity=".7"/>
+  <path d="M17.5 62 C19 52 26 43 37.5 37.5 C46 33.5 54 32 62 31.5" stroke-width=".9" opacity=".45"/>
+  <circle cx="7" cy="7" r="1.6" fill="currentColor" stroke="none" opacity=".85"/></svg>`;
+const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
+  ${["tl", "tr", "bl", "br"].map((k) => `<i class="tj-strata ${k}">${STRATA}</i>`).join("")}
+  <svg class="tj-butte" viewBox="0 0 132 40" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="17" y="35.2" width="88" height="4" fill="#1a1218" stroke="none"/>
+    <circle cx="96" cy="11" r="5.5" stroke-width="1" opacity=".75"/>
+    <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
+    <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -433,7 +448,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockVideo" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp)">
+      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME === "thin" ? " thin" : ""}" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp)">
+        ${UNLOCK_FRAME === "thin" ? THIN_FRAME : ""}
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side left" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side right" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
