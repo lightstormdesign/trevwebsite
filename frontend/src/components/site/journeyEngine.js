@@ -325,7 +325,7 @@ const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. Th
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song's clock (its first frame lands on the K)
 // The card's frame: "clouds" (the world's clouds and rocks), or "thin": a fine double gold line with the
 // canyon's strata flowing round each corner and a Sedona butte on the top (try it with ?frame=thin)
-// or "ornate" (TREV's gold frame: buttes, the sun and a star on top, saguaros at the foot; the default).
+// or "ornate" (TREV's polished gold frame: buttes and a spire on top, saguaros and buttes at the foot; the default).
 // ?frame=clouds or ?frame=thin shows the others
 const UNLOCK_FRAME = (typeof location !== "undefined" && (location.search.match(/[?&]frame=(clouds|thin)/) || [])[1]) || "ornate";
 const STRATA = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round">
@@ -451,7 +451,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME !== "clouds" ? " " + UNLOCK_FRAME : ""}" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp);--frame:url(${A}trev-unlock-frame.webp)">
+      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME !== "clouds" ? " " + UNLOCK_FRAME : ""}" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp);--frame:url(${A}trev-unlock-frame-gold.webp)">
         ${UNLOCK_FRAME === "thin" ? THIN_FRAME : UNLOCK_FRAME === "ornate" ? '<div class="tj-ornateFrame" aria-hidden="true"></div>' : ""}
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side left" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
@@ -1368,8 +1368,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const nameR = $(".tj-name").getBoundingClientRect();
       const headTop = fit.oy + set.cut.y * k, mid = (nameR.bottom + headTop) / 2;
       const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
-      enter.style.left = Math.min(W - 16 - half, Math.max(16 + half, hx)).toFixed(1) + "px";
-      enter.style.top = mid.toFixed(1) + "px";
+      // between the name and his head; a screen too short for that (a phone on its side): low, over him
+      const roomy = headTop - nameR.bottom > 70;
+      enter.style.left = (roomy ? Math.min(W - 16 - half, Math.max(16 + half, hx)) : W / 2).toFixed(1) + "px";
+      enter.style.top = (roomy ? mid : H - Math.max(56, H * 0.13)).toFixed(1) + "px";
       if (phase === "trans") placeVideo(recovered || tv);
     }
 
@@ -1607,6 +1609,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     on(enterLayer, "click", onEnter);   // anywhere on the hero, not just the words
     on(tv, "error", () => { if (phase !== "world" && !playing) fallbackToWorld(); });
     on(window, "resize", layout);
+    // the hero's own size, whenever it really changes (as the page settles on loading, and after the
+    // phone is turned: iPhone reports the new size a moment after the turn)
+    if (typeof ResizeObserver !== "undefined") { const ro = new ResizeObserver(() => layout()); ro.observe(heroEl); off.push(() => ro.disconnect()); }
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (phase === "hero") layout(); });
     layout();
     // TREV fades out over FADE_ME_MS from the moment the video starts, set frame by frame (a CSS
@@ -1740,6 +1745,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   raf = requestAnimationFrame(loop);
   on(window, "resize", () => { if (phase === "world") worldLayout(Math.min(1, cur / DESCENT_SVH)); });
+  // a turned phone: iPhone's sizes settle a moment after the turn, so everything lays out again then
+  on(window, "orientationchange", () => { [150, 450, 1000].forEach((ms) => later(() => window.dispatchEvent(new Event("resize")), ms)); });
 
   off.push(() => docEl.classList.remove("tj-finale-on"));
   return () => {
