@@ -321,7 +321,7 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
-const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. The lion simply roars, and the unlock card follows
+const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js): the lion roars on the song's K, then the video takes over
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song's clock (its first frame lands on the K)
 // The card's frame: "clouds" (the world's clouds and rocks), or "thin": a fine double gold line with the
 // canyon's strata flowing round each corner and a Sedona butte on the top (try it with ?frame=thin)
@@ -721,6 +721,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (summonAt || roaring || frozen) return;
     summonAt = performance.now();
     sound.lion();
+    if (USE_FINALE_VIDEO) finale.start();   // (already loaded and running hidden: it's taken back to its start, kept on the song)
     focus();
     awaitDrop();
   }
