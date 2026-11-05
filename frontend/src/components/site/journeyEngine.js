@@ -31,7 +31,7 @@
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt, LION_DROP_S } from "@/utils/sound";
+import { sound, tilt } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 import { createFinale, FINALE } from "./finale";
 
@@ -315,11 +315,7 @@ const TOTEM_ICON = Object.fromEntries(Object.entries({"bison": "<path d=\"M7 7.2
   [k, `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`]));
 const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
-const USE_FINALE_VIDEO = true;   // the baked finale video (finale.js, hosted with the site)
-// the roar fires this much before the "K" by the song clock (its first frame lands on the K); an iPhone
-// shows it later than the clock says (TREV: consistently after the K, where the iPad is on it), so it fires
-// earlier there
-const ROAR_EARLY_S = 0.05;
+const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. The lion simply roars, and the unlock card follows
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -650,7 +646,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // beforehand, silent and hidden, kept on the song. The roar lands on the song's "K-ingdom", by the
   // song's own clock (as without the video); the video takes over at its reveal frame and the world
   // waits under it. If the video won't get going, the world simply carries on, and the card comes.
-  const ROAR_LEAD_S = (FOCUS_MS + CHARGE_MS) / 1000, FINALE_GIVE_UP_S = 2.5;
   if (USE_FINALE_VIDEO) sound.setLionSrc(FINALE.song);   // the lion's tap plays the video's own edit of the song
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, prepare() {}, start() {}, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: () => root.classList.add("finale"),   // (the roar's rings simply fade out under it)
@@ -675,67 +670,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
   on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
   let summonAt = 0;
+  // The lion's tap: kept as light as it can be. The intro song plays on (it loops); the spotlight closes
+  // in (FOCUS_MS), he charges (CHARGE_MS) and roars, and the unlock card follows the roar.
   function summon() {
     if (summonAt || roaring || frozen) return;
     summonAt = performance.now();
-    if (DBG) dbgStart();
-    const t0 = performance.now();
-    sound.lion();   // "Welcome to my..." fades up
-    const t1 = performance.now();
-    if (USE_FINALE_VIDEO) finale.start();   // (already loaded: it plays hidden, on the song, until the takeover)
-    const t2 = performance.now();
-    focus();   // the spotlight closes in at once; then the charge and the roar on "K-ingdom"
-    if (DBG) dbg.steps = `song ${(t1 - t0).toFixed(0)} · video ${(t2 - t1).toFixed(0)} · focus ${(performance.now() - t2).toFixed(0)} ms`;
-    awaitDrop();
-  }
-  // ?debug: what the phone actually did from the lion's tap, on screen (for a screenshot)
-  const DBG = /[?&]debug/.test(location.search);
-  const dbg = {};
-  let dbgEl = null;
-  function dbgStart() {
-    if (!dbgEl) { dbgEl = document.createElement("pre"); Object.assign(dbgEl.style, { position: "fixed", left: "6px", top: "60px", zIndex: 99, margin: 0, padding: "6px 8px", font: "11px/1.35 ui-monospace, monospace", color: "#fff", background: "rgba(0,0,0,.72)", borderRadius: "6px", pointerEvents: "none", whiteSpace: "pre-wrap", maxWidth: "92vw" }); document.body.appendChild(dbgEl); }
-    Object.assign(dbg, { tap: performance.now(), before: USE_FINALE_VIDEO ? JSON.stringify(finale.state) : "no video", gaps: [], last: performance.now(), songStart: null, roar: null, show: null });
-    const frame = () => {
-      const now = performance.now(), el = (now - dbg.tap) / 1000, st = sound.lionTime();
-      dbg.gaps.push([el, now - dbg.last]); dbg.last = now;
-      if (dbg.songStart == null && st > 0) dbg.songStart = el - st;
-      if (dbg.show == null && root.classList.contains("finale")) dbg.show = { el, song: st, vid: USE_FINALE_VIDEO ? finale.videoTime : null };
-      const big = dbg.gaps.filter((g) => g[1] > 50).slice(0, 8).map((g) => `${g[1].toFixed(0)}ms@${g[0].toFixed(2)}s`).join(" ");
-      const r = dbg.roar, w = dbg.show;
-      dbgEl.textContent = [
-        `video before tap: ${dbg.before}`,
-        `in the tap: ${dbg.steps || "?"}`,
-        `song heard-clock started ${dbg.songStart == null ? "?" : dbg.songStart.toFixed(2) + "s after tap"}`,
-        `ROAR: ${r ? `${r.el.toFixed(2)}s after tap, song at ${r.song == null ? "-" : r.song.toFixed(2)} (K = 0.94)` : "…"}`,
-        `takeover: ${w ? `${w.el.toFixed(2)}s, song ${w.song == null ? "-" : w.song.toFixed(2)}, video ${w.vid == null ? "-" : w.vid.toFixed(2)} (want 1.80)` : "…"}`,
-        `frozen frames >50ms: ${big || "none"}`,
-        `max gap: ${Math.max(...dbg.gaps.map((g) => g[1])).toFixed(0)} ms`,
-        USE_FINALE_VIDEO ? `video now: ${JSON.stringify(finale.state)}` : "",
-      ].join("\n");
-      if (el < 6) requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
-  }
-  // Led by the song's own clock, frame by frame (no timers to run late on a busy phone): the charge
-  // starts CHARGE_MS before the "K", and the roar fires on it (ROAR_EARLY_S ahead, so its first frame,
-  // the shake and the rings, is on screen as the "K" is heard)
-  let songLed = false;
-  function awaitDrop() {
-    const since = (performance.now() - summonAt) / 1000;
-    const t = sound.lionTime(), drop = LION_DROP_S;
-    if (t != null && t > 0.02) {
-      songLed = true;
-      if (!root.classList.contains("charging") && !roaring && t >= drop - CHARGE_MS / 1000) roar();   // the charge
-      if (t >= drop - ROAR_EARLY_S) { songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar(true); }            // the roar, on the K
-      return requestAnimationFrame(awaitDrop);
-    }
-    // sound off, or it never starts: by the clock from the tap (a slow start is waited for a while)
-    const muted = sound.lionTime() == null;
-    const lead = Math.max(CHARGE_MS / 1000, ROAR_LEAD_S - since);
-    if ((muted && since >= drop - lead) || since > FINALE_GIVE_UP_S) {
-      songLed = false; if (!USE_FINALE_VIDEO) showUnlocks(); return roar();
-    }
-    requestAnimationFrame(awaitDrop);
+    focus();
+    later(roar, FOCUS_MS);   // (roar() runs the charge, then the roar)
   }
   function release() {
     root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
@@ -749,14 +690,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the charge: the vignette drops hard around the lion at once, then he roars
     if (!root.classList.contains("charging")) {
       aimFocus(); root.classList.add("charging"); haptic(25); chargeAt = performance.now();
-      return songLed ? undefined : later(roar, CHARGE_MS);   // (led by the song: the song's clock fires the roar)
+      return later(roar, CHARGE_MS);
     }
     if (performance.now() - chargeAt < CHARGE_MS - 40) return;   // a second tap mid-charge waits for it
     roaring = true; root.classList.add("roaring"); root.classList.remove("focus", "charging");
     roarNow();
   }
   function roarNow() {
-    if (DBG && dbg.tap) dbg.roar = { el: (performance.now() - dbg.tap) / 1000, song: sound.lionTime() };
+    if (!USE_FINALE_VIDEO) showUnlocks();   // the card, once he's roared (UNLOCK_AFTER_ROAR_MS on)
     haptic([70, 30, 90, 30, 120, 40, 180]);
     scatter();
     // the roar sound plays here, and FINALE_AFTER_MS later (once made) the clip into the lion's eye
@@ -785,8 +726,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     bisonOnTimer = later(() => { if (!bisonHover) bison.classList.remove("is-on"); }, BISON_TAP_S * 1000);
   };
   on(window, "pointerdown", (e) => { if (overBison(e.clientX, e.clientY, 30)) lightBison(); }, { passive: true, capture: true });
-  on(window, "touchend", () => { finale.kick(); if (summonAt) sound.kick(); }, { passive: true, capture: true });
-  on(window, "click", () => { finale.kick(); if (summonAt) sound.kick(); }, { capture: true });
+  on(window, "touchend", () => finale.kick(), { passive: true, capture: true });
+  on(window, "click", () => finale.kick(), { capture: true });
   on(window, "touchstart", (e) => { const t = e.touches[0]; if (t && overBison(t.clientX, t.clientY, 30)) lightBison(); }, { passive: true, capture: true });
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) on(window, "mousemove", (e) => {
     const h = overBison(e.clientX, e.clientY, 10);
@@ -1176,7 +1117,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function bisonMoment() {
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
-    sound.fadeIntro(4500);   // the intro song fades away, slowly (4.5 s), as he turns to you
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
     haptic([40, 40, 80]);
     bison.classList.remove("blessing"); void bison.offsetWidth; bison.classList.add("blessing");
