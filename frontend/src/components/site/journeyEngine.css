@@ -842,9 +842,14 @@ html:fullscreen .tj-finale video { height: 100vh; }
    portal's Flower of Life; Cormorant and Cinzel */
 /* a little above the middle of the screen */
 .tj-unlock { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 14px 12vh; }
+/* behind the card the world goes dark and soft (it rests while the card is up, so the blur is cheap) */
+.tj-unlock::before { content: ""; position: fixed; inset: 0; background: rgba(4,3,6,.58); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+  opacity: 0; transition: opacity 1.2s ease; }
+.tj-unlock.show::before { opacity: 1; }
+.tj.carded .tj-world *, .tj.carded .tj-worldStage { animation-play-state: paused !important; }
 .tj-unlockCard { grid-area: 1 / 1; position: relative; width: min(100%, 380px); color: #f4e4c4;
-  opacity: 0; transform: translateY(14px) scale(.985); pointer-events: none; transition: opacity 3s linear, transform 3s cubic-bezier(.2,.7,.25,1); }   /* 0 to 100% over 3 s */
-.tj-unlockCard.show { opacity: 1; transform: none; pointer-events: auto; }
+  opacity: 0; transform: translateY(14px) scale(.886); pointer-events: none; transition: opacity 3s linear, transform 3s cubic-bezier(.2,.7,.25,1); }   /* 0 to 100% over 3 s */
+.tj-unlockCard.show { opacity: 1; transform: scale(.9); pointer-events: auto; }   /* (the whole card and its frame, 10% smaller) */
 /* the darkened sky: no edge of its own, it fades out under the frame */
 .tj-unlockCard::before { content: ""; position: absolute; inset: 14px 16px 22px; z-index: 0; border-radius: 30px;
   background: var(--sky) center 30% / cover no-repeat, #1c1420;
@@ -852,8 +857,17 @@ html:fullscreen .tj-finale video { height: 100vh; }
   -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent), linear-gradient(transparent, #000 10%, #000 90%, transparent); mask-composite: intersect; }
 .tj-unlockInner { position: relative; z-index: 2; padding: 58px 52px 84px; text-align: center; }
 .tj-unlockDeco { position: absolute; pointer-events: none; z-index: 3; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
-.tj-unlockDeco.clouds { left: -6%; top: -4px; width: 112%; }
-.tj-unlockDeco.rocks { left: -6%; bottom: -8px; width: 112%; }
+.tj-unlockDeco.clouds { left: -6%; top: -4px; width: 112%;
+  /* its pointed, curling tips fade away under the corner puffs */
+  -webkit-mask-image: linear-gradient(90deg, transparent 3%, #000 15%, #000 85%, transparent 97%); mask-image: linear-gradient(90deg, transparent 3%, #000 15%, #000 85%, transparent 97%); }
+/* a full cloud puff (from the same clouds) at each corner, so the top, the sides and the rocks flow into one another */
+.tj-unlockDeco.corner { width: 30%; z-index: 4; }
+.tj-unlockDeco.corner.tl { left: -9%; top: -5%; transform: rotate(-28deg); }
+.tj-unlockDeco.corner.tr { right: -9%; top: -5%; transform: scaleX(-1) rotate(-28deg); }
+.tj-unlockDeco.corner.bl { left: -8%; bottom: -1%; transform: rotate(12deg); }
+.tj-unlockDeco.corner.br { right: -8%; bottom: -1%; transform: scaleX(-1) rotate(12deg); }
+.tj-unlockDeco.rocks { left: -6%; bottom: -8px; width: 112%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 4%, #000 14%, #000 86%, transparent 96%); mask-image: linear-gradient(90deg, transparent 4%, #000 14%, #000 86%, transparent 96%); }
 /* the clouds also run down both sides, turned on end, the card's full height (--h, set as it shows) */
 .tj-unlockDeco.clouds.side { top: 50%; width: calc(var(--h, 420px) * 1.04); z-index: 2; }
 .tj-unlockDeco.clouds.side.left { left: 14px; transform: translate(-50%, -50%) rotate(-90deg); }

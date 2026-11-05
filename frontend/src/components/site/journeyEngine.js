@@ -236,7 +236,7 @@ const CREATURES = [
       if (u >= 1 || u < 0) c.returnAt = 0;
       else { const e = smooth(u); return { x: PERCH.x + 430 * (1 - e), y: PERCH.y - 170 * (1 - e) - 40 * Math.sin(Math.PI * e), flying: true, face: -1, scale: 0.7 + 0.3 * e }; }
     }
-    const d = c.flyAt ? (t - c.flyAt) * (c.roarFly ? ROAR_FLIGHT_K : 1) : -1;   // (the roar's flight is slower: see ROAR_FLIGHT_K)
+    const d = c.flyAt ? (t - c.flyAt) * (c.roarFly && USE_FINALE_VIDEO ? ROAR_FLIGHT_K : 1) : -1;   // (slowed only for the finale video's first frame)
     if (d < 0) return { x: PERCH.x, y: PERCH.y, flying: false };
     if (d < 2.6) { const e = Math.pow(d / 2.6, 1.5);
       // depth: she banks toward the camera as she goes, growing, then pulls away into the sky
@@ -436,6 +436,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side left" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side right" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
+        ${["tl", "tr", "bl", "br"].map((k) => `<img class="tj-unlockDeco corner ${k}" src="${A}trev-unlock-corner.webp" alt="" aria-hidden="true">`).join("")}
         <div class="tj-unlockInner">
           <div class="tj-unlockPhoto">
             <img src="${A}trev-unlock-photo.webp" alt="TREV on a red rock ledge above Sedona">
@@ -582,7 +583,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now() / 1000;
     // every looping animation in the world (wing beats, spinning auras, the falls) restarts with the
     // roar, so nothing on its own clock changes that frame
-    try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
+    if (USE_FINALE_VIDEO) try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
     if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.roarFly = true; perch.el.classList.remove("is-on"); }
     if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.roarFly = true; butterfly.el.classList.remove("is-on"); }
     if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
@@ -663,16 +664,17 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   off.push(() => finale.destroy());
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
   const unlock = $(".tj-unlock"), unlockVideo = $(".tj-unlockVideo");
-  let unlockShown = false;
+  let unlockShown = false, cardUp = false;   // (while the card is up the world behind it rests: it's dark and blurred)
   function showUnlocks(after = UNLOCK_AFTER_ROAR_MS) {   // (called as he roars, or at the finale video's end)
     if (unlockShown) return; unlockShown = true;
     // the card rises right after the roar, once the shake has settled; the hook plays on under it
     later(() => {
       unlock.hidden = false; unlockVideo.style.setProperty("--h", unlockVideo.offsetHeight + "px");
       void unlock.offsetWidth; unlock.classList.add("show"); unlockVideo.classList.add("show");
+      later(() => { if (unlock.classList.contains("show")) { cardUp = true; root.classList.add("carded"); } }, 1300);   // (once the dark has come in over it)
     }, after);
   }
-  const closeUnlock = () => { finale.stop(); unlock.classList.remove("show");   // (and the held video gives way to the world)
+  const closeUnlock = () => { finale.stop(); cardUp = false; root.classList.remove("carded"); unlock.classList.remove("show");   // (and the held video gives way to the world)
     later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
   on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
@@ -1075,7 +1077,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (settled && roams) { if (c.el.style.opacity !== "0") c.el.style.opacity = "0"; continue; }
       const fade = roams && frozen ? clamp01(1 - k * (c.kind === "leaf" ? 2.5 : 1.2)) : 1;
       const live = c.burst || c.flyAt || c.returnAt;   // the roar's movers and anyone flying home keep real time
-      const T = settled && !live ? 0 : t - worldAt, tt = settled && !live ? 0 : t;
+      const T = USE_FINALE_VIDEO && settled && !live ? 0 : t - worldAt, tt = USE_FINALE_VIDEO && settled && !live ? 0 : t;   // (held still only for the finale video's first frame; without it the world lives on)
       const pose = c.pose(tt, p, c, T), el = c.el;
       if (pose && pose.pushing !== undefined && pose.pushing !== c.pushing) { c.pushing = pose.pushing; el.classList.toggle("pushing", pose.pushing); }
       if (pose && pose.flying !== undefined && pose.flying !== c.flying) { c.flying = pose.flying; el.classList.toggle("flying", pose.flying); }
@@ -1669,6 +1671,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const scrolled = () => Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100);
   function loop(now) {
     raf = requestAnimationFrame(loop);
+    if (cardUp) { lastT = now; return; }   // the world rests under the card
     if (hero) hero.frame(now);
     const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
     // the tilt, eased so it glides (Burnell's)
