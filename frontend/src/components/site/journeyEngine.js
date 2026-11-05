@@ -138,6 +138,12 @@ const MOTH_ROAR_GROW = 0.6;
 // The roar's scatter flights (bluebird, lolo) run at this speed, so at the finale's first frame (0.9 s in)
 // the bluebird is just above and right of the lion and the lolo just right of him, as in the start frame
 const ROAR_FLIGHT_K = 0.5;   // the roar sends the lolo up toward the camera: this much bigger (the finale flies past it)   // on the rocks right of the river, mid-frame: at the finale frame the roar has lifted it beside the lion
+// its flight's wide loop swings out to the right, away from the lion (it used to swing left, across
+// him). The roar's flight keeps its old path until the reference frame (0.9 s after the roar, where it
+// sits just right of him), then bends off to the right the same way
+const MOTH_REF_D = 0.9 * ROAR_FLIGHT_K;
+const mothLeft = (d) => -150 + 150 * Math.cos(d * 0.8), mothRight = (d) => 90 * (1 - Math.cos(d * 0.8));
+const mothLoopX = (d, roar) => (!roar ? mothRight(d) : d <= MOTH_REF_D ? mothLeft(d) : mothLeft(MOTH_REF_D) + mothRight(d) - mothRight(MOTH_REF_D));
 const OWL_LOOK_MS = 600, OWL_HOLD_MS = 4200;
 // One beat at a time, on the world's clock (T, seconds since the world opened), every 15s: the near
 // flock crosses (every other beat).
@@ -212,7 +218,7 @@ const CREATURES = [
     const d = c.flyAt ? (t - c.flyAt) * (c.roarFly ? ROAR_FLIGHT_K : 1) : -1;   // (the roar's flight is slower: see ROAR_FLIGHT_K)
     if (d < 0 || d > BUTTERFLY_FLY_S) { c.flyAt = 0; c.roarFly = false; return { ...base, flying: !c.home }; }
     const e = smooth(d / 1.2) * smooth((BUTTERFLY_FLY_S - d) / 1.5);   // lifts off, loops wide, comes back down
-    return { x: base.x + e * (-150 + 150 * Math.cos(d * 0.8) + 40 * Math.sin(d * 2.3)),
+    return { x: base.x + e * (mothLoopX(d, c.roarFly) + 40 * Math.sin(d * 2.3)),
       y: base.y - e * (130 + 60 * Math.sin(d * 1.3)), rot: base.rot + e * 12 * Math.cos(d * 0.9), flying: true,
       scale: base.scale * (c.roarFly ? 1 + MOTH_ROAR_GROW * smooth(d / 0.45) : 1 + e * (0.05 + 0.08 * Math.sin(d * 0.9 + 2.2))) };   // its loop swings toward the camera (the roar sends it right up close) and back
   } },
