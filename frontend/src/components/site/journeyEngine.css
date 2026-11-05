@@ -844,7 +844,7 @@ html:fullscreen .tj-finale video { height: 100vh; }
 /* a little above the middle of the screen */
 .tj-unlock { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; pointer-events: none; padding: 0 14px 12vh; }
 /* behind the card the world goes dark and soft (it rests while the card is up, so the blur is cheap) */
-.tj-unlock::before { content: ""; position: fixed; inset: 0; background: rgba(4,3,6,.58); -webkit-backdrop-filter: blur(11px); backdrop-filter: blur(11px);
+.tj-unlock::before { content: ""; position: fixed; inset: 0; background: rgba(4,3,6,.58); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
   opacity: 0; transition: opacity 1.2s ease; }
 .tj-unlock.show::before { opacity: 1; }
 .tj.carded .tj-world *, .tj.carded .tj-worldStage { animation-play-state: paused !important; }
@@ -908,3 +908,19 @@ html:fullscreen .tj-finale video { height: 100vh; }
 /* the butte sits on the top line; a dark band behind it breaks the line, so it stands on the edge */
 .tj-butte { position: absolute; left: 50%; top: -37.6px; width: 132px; transform: translateX(-50%); overflow: visible;
   filter: drop-shadow(0 0 3px rgba(0,0,0,.7)); }   /* (its base on the top line; the dark strip in it breaks the line under the butte) */
+
+/* ---------- the card's ornate frame (the default): TREV's gold frame, at the card's width. Its top
+   (buttes, sun, star, the corner flourishes) and its foot (saguaros, buttes, the medallion) keep their
+   shape; only the plain double lines down the sides stretch to the card's height ---------- */
+.tj-unlockCard.ornate { container-type: inline-size; }
+.tj-unlockCard.ornate .tj-unlockDeco { display: none; }
+.tj-ornateFrame { position: absolute; inset: 0; z-index: 3; pointer-events: none; border-style: solid; border-color: transparent;
+  border-width: calc(100cqw * 300 / 941) 0 calc(100cqw * 416 / 941) 0;
+  border-image: var(--frame) 300 0 416 0 / calc(100cqw * 300 / 941) 0 calc(100cqw * 416 / 941) 0 stretch;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+/* the dark sky fills the inside of its line (rounded as the line is) */
+.tj-unlockCard.ornate::before { inset: 17.2cqw 4.9cqw 18cqw; border-radius: 9cqw; -webkit-mask-image: none; mask-image: none;
+  background: linear-gradient(rgba(10,7,12,.35), rgba(10,7,12,.55)), var(--sky) center 30% / cover no-repeat, #1c1420;
+  box-shadow: 0 18px 50px rgba(0,0,0,.55); }
+.tj-unlockCard.ornate .tj-unlockInner { padding: 30cqw 12cqw 30cqw; }
+.tj-unlockCard.ornate .tj-unlockClose { right: 9cqw; top: 19cqw; }

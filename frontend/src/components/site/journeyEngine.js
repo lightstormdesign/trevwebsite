@@ -325,7 +325,9 @@ const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. Th
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song's clock (its first frame lands on the K)
 // The card's frame: "clouds" (the world's clouds and rocks), or "thin": a fine double gold line with the
 // canyon's strata flowing round each corner and a Sedona butte on the top (try it with ?frame=thin)
-const UNLOCK_FRAME = typeof location !== "undefined" && /[?&]frame=thin/.test(location.search) ? "thin" : "clouds";
+// or "ornate" (TREV's gold frame: buttes, the sun and a star on top, saguaros at the foot; the default).
+// ?frame=clouds or ?frame=thin shows the others
+const UNLOCK_FRAME = (typeof location !== "undefined" && (location.search.match(/[?&]frame=(clouds|thin)/) || [])[1]) || "ornate";
 const STRATA = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round">
   <path d="M5 62 C6 41 14 27 29 19 C39 14 50 11 62 10" stroke-width="1.2"/>
   <path d="M11 62 C12 47 20 35 33 28 C43 23 53 21 62 20.5" stroke-width="1" opacity=".7"/>
@@ -449,8 +451,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME === "thin" ? " thin" : ""}" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp)">
-        ${UNLOCK_FRAME === "thin" ? THIN_FRAME : ""}
+      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME !== "clouds" ? " " + UNLOCK_FRAME : ""}" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp);--frame:url(${A}trev-unlock-frame.webp)">
+        ${UNLOCK_FRAME === "thin" ? THIN_FRAME : UNLOCK_FRAME === "ornate" ? '<div class="tj-ornateFrame" aria-hidden="true"></div>' : ""}
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side left" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side right" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
