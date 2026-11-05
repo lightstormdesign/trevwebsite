@@ -323,6 +323,7 @@ const RAIN_MS = 6500, RAINBOW_MS = 9000;
 const PROGRESS_IDLE_MS = 2200, MOUSE_LEAN = 0.6;
 const USE_FINALE_VIDEO = false;   // the baked finale video (finale.js): off. The lion simply roars, and the unlock card follows
 const ROAR_EARLY_S = 0.05;   // the roar fires this much before the "K" by the song's clock (its first frame lands on the K)
+const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
@@ -456,7 +457,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <button class="tj-bubbleClose" type="button" aria-label="Close">&times;</button>
     </a>
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
     <div class="tj-totems">${["bison", "bluebird", "butterfly", "owl", "salmon"].map((k) => `<span class="tj-totem" data-k="${k}">${TOTEM_ICON[k]}</span>`).join("")}
       <button class="tj-totem tj-lionTotem" type="button" aria-label="The white lion">${TOTEM_ICON.lion}</button></div>
@@ -674,10 +675,24 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       later(() => { if (unlock.classList.contains("show")) { cardUp = true; root.classList.add("carded"); } }, 1300);   // (once the dark has come in over it)
     }, after);
   }
+  // the card closed (their X, or off to Laylo): once it's gone, a gentle glide down to "My Story"
   const closeUnlock = () => { finale.stop(); cardUp = false; root.classList.remove("carded"); unlock.classList.remove("show");   // (and the held video gives way to the world)
+    later(() => glideTo(STORY_START_SVH / 100 * Hs(), GLIDE_MS), 900);
     later(() => { unlock.hidden = true; unlockVideo.classList.remove("show"); unlockShown = false; }, 600); };
   on($(".tj-unlockClose"), "click", (e) => { e.preventDefault(); e.stopPropagation(); closeUnlock(); });
   on($(".tj-unlockGo"), "click", () => later(closeUnlock, 400));
+  // a slow, eased scroll (the browser's own smooth scroll is quick and abrupt)
+  let glideRaf = 0;
+  function glideTo(top, ms) {
+    cancelAnimationFrame(glideRaf);
+    scroller.classList.remove("locked");
+    const from = scroller.scrollTop, t0 = performance.now();
+    const step = () => { const u = Math.min(1, (performance.now() - t0) / ms), e = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+      scroller.scrollTop = from + (top - from) * e; if (u < 1) glideRaf = requestAnimationFrame(step); };
+    glideRaf = requestAnimationFrame(step);
+  }
+  const stopGlide = () => cancelAnimationFrame(glideRaf);   // (their own touch or wheel takes over)
+  on(scroller, "touchstart", stopGlide, { passive: true }); on(scroller, "wheel", stopGlide, { passive: true });
   let summonAt = 0;
   // The lion's tap: kept light. "Welcome to my K-ingdom" (the lion's cut of the song) starts; the
   // spotlight closes in, he charges and roars on the song's "K" (read from the song's own clock each
