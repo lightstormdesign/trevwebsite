@@ -341,6 +341,7 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
     <path d="M103.8 11.0L106.6 11.0 M101.5 16.5L103.5 18.5 M96.0 18.8L96.0 21.6 M90.5 16.5L88.5 18.5 M88.2 11.0L85.4 11.0 M90.5 5.5L88.5 3.5 M96.0 3.2L96.0 0.4 M101.5 5.5L103.5 3.5" stroke-width=".9" opacity=".75"/>
     <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
     <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
+const BISON_AUTO_MS = [2600, 2800];   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -726,7 +727,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // frame), and the unlock card follows the roar.
   function summon() {
     if (summonAt || roaring || frozen) return;
-    summonAt = performance.now();
+    summonAt = performance.now(); root.classList.add("summoned");
     sound.lion();
     if (USE_FINALE_VIDEO) finale.start();   // (already loaded and running hidden: it's taken back to its start, kept on the song)
     focus();
@@ -1179,14 +1180,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const bisonReady = () => !climaxed && TOTEMS.every((t) => awake.has(t));
   // the quest above the totems: how many are found (each once, from the same state as the icons), and,
   // once all five are, where the secret is
-  const QUEST = {
-    find: ["Find the animal totems", "Unlock them all to reveal the secret."],
-    found: ["All five totems found", "Return to the bison to awaken the Kingdom."],
-    lion: ["The Kingdom awakens", "Tap the lion to reveal the secret."],
-  };
+  const QUEST = { find: ["Find the animal totems", "Unlock them all to reveal the secret."] };
   const paintQuest = () => {
     const q = $(".tj-quest"); if (!q) return;
-    const n = TOTEMS.filter((t) => awake.has(t)).length, [title, sub] = QUEST[climaxed || lionMode ? "lion" : n >= TOTEMS.length ? "found" : "find"];
+    const n = TOTEMS.filter((t) => awake.has(t)).length, [title, sub] = QUEST.find;
     const set = (sel, v) => { const e = q.querySelector(sel); if (e.textContent !== v) e.textContent = v; };
     set(".tj-questTitle", title); set(".tj-questSub", sub); set(".n", String(n));
     q.classList.toggle("done", n >= TOTEMS.length);
@@ -1203,7 +1200,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
   };
   paintTotems();
+  let momentDone = false;
   function bisonMoment() {
+    if (momentDone) return; momentDone = true;
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
@@ -1214,6 +1213,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function wake(k) {
     if (!TOTEMS.includes(k) || awake.has(k)) return;
     awake.add(k); paintTotems(); finale.preload();   // the finale video starts downloading at the first totem
+    if (bisonReady()) later(() => { if (bisonReady()) bisonMoment(); }, k === "bison" ? BISON_AUTO_MS[0] : BISON_AUTO_MS[1]);   // all five: the bison turns to you by itself
     const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
     try { sessionStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
   }
@@ -1272,6 +1272,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     phase = "world"; worldAt = performance.now() / 1000;
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
+    if (!climaxed && TOTEMS.every((t) => awake.has(t))) later(() => { if (bisonReady()) bisonMoment(); }, 2500);
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.prepare(), 8000); sound.preload(); }   // already awake (the finale loads once the world has settled)
     paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);

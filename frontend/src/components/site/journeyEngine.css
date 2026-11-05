@@ -509,6 +509,11 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
   animation: tj-auraSpin 80s linear infinite reverse; }
 .tj-cr-lion .geo svg g { stroke: #ffd27a; stroke-width: .9; }
 .tj-cr-lion .glow { opacity: .8; } .tj-cr-lion .geo { opacity: .56; }
+/* until he's first tapped, the lion breathes a soft glow: the hint to tap him (opacity only) */
+.tj.lion:not(.summoned):not(.focus) .tj-cr-lion .glow { animation: tj-lionBeckon 3.4s ease-in-out infinite; }
+.tj.lion:not(.summoned):not(.focus) .tj-cr-lion .geo { animation: tj-lionBeckonGeo 3.4s ease-in-out infinite; }
+@keyframes tj-lionBeckon { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+@keyframes tj-lionBeckonGeo { 0%, 100% { opacity: .45; } 50% { opacity: .85; } }
 .tj.lion.roaring .tj-cr-lion .aura { transform: scale(1.4); filter: brightness(1.8); }
 /* the burst of gold light the lion forms out of */
 .tj-cr-lion .burst { position: absolute; left: -60%; top: -40%; width: 220%; aspect-ratio: 1; border-radius: 50%; opacity: 0; pointer-events: none;
