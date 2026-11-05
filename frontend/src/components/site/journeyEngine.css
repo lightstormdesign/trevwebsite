@@ -110,6 +110,7 @@
 .tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
 .tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
 .tj-shade { position: absolute; inset: 0; background: #08090b; opacity: 0; pointer-events: none; }
+.tj-veil { position: absolute; inset: 0; pointer-events: none; will-change: opacity; }
 
 /* the vignette, top and sides only: over the hero, the transition, the world and the story (under
    the landing copy); full on the landing, fading to 10% through the descent (journeyEngine.js) */
@@ -203,7 +204,10 @@
 .tj-emblem .glint { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .55;
   -webkit-mask: var(--sword) center / contain no-repeat; mask: var(--sword) center / contain no-repeat;
   background: linear-gradient(170deg, transparent 38%, rgba(255,246,222,.55) 48%, transparent 58%) 0 0 / 100% 300% no-repeat;
-  animation: tj-glintDown 7s ease-in-out infinite; }
+  background-position: 0 100%; animation: none; }
+/* (it runs from the landing, so its first sweep starts from the tip once the sword is in, never caught
+   part-way down at the hilt as the sword appears) */
+.tj-landing.show .tj-emblem .glint { animation: tj-glintDown 7s ease-in-out -2.2s infinite; }
 @keyframes tj-swordGlow { 0%, 100% { filter: drop-shadow(0 0 5px rgba(240,210,140,.35)) drop-shadow(0 0 16px rgba(214,179,101,.2)); }
   50% { filter: drop-shadow(0 0 7px rgba(255,226,160,.5)) drop-shadow(0 0 24px rgba(214,179,101,.3)); } }
 @keyframes tj-halo { 0%, 100% { opacity: .6; transform: translate(-50%, -50%) scale(.96); } 50% { opacity: .9; transform: translate(-50%, -50%) scale(1.04); } }
@@ -233,7 +237,8 @@
   box-shadow: 0 0 8px rgba(245,223,168,.95); animation: tj-capsuleDrop 1.9s cubic-bezier(.55,0,.45,1) infinite; }
 .tj-cueInner .chevrons { margin-top: 4px; display: flex; flex-direction: column; align-items: center; }
 .tj-cueInner .chevrons svg { width: 16px; height: 16px; margin-bottom: -10px; animation: tj-chevron 1.9s ease-in-out infinite; }
-@keyframes tj-capsuleDrop { 0% { transform: translate(-50%, 0); opacity: 0; } 20% { opacity: 1; } 70% { transform: translate(-50%, 15px); opacity: 1; } 100% { transform: translate(-50%, 19px); opacity: 0; } }
+/* the gold drop travels up the capsule: the way a finger swipes to scroll down on a phone */
+@keyframes tj-capsuleDrop { 0% { transform: translate(-50%, 19px); opacity: 0; } 20% { opacity: 1; } 70% { transform: translate(-50%, 4px); opacity: 1; } 100% { transform: translate(-50%, 0); opacity: 0; } }
 @keyframes tj-chevron { 0%, 100% { opacity: .15; } 40% { opacity: 1; } }
 @keyframes tj-cueBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 

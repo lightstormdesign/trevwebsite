@@ -19,7 +19,7 @@ const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
 const BEAT_FPS = 30;
 export const DROP_AT = 27.47; // seconds into the song: the first bass note (nothing reacts to the beat before it)
 
-let audio = null, lionAudio = null;
+let audio = null, lionAudio = null, introAfterLion = true;
 let started = false;
 let beatMap = null;
 const subs = new Set();
@@ -44,7 +44,7 @@ function lionEl() {
   lionAudio.preload = "auto";
   lionAudio.src = LION_SRC;
   ["play", "pause", "ended"].forEach((t) => lionAudio.addEventListener(t, emit));
-  lionAudio.addEventListener("ended", () => { if (!userMuted) sound.start(); else { mode = "intro"; started = false; emit(); } });   // the hook is over: the intro loops on again
+  lionAudio.addEventListener("ended", () => { if (!userMuted && introAfterLion) sound.start(); else { mode = "intro"; started = false; emit(); } });   // the hook is over: the intro loops on again (unless the finale ends in silence)
   return lionAudio;
 }
 const cur = () => (mode === "lion" ? lionEl() : el());
@@ -145,6 +145,9 @@ export const sound = {
   setBeckon(on) { beckoning = on; emit(); },
   // the lion's tap plays this instead of the lion's cut (the finale video's own edit of the song,
   // which starts the same way: "Welcome to my", the K at LION_DROP_S)
+  // whether the intro comes back once the lion's song has played out (not after the finale video:
+  // its song fades away under the card)
+  setIntroAfterLion(on) { introAfterLion = on; },
   setLionSrc(src) {
     if (src === LION_SRC) return;
     LION_SRC = src;

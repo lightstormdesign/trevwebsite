@@ -398,6 +398,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-worldStage" ${phase === "hero" ? 'style="visibility:hidden"' : ""}>
       <div class="tj-side"></div>
       <div class="tj-world"></div>
+      <div class="tj-veil" aria-hidden="true"></div>
       <div class="tj-shade"></div>
       <div class="tj-dawn" aria-hidden="true"></div>
       <div class="tj-sight" aria-hidden="true">${["sheet", "shimmer"].map((k) => `<i class="${k}" style="background-image:url('data:image/svg+xml;utf8,${encodeURIComponent(FLOWER_TILE)}')"></i>`).join("")}</div>
@@ -520,7 +521,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // WORLD
   // ======================================================================================
   const worldStage = $(".tj-worldStage"), world = $(".tj-world");
-  const landing = $(".tj-landing"), shade = $(".tj-shade");
+  const landing = $(".tj-landing"), shade = $(".tj-shade"), veilEl = $(".tj-veil");
   const swordTilt = $(".tj-swordTilt"), swordBeat = $(".tj-emblem .beat"), vignette = $(".tj-vignette");
   const storyEl = $(".tj-story");
   let worldBuilt = false, layersLoaded = 0, layersReady = false;
@@ -675,11 +676,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // beforehand, silent and hidden, kept on the song. The roar lands on the song's "K-ingdom", by the
   // song's own clock (as without the video); the video takes over at its reveal frame and the world
   // waits under it. If the video won't get going, the world simply carries on, and the card comes.
-  if (USE_FINALE_VIDEO) sound.setLionSrc(FINALE.song);   // the lion's tap plays the video's own edit of the song
+  if (USE_FINALE_VIDEO) { sound.setLionSrc(FINALE.song); sound.setIntroAfterLion(false); }   // the lion's tap plays the video's own edit of the song
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, prepare() {}, start() {}, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
     onReveal: () => root.classList.add("finale"),   // (the roar's rings simply fade out under it)
     clock: () => sound.lionTime(),   // the video follows the song (the lion's cut, heard from the site's player)
-    onOutro: () => { sound.hush(); showUnlocks(0); },   // the card rises over the video's last frame (held there until the card is closed)
+    onOutro: () => showUnlocks(0),   // (the song plays on under the card and fades away: 5 s past the video's end)   // the card rises over the video's last frame (held there until the card is closed)
     onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (!played) showUnlocks(1200); },   // (it never got going: the card anyway)
   });
   off.push(() => finale.destroy());
@@ -1087,7 +1088,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (!still) placeCreatures(now, p);
     // landing: blurred + dimmed under the copy (the video ends in exactly this state), clearing as you descend
     const veil = 1 - smooth(p / 0.3);
-    put(world, "filter", veil > 0.02 ? `blur(${(6 * veil).toFixed(1)}px)` : "none");
+    // (one blur of a fixed strength over the world, faded out: a blur on the world itself, its strength
+    // changing every frame, flattened and re-blurred every layer each frame on a phone, so the clouds lagged)
+    const vb = `blur(${(6 * k).toFixed(1)}px)`;
+    put(veilEl, "backdropFilter", vb); put(veilEl, "webkitBackdropFilter", vb);
+    put(veilEl, "opacity", veil.toFixed(3));
+    put(veilEl, "visibility", veil > 0.02 ? "visible" : "hidden");
     put(shade, "opacity", (0.5 * veil).toFixed(3));
     // the landing copy dissolves on the very first bit of scroll
     const o = 1 - Math.min(1, scroller.scrollTop / (Hs() * 0.14));
