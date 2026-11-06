@@ -399,6 +399,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const enterLabel = `${mouse ? "Click" : "Tap"} to enter`;
 
   root.classList.add("tj");
+  // nothing may fade on the page's very first frames: an iPhone (WebKit) can start hidden things shown on
+  // its first style pass and fade them out (the totems' words, "keep scrolling" flashed at load). So no
+  // transitions until it has settled; then they're on
+  root.classList.add("tj-settling");
+  requestAnimationFrame(() => requestAnimationFrame(() => later(() => root.classList.remove("tj-settling"), 400)));
   root.innerHTML = `
     <div class="tj-scroller"><div class="tj-track"></div></div>
     <div class="tj-svh" aria-hidden="true"></div>

@@ -973,3 +973,5 @@ html:fullscreen .tj-finale video { height: 100vh; }
 .tj.lion:not(.summoned):not(.focus) .tj-cr-lion .tj-crBody::before { animation: tj-lionRing 3.4s ease-out infinite; }
 .tj.lion:not(.summoned):not(.focus) .tj-cr-lion .tj-crBody::after { animation: tj-lionRing 3.4s ease-out 1.7s infinite; }
 @keyframes tj-lionRing { 0% { transform: translate(-50%, -50%) scale(.5); opacity: 0; } 15% { opacity: .8; } 100% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; } }
+/* the page's first moments: no transitions at all (journeyEngine.js tj-settling), so nothing hidden can flash and fade */
+.tj-settling *, .tj-settling *::before, .tj-settling *::after { transition: none !important; }
