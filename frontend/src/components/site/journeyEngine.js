@@ -346,8 +346,9 @@ const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap,
 const ALIGN_MS = 600;
 // the roar's rings over the video's first moments: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS
 // apart; all held RINGS_HOLD_MS from the takeover, then faded out over RINGS_FADE_MS
-// (only while the video's camera holds still, ~0.7 s, so they can't drift off him; no tracking)
-const RING_PULSES = 1, RING_PULSE_GAP_MS = 0, RINGS_HOLD_MS = 450, RINGS_FADE_MS = 300;   // the world eases onto the finale video's frame over this, from the lion's tap
+// (TREV's timing: from the takeover, ~1.81 s into the video, held to 2.51 s, then faded over 1.5 s, gone by
+// 4.01 s; the pulse keeps rising from the same spot, no camera tracking)
+const RING_PULSES = 5, RING_PULSE_GAP_MS = 450, RINGS_HOLD_MS = 700, RINGS_FADE_MS = 1500;   // the world eases onto the finale video's frame over this, from the lion's tap
 const TOTEMS_FROM = 0.7;   // the totems (and their quest) fade in this far down the descent
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
@@ -624,11 +625,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const now = performance.now() / 1000;
     // every looping animation in the world (wing beats, spinning auras, the falls) restarts with the
     // roar, so nothing on its own clock changes that frame
-    if (USE_FINALE_VIDEO) try { world.getAnimations({ subtree: true }).forEach((an) => { an.currentTime = 0; }); } catch (e) { /* older browsers */ }
     if (perch) { perch.returnAt = 0; perch.flyAt = now + 0.15; perch.roarFly = true; perch.el.classList.remove("is-on"); }
     if (butterfly && butterfly.emerged) { butterfly.returnAt = 0; butterfly.flyAt = now; butterfly.roarFly = true; butterfly.el.classList.remove("is-on"); }
     if (owl) { owl.classList.add("look"); later(() => owl.classList.add("open"), 450); }
     for (const c of CREATURES) if (c.kind === "salmon" || c.kind === "splash") { c.roarAt = now + ROAR_LEAP_S; c.burst = true; }
+    // (the leaves' burst a couple of frames on: the roar's first frames, the shake, come first)
+    requestAnimationFrame(() => requestAnimationFrame(() => leafBurst(now)));
+  }
+  function leafBurst(now) {
     const ref = layerOf.aspens.el.nextSibling;
     for (let i = 0; i < 10; i++) {
       const lx = 120 + (i * 53) % 150, ly = 300 + (i * 137) % 520;
@@ -666,7 +670,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     aimFocus(); root.classList.add("frozen", "focus");
     // (where the video's frame will be, relative to the world's stage)
     if (!alignT) { alignStart = focusAt; alignT = videoFrameOnStage(); }
-    later(aimFocus, 700);   // again once the page has settled at the bottom
+    later(aimFocus, 300); later(aimFocus, 700);   // again as the page and the world settle (a few aims, never every frame:
+    // each one makes a phone lay the whole page out again)
   }
   // the focus vignette closes in around the lion
   function aimFocus() {
@@ -724,10 +729,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         const an = w.getAnimations().find((x) => x.animationName === "tj-roarWave"); if (!an) return;
         const kf = an.effect.getKeyframes(), tm = an.effect.getTiming();
         if (an.playState !== "finished") { const ring = w.cloneNode(true); at.appendChild(ring); ring.animate(kf, tm).currentTime = an.currentTime; }
-        for (let k = 0; k < RING_PULSES; k++) {   // the same pulse again (the same rings, motion and spacing)
-          const again = w.cloneNode(true); at.appendChild(again);
-          again.animate(kf, { ...tm, delay: tm.delay - 100 + k * RING_PULSE_GAP_MS });
-        }
+        for (let k = 0; k < RING_PULSES; k++)   // the same pulse again (the same rings, motion and spacing), each made only as it begins
+          later(() => { const again = w.cloneNode(true); at.appendChild(again); again.animate(kf, { ...tm, delay: Math.max(0, tm.delay - 100) }); }, k * RING_PULSE_GAP_MS);
       });
       layer.appendChild(set);
     }
@@ -1810,7 +1813,6 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // part of the descent so nothing shifts at the hand-off from the video
     const mlean = tilt.live ? 1 : MOUSE_LEAN * smooth(cur / DESCENT_SVH / 0.12);
     const aimX = frozen ? 0 : tilt.live ? tilt.x : mouseX * mlean, aimY = frozen ? 0 : tilt.live ? tilt.y : mouseY * mlean;
-    if (frozen && !roaring && root.classList.contains("focus")) aimFocus();   // (the spotlight stays on him as the world settles)
     const te = frozen ? 0.3 : TILT_EASE;   // (the lion's moment: the tilt settles to centre quickly, as the video's frame has none)
     tx += (aimX - tx) * te; ty += (aimY - ty) * te;
     // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).
