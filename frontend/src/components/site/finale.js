@@ -15,7 +15,7 @@ export const FINALE = {
 };
 const A = "/journey/";
 const IDLE_LOOP_S = 1.2, IDLE_MAX_MS = 120000;   // waiting for the tap, it runs round 0..this (all black, inside the hidden lead-in)
-const SYNC_SEEK_S = 0.3;    // further than this from the song: jump to it
+const SYNC_SEEK_S = 0.3, SYNC_JUMP_SHOWN_S = 1;    // further than this from the song: jump to it
 const SYNC_EVERY_MS = 500, SYNC_OK_S = 0.035, SYNC_NUDGE = 0.04;   // closer: within SYNC_OK_S it's on; else 4% faster/slower until it is
 
 export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
@@ -104,9 +104,13 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
       if (now >= nextCheck && !v.seeking) {
         nextCheck = now + SYNC_EVERY_MS;
         const d = v.currentTime - at;
-        if (Math.abs(d) > SYNC_SEEK_S) { try { v.currentTime = at + 0.15; } catch (e) { /* not seekable yet */ } }   // (a little ahead: the jump takes a moment)
+        // hidden (before the takeover) it may jump to the song; once it's on screen it never visibly
+        // jumps (backwards least of all): it eases onto the song by its speed, unless it's a second out
+        const jump = shown ? d > SYNC_JUMP_SHOWN_S || d < -SYNC_JUMP_SHOWN_S : Math.abs(d) > SYNC_SEEK_S;
+        if (jump) { try { v.currentTime = at + 0.15; } catch (e) { /* not seekable yet */ } }   // (a little ahead: the jump takes a moment)
         else if (shown || at > FINALE.reveal - 0.4) {   // (not while he roars)
-          const rate = Math.abs(d) < SYNC_OK_S ? 1 : d > 0 ? 1 - SYNC_NUDGE : 1 + SYNC_NUDGE;
+          const nudge = Math.abs(d) > 0.15 ? SYNC_NUDGE * 2 : SYNC_NUDGE;
+          const rate = Math.abs(d) < SYNC_OK_S ? 1 : d > 0 ? 1 - nudge : 1 + nudge;
           if (v.playbackRate !== rate) v.playbackRate = rate;
         }
       }

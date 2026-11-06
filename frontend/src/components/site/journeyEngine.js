@@ -341,8 +341,10 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
     <path d="M103.8 11.0L106.6 11.0 M101.5 16.5L103.5 18.5 M96.0 18.8L96.0 21.6 M90.5 16.5L88.5 18.5 M88.2 11.0L85.4 11.0 M90.5 5.5L88.5 3.5 M96.0 3.2L96.0 0.4 M101.5 5.5L103.5 3.5" stroke-width=".9" opacity=".75"/>
     <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
     <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
-const BISON_AUTO_MS = [2600, 2800];   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
-const ALIGN_MS = 600;   // the world eases onto the finale video's frame over this, from the lion's tap
+const BISON_AUTO_MS = [2600, 2800];
+const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap, as the lion comes   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
+const ALIGN_MS = 600;
+const RINGS_FADE_MS = 500;   // the roar's rings, carried over the video's first moments, fade out over this   // the world eases onto the finale video's frame over this, from the lion's tap
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -689,11 +691,32 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // waits under it. If the video won't get going, the world simply carries on, and the card comes.
   if (USE_FINALE_VIDEO) { sound.setLionSrc(FINALE.song); sound.setIntroAfterLion(false); }   // the lion's tap plays the video's own edit of the song
   const finale = !USE_FINALE_VIDEO ? { active: false, preload() {}, prepare() {}, start() {}, stop() {}, kick() {}, destroy() {}, failed: false } : createFinale(root, {
-    onReveal: () => root.classList.add("finale"),   // (the roar's rings simply fade out under it)
+    onReveal: (wrap) => { root.classList.add("finale"); carryRings(wrap); },
     clock: () => sound.lionTime(),   // the video follows the song (the lion's cut, heard from the site's player)
     onOutro: () => showUnlocks(0),   // (the song plays on under the card and fades away: 5 s past the video's end)   // the card rises over the video's last frame (held there until the card is closed)
     onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (!played) showUnlocks(1200); },   // (it never got going: the card anyway)
   });
+  // the roar's rings, as they are at the takeover (the world sits exactly on the video's frame by then):
+  // copied over the video, each still on its own animation, and faded out over RINGS_FADE_MS
+  function carryRings(wrap) {
+    const layer = document.createElement("div");
+    layer.className = "tj-finaleRings";
+    for (const src of CREATURES.filter((c) => c.kind === "roarwave" && c.el)) {
+      const body = src.el.querySelector(".tj-crBody"); if (!body) continue;
+      const b = body.getBoundingClientRect(), at = document.createElement("div");
+      Object.assign(at.style, { position: "absolute", left: b.left + "px", top: b.top + "px", width: b.width + "px", height: b.height + "px", opacity: getComputedStyle(body).opacity });
+      body.querySelectorAll(".wave").forEach((w) => {
+        const an = w.getAnimations().find((x) => x.animationName === "tj-roarWave");
+        if (!an || an.playState === "finished") return;
+        const ring = w.cloneNode(true); at.appendChild(ring);
+        ring.animate(an.effect.getKeyframes(), an.effect.getTiming()).currentTime = an.currentTime;
+      });
+      layer.appendChild(at);
+    }
+    wrap.appendChild(layer);
+    layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: RINGS_FADE_MS, easing: "ease-in", fill: "forwards" });
+    later(() => layer.remove(), RINGS_FADE_MS + 100);
+  }
   off.push(() => finale.destroy());
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
   const unlock = $(".tj-unlock"), unlockVideo = $(".tj-unlockVideo");
@@ -1201,9 +1224,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   };
   const paintTotems = () => {
     paintQuest();
-    TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k) && (k !== "bison" || climaxed)));
+    TOTEMS.forEach((k) => totemRow.querySelector(`[data-k="${k}"]`).classList.toggle("on", awake.has(k)));
     const b = totemRow.querySelector('[data-k="bison"]');
-    b.classList.toggle("half", awake.has("bison") && !climaxed);
+    b.classList.remove("half");
     b.classList.toggle("ready", bisonReady());
     if (bison) {
       bison.classList.toggle("ready", bisonReady());
@@ -1214,6 +1237,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   let momentDone = false;
   function bisonMoment() {
     if (momentDone) return; momentDone = true;
+    totemRow.classList.add("allGlow");   // all five totems glow as he turns
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
@@ -1224,7 +1248,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function wake(k) {
     if (!TOTEMS.includes(k) || awake.has(k)) return;
     awake.add(k); paintTotems(); finale.preload();   // the finale video starts downloading at the first totem
-    if (bisonReady()) later(() => { if (bisonReady()) bisonMoment(); }, k === "bison" ? BISON_AUTO_MS[0] : BISON_AUTO_MS[1]);   // all five: the bison turns to you by itself
+    if (bisonReady()) {   // all five: the intro fades away (in this tap), and the bison turns to you by itself
+      sound.fadeIntro(INTRO_FADE_MS);
+      later(() => { if (bisonReady()) bisonMoment(); }, k === "bison" ? BISON_AUTO_MS[0] : BISON_AUTO_MS[1]);
+    }
     const icon = totemRow.querySelector(`[data-k="${k}"]`); icon.classList.add("pop"); later(() => icon.classList.remove("pop"), 1200);
     try { sessionStorage.setItem("tj-totems", JSON.stringify([...awake])); } catch (e) { /* private mode */ }
   }
@@ -1760,6 +1787,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // part of the descent so nothing shifts at the hand-off from the video
     const mlean = tilt.live ? 1 : MOUSE_LEAN * smooth(cur / DESCENT_SVH / 0.12);
     const aimX = frozen ? 0 : tilt.live ? tilt.x : mouseX * mlean, aimY = frozen ? 0 : tilt.live ? tilt.y : mouseY * mlean;
+    if (frozen && !roaring && root.classList.contains("focus")) aimFocus();   // (the spotlight stays on him as the world settles)
     const te = frozen ? 0.3 : TILT_EASE;   // (the lion's moment: the tilt settles to centre quickly, as the video's frame has none)
     tx += (aimX - tx) * te; ty += (aimY - ty) * te;
     // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).

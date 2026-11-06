@@ -494,9 +494,9 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-cr-lion .aura, .tj-cr-lion img { opacity: 0; transform: scale(.92); transform-origin: 50% 50%; transition: opacity 1s ease, transform 1.4s cubic-bezier(.16,1,.3,1); }
 .tj.lion .tj-cr-lion .aura, .tj.lion .tj-cr-lion .stand { opacity: 1; transform: none; }
 .tj-cr-lion img { position: absolute; inset: 0; width: 100%; height: 100%; }
-.tj.lion .tj-cr-lion .roar { transform: none; transition: opacity .25s ease; }
+.tj.lion .tj-cr-lion .roar { transform: none; transition: opacity .35s ease; }
 .tj.roaring .tj-cr-lion .roar { opacity: 1; }
-.tj.roaring .tj-cr-lion .stand { opacity: 0; transition: opacity .25s ease; }
+.tj.roaring .tj-cr-lion .stand { opacity: 0; transition: opacity .35s ease; }
 /* its aura: the bison's, lifted to the lion's size */
 .tj-cr-lion .aura { position: absolute; left: -45%; top: -26%; width: 190%; aspect-ratio: 1; pointer-events: none; transform-origin: 50% 50%;
   transition: transform 1s cubic-bezier(.16,1,.3,1), filter .6s ease; }
@@ -521,9 +521,9 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj.transforming .tj-cr-lion .burst { animation: tj-burst 1.9s ease-out forwards; }
 @keyframes tj-burst { 0% { opacity: 0; transform: scale(.3); } 45% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.3); } }
 /* the roar: the world shakes and the sky flares gold */
-.tj.roaring .tj-worldStage { animation: tj-shake .05s linear 20 both; }   /* tight, fast, strong tremor, ~1s */
-@keyframes tj-shake { 0% { transform: translate3d(0, 0, 0); } 25% { transform: translate3d(-5.5px, 3.5px, 0); } 50% { transform: translate3d(5px, -4px, 0); }
-  75% { transform: translate3d(-4.5px, -3px, 0); } 100% { transform: translate3d(0, 0, 0); } }
+/* the roar's tremor: strong at once, dying away smoothly over ~1 s (it used to stop dead) */
+.tj.roaring .tj-worldStage { animation: tj-shake 1s linear both; }
+@keyframes tj-shake {0% { transform: translate3d(0.0px, 0.0px, 0); } 5% { transform: translate3d(-5.5px, 3.5px, 0); } 10% { transform: translate3d(5.0px, -4.0px, 0); } 15% { transform: translate3d(-4.6px, -3.0px, 0); } 20% { transform: translate3d(4.4px, 3.2px, 0); } 25% { transform: translate3d(-4.2px, 2.6px, 0); } 30% { transform: translate3d(3.6px, -3.2px, 0); } 35% { transform: translate3d(-3.4px, -2.2px, 0); } 40% { transform: translate3d(3.0px, 2.4px, 0); } 45% { transform: translate3d(-2.6px, 1.8px, 0); } 50% { transform: translate3d(2.2px, -2.2px, 0); } 55% { transform: translate3d(-1.9px, -1.4px, 0); } 60% { transform: translate3d(1.6px, 1.5px, 0); } 65% { transform: translate3d(-1.3px, 1.0px, 0); } 70% { transform: translate3d(1.0px, -1.1px, 0); } 75% { transform: translate3d(-0.8px, -0.6px, 0); } 80% { transform: translate3d(0.6px, 0.6px, 0); } 85% { transform: translate3d(-0.4px, 0.3px, 0); } 90% { transform: translate3d(0.3px, -0.3px, 0); } 95% { transform: translate3d(-0.1px, -0.1px, 0); } 100% { transform: translate3d(0.0px, 0.0px, 0); } }
 .tj-worldStage::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse 90% 60% at 50% 20%, rgba(255,226,150,.65), rgba(255,200,110,.2) 50%, transparent 80%); }
 .tj.roaring .tj-worldStage::after { animation: tj-flare 1.3s ease-out forwards; }
@@ -850,10 +850,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-finale.controls .tj-finaleClose { opacity: 1; pointer-events: auto; }
 
 /* the roar's rings, carried over the video (journeyEngine.js carryRings) */
-.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; transform-origin: 0 0; will-change: transform; transition: opacity .25s linear; }   /* (finale.js moves it with the camera) */
 .tj-finaleRingSet { position: absolute; inset: 0; }
-.tj-finaleRings .wave { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; backface-visibility: hidden; }
-.tj-finaleRings .wave img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* once the video has the screen, the site's own furniture steps back, and the world's vignette lifts */
 .tj.finale .tj-header, .tj.finale .tj-totems, .tj.finale .tj-progress, .tj.finale .tj-dust, .tj.finale .tj-bubble, .tj.finale .tj-sound { opacity: 0 !important; pointer-events: none !important; transition: opacity .6s ease; }
 .tj.finale .tj-vignette { opacity: 0 !important; transition: opacity 1.6s ease !important; }
@@ -950,3 +947,18 @@ html:fullscreen .tj-finale video { height: 100vh; }
   box-shadow: 0 18px 50px rgba(0,0,0,.55); }
 .tj-unlockCard.ornate .tj-unlockInner { padding: 26cqw 11cqw 30cqw; }
 .tj-unlockCard.ornate .tj-unlockClose { right: 9cqw; top: 19cqw; }
+
+/* the rings carried over the video at the takeover (journeyEngine.js carryRings) */
+.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.tj-finaleRings .wave { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; }
+.tj-finaleRings .wave img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* all five totems glow, bright, as the bison becomes the lion */
+.tj-totems.allGlow .tj-totem.on { border-color: rgba(255,232,170,1); animation: tj-totemsBlaze 1.6s ease-in-out both; }
+.tj-totems.allGlow .tj-totem.on svg { color: #fff1c8; filter: drop-shadow(0 0 5px rgba(255,220,140,.95)); }
+@keyframes tj-totemsBlaze { 0% { box-shadow: 0 0 12px rgba(240,200,110,.6), inset 0 0 8px rgba(240,200,110,.35); }
+  45% { box-shadow: 0 0 26px rgba(255,220,140,1), 0 0 8px rgba(255,240,200,.9), inset 0 0 14px rgba(255,230,170,.7); transform: scale(1.12); }
+  100% { box-shadow: 0 0 18px rgba(255,214,130,.85), inset 0 0 10px rgba(240,200,110,.5); } }
+/* the lion's totem: plain until he's tapped, then gold (his soft call keeps him noticed) */
+.tj:not(.summoned) .tj-totems.lion .tj-lionTotem { border-color: rgba(231,201,143,.45); background: rgba(10,8,6,.55); box-shadow: none; }
+.tj:not(.summoned) .tj-totems.lion .tj-lionTotem svg { color: rgba(239,230,214,.55); filter: none; }
+.tj-totems.lion .tj-lionTotem, .tj-totems.lion .tj-lionTotem svg { transition: border-color .8s ease, box-shadow .8s ease, color .8s ease, filter .8s ease; }
