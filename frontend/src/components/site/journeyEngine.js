@@ -346,7 +346,7 @@ const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap,
 const ALIGN_MS = 600;
 // the roar's rings over the video: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS apart, from the same
 // spot (no camera tracking); full until 2.51 s, gone by 4.01 s on the video's own clock (FINALE.rings)
-const RING_PULSES = 5, RING_PULSE_GAP_MS = 450;   // the world eases onto the finale video's frame over this, from the lion's tap
+const RING_PULSES = 0, RING_PULSE_GAP_MS = 450;   // (none: only the roar's own rings, carried over the video so it doesn't cut them off)   // the world eases onto the finale video's frame over this, from the lion's tap
 const TOTEMS_FROM = 0.7;   // the totems (and their quest) fade in this far down the descent
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
@@ -613,7 +613,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // The focus: every animal settles in a fixed place (so the finale's first frame always matches),
   // the birds and leaves leave the sky, the page glides to the bottom of the world and holds, the
   // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
-  let frozen = false, focusAt = 0, chargeAt = 0, alignT = null, alignStart = 0;
+  let frozen = false, focusAt = 0, chargeAt = 0, alignT = null, alignStart = 0, alignMs = ALIGN_MS;
   // where the finale video's frame will sit, relative to the world's stage
   const videoFrameOnStage = () => {
     const f = USE_FINALE_VIDEO && finale.frameFit ? finale.frameFit() : null, sr = worldStage.getBoundingClientRect();
@@ -672,7 +672,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => scroller.classList.add("locked"), 650);
     aimFocus(); root.classList.add("frozen", "focus");
     // (where the video's frame will be, relative to the world's stage)
-    if (!alignT) { alignStart = focusAt; alignT = videoFrameOnStage(); }
+    if (!alignT) { alignStart = focusAt; alignT = videoFrameOnStage(); alignMs = ALIGN_MS; }
     later(aimFocus, 300); later(aimFocus, 700);   // again as the page and the world settle (a few aims, never every frame:
     // each one makes a phone lay the whole page out again)
   }
@@ -1113,7 +1113,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // picture will sit on this screen (its fit, Safari's bars and all), so the takeover doesn't jump
     let wx = ox, wy = oy, wk = k;
     if (alignT) {   // (only at the bottom of the descent, where his reveal is)
-      const e = smooth((performance.now() - alignStart) / ALIGN_MS) * smooth((p - 0.92) / 0.08), tk = alignT.k * FINALE.w / CANVAS.w;
+      const e = smooth((performance.now() - alignStart) / alignMs) * smooth((p - 0.92) / 0.08), tk = alignT.k * FINALE.w / CANVAS.w;
       wk = k + (tk - k) * e; wx = ox + (alignT.ox - ox) * e; wy = oy + (alignT.oy - oy) * e;
     }
     put(world, "transform", `translate(${wx}px, ${wy}px) scale(${wk})`);
@@ -1263,7 +1263,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // ...and the screen glides to where his reveal happens (the bottom of the descent), so his tap shifts nothing,
     // the world easing onto the video's frame there
     glideTo(DESCENT_SVH / 100 * Hs(), 2200);
-    later(() => { alignStart = performance.now(); alignT = videoFrameOnStage(); }, 2400);
+    alignStart = performance.now(); alignT = videoFrameOnStage(); alignMs = 2200;
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
@@ -1812,8 +1812,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // on a computer the mouse leans the world instead (Burnell's desktop), easing in over the first
     // part of the descent so nothing shifts at the hand-off from the video
     const mlean = tilt.live ? 1 : MOUSE_LEAN * smooth(cur / DESCENT_SVH / 0.12);
-    const aimX = frozen ? 0 : tilt.live ? tilt.x : mouseX * mlean, aimY = frozen ? 0 : tilt.live ? tilt.y : mouseY * mlean;
-    const te = frozen ? 0.3 : TILT_EASE;   // (the lion's moment: the tilt settles to centre quickly, as the video's frame has none)
+    const still0 = frozen || (alignT && cur / DESCENT_SVH > 0.92);   // (the lion's moment, and while he waits: the video's frame has no lean)
+    const aimX = still0 ? 0 : tilt.live ? tilt.x : mouseX * mlean, aimY = still0 ? 0 : tilt.live ? tilt.y : mouseY * mlean;
+    const te = frozen ? 0.3 : alignT ? 0.03 : TILT_EASE;   // (to centre: at once at his tap; slowly while he waits)   // (the lion's moment: the tilt settles to centre quickly, as the video's frame has none)
     tx += (aimX - tx) * te; ty += (aimY - ty) * te;
     // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).
     // Opacity and transform only, on one small layer.
