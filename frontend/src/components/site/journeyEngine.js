@@ -342,6 +342,7 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
     <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
     <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
 const BISON_AUTO_MS = [2600, 2800];   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
+const ALIGN_MS = 600;   // the world eases onto the finale video's frame over this, from the lion's tap
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -602,7 +603,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // The focus: every animal settles in a fixed place (so the finale's first frame always matches),
   // the birds and leaves leave the sky, the page glides to the bottom of the world and holds, the
   // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
-  let frozen = false, focusAt = 0, chargeAt = 0;
+  let frozen = false, focusAt = 0, chargeAt = 0, alignT = null;
   // (all of this starts at the lion tap; until then the world carries on as ever)
   // The roar sets the world off: the bluebird takes flight, the butterfly lifts from its flower, the
   // owl turns and opens its eyes, and a burst of leaves falls from the aspens. Each one runs on a fixed
@@ -652,6 +653,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     scroller.scrollTo({ top, behavior: Math.abs(scroller.scrollTop - top) > 4 ? "smooth" : "auto" });
     later(() => scroller.classList.add("locked"), 650);
     aimFocus(); root.classList.add("frozen", "focus");
+    // (where the video's frame will be, relative to the world's stage)
+    const f = USE_FINALE_VIDEO && finale.frameFit ? finale.frameFit() : null, sr = worldStage.getBoundingClientRect();
+    alignT = f ? { k: f.k, ox: f.ox - sr.left, oy: f.oy - sr.top } : null;
     later(aimFocus, 700);   // again once the page has settled at the bottom
   }
   // the focus vignette closes in around the lion
@@ -748,7 +752,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     requestAnimationFrame(awaitDrop);
   }
   function release() {
-    root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0;
+    root.classList.remove("frozen"); scroller.classList.remove("locked"); frozen = false; summonAt = 0; alignT = null;
   }
   function roar(force) {
     if (roaring) return;
@@ -1060,7 +1064,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
     setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
     put(sideEl, "display", narrow ? "none" : "block");
-    put(world, "transform", `translate(${ox}px, ${oy}px) scale(${k})`);
+    // the lion's moment, with the finale video: the world eases onto exactly where the video's first
+    // picture will sit on this screen (its fit, Safari's bars and all), so the takeover doesn't jump
+    let wx = ox, wy = oy, wk = k;
+    if (alignT) {
+      const e = smooth((performance.now() - focusAt) / ALIGN_MS), tk = alignT.k * FINALE.w / CANVAS.w;
+      wk = k + (tk - k) * e; wx = ox + (alignT.ox - ox) * e; wy = oy + (alignT.oy - oy) * e;
+    }
+    put(world, "transform", `translate(${wx}px, ${wy}px) scale(${wk})`);
     put(world, "clipPath", narrow ? "" : `inset(0 ${(CANVAS.w * k - colW) / 2 / k}px)`);
     const ty0 = (L) => L.y + L.from[1] * (1 - smooth((p - L.span[0]) / (L.span[1] - L.span[0])));
     const gx = (L) => tx * (L.depth - 0.3) * TILT_X, gy = (L) => ty * Math.max(0, L.depth - 0.1) * TILT_Y;
@@ -1749,7 +1760,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // part of the descent so nothing shifts at the hand-off from the video
     const mlean = tilt.live ? 1 : MOUSE_LEAN * smooth(cur / DESCENT_SVH / 0.12);
     const aimX = frozen ? 0 : tilt.live ? tilt.x : mouseX * mlean, aimY = frozen ? 0 : tilt.live ? tilt.y : mouseY * mlean;
-    tx += (aimX - tx) * TILT_EASE; ty += (aimY - ty) * TILT_EASE;
+    const te = frozen ? 0.3 : TILT_EASE;   // (the lion's moment: the tilt settles to centre quickly, as the video's frame has none)
+    tx += (aimX - tx) * te; ty += (aimY - ty) * te;
     // The bass, from the drop on: only the emblem answers it (its glow, and a touch of lift).
     // Opacity and transform only, on one small layer.
     beatSm = Math.max(sound.beat(), beatSm * Math.exp(-dt * 7));

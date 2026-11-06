@@ -6,11 +6,12 @@
 // its last frame under the unlock card. Vertical throughout, so a phone stays upright; a landscape
 // screen shows it whole in the middle.
 export const FINALE = {
-  hevc: "trev-finale-hevc.mp4?v=3",   // 4.3 MB (iPhone, Mac, most Android): 34.9 s, 720p
-  h264: "trev-finale.mp4?v=3",        // 5.7 MB (everything else)
-  song: "/journey/trev-finale-song.m4a?v=3",   // the song from "Welcome to my" (K at 0.94 s), 39.85 s: on past the video's end under the card, fading out (as TREV's cut): played as the lion's cut
-  reveal: 1.79,   // the video takes over from the world (its first frame: the roar's frame 0.9 s on; black before, never shown)
+  hevc: "trev-finale-hevc.mp4?v=4",   // 2.6 MB (iPhone, Mac, most Android): 38.6 s, 720p, its own frame timing
+  h264: "trev-finale.mp4?v=4",        // 6.2 MB (everything else)
+  song: "/journey/trev-finale-song.m4a?v=4",   // TREV's cut's own audio ("Welcome to my", K at 0.94 s; his jump to the second verse; his fade), 38.8 s: played as the lion's cut
+  reveal: 1.79,   // the video takes over on its very first frame after the black (1.7917 s; black before, never shown)
   giveUp: 2.5,    // not showing this long after the reveal time: the world carries on without it
+  w: 720, h: 1280,   // its frame (its first picture is the world's whole canvas, 941 wide, at this size)
 };
 const A = "/journey/";
 const IDLE_LOOP_S = 1.2, IDLE_MAX_MS = 120000;   // waiting for the tap, it runs round 0..this (all black, inside the hidden lead-in)
@@ -146,6 +147,13 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     get shown() { return shown; },
     get held() { return held; },
     get failed() { return failed; },
+    // where its frame sits on screen (as the video is fitted to it): the world lines itself up to this
+    // before the takeover, so the first picture lands exactly over it
+    frameFit() {
+      const b = v.getBoundingClientRect(); if (!b.width || !b.height) return null;
+      const k = (getComputedStyle(v).objectFit === "contain" ? Math.min : Math.max)(b.width / FINALE.w, b.height / FINALE.h);
+      return { k, ox: b.left + (b.width - FINALE.w * k) / 2, oy: b.top + (b.height - FINALE.h * k) / 2 };
+    },
     // (for ?debug)
     get state() { return { idle: idleNote, playing: !v.paused, t: +v.currentTime.toFixed(2), ready: v.readyState, rate: v.playbackRate, src: (v.src || "none").slice(0, 5) }; },
     get videoTime() { return v.currentTime; },
