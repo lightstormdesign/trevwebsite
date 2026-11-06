@@ -344,11 +344,9 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
 const BISON_AUTO_MS = [2600, 2800];   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
 const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap, as the lion comes
 const ALIGN_MS = 600;
-// the roar's rings over the video's first moments: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS
-// apart; all held RINGS_HOLD_MS from the takeover, then faded out over RINGS_FADE_MS
-// (TREV's timing: from the takeover, ~1.81 s into the video, held to 2.51 s, then faded over 1.5 s, gone by
-// 4.01 s; the pulse keeps rising from the same spot, no camera tracking)
-const RING_PULSES = 5, RING_PULSE_GAP_MS = 450, RINGS_HOLD_MS = 700, RINGS_FADE_MS = 1500;   // the world eases onto the finale video's frame over this, from the lion's tap
+// the roar's rings over the video: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS apart, from the same
+// spot (no camera tracking); full until 2.51 s, gone by 4.01 s on the video's own clock (FINALE.rings)
+const RING_PULSES = 5, RING_PULSE_GAP_MS = 450;   // the world eases onto the finale video's frame over this, from the lion's tap
 const TOTEMS_FROM = 0.7;   // the totems (and their quest) fade in this far down the descent
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
@@ -710,8 +708,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (!played) showUnlocks(1200); },   // (it never got going: the card anyway)
   });
   // The roar's rings at the takeover (the world sits exactly on the video's frame by then): copied over the
-  // video as they are, each on its own animation, and the same pulse rises from the lion again as the
-  // camera moves off (finale.js carries them with its tracked move); they fade out RINGS_HOLD_MS on.
+  // video as they are, each on its own animation, and the same pulse rises from the lion again, from the same
+  // spot; they fade on the video's own clock (finale.js, FINALE.rings).
   // The set from behind the lion stays clear of him (in the world he hides its middle).
   function carryRings(wrap) {
     const layer = document.createElement("div");
@@ -734,10 +732,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       });
       layer.appendChild(set);
     }
-    wrap.appendChild(layer);
-    layer.animate([{ opacity: 1 }, { opacity: 1, offset: RINGS_HOLD_MS / (RINGS_HOLD_MS + RINGS_FADE_MS) }, { opacity: 0 }],
-      { duration: RINGS_HOLD_MS + RINGS_FADE_MS, easing: "linear", fill: "forwards" });
-    later(() => layer.remove(), RINGS_HOLD_MS + RINGS_FADE_MS + 100);
+    wrap.appendChild(layer);   // (its fade follows the video's own clock: finale.js, FINALE.rings)
   }
   off.push(() => finale.destroy());
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)

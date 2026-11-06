@@ -11,6 +11,7 @@ export const FINALE = {
   song: "/journey/trev-finale-song.m4a?v=4",   // TREV's cut's own audio ("Welcome to my", K at 0.94 s; his jump to the second verse; his fade), 38.8 s: played as the lion's cut
   reveal: 1.79,   // the video takes over on its very first frame after the black (1.7917 s; black before, never shown)
   giveUp: 2.5,    // not showing this long after the reveal time: the world carries on without it
+  rings: [2.51, 4.01],   // the roar's rings over the video: full until this video time, faded out by this (TREV's cut's own clock, its black included)
   w: 720, h: 1280,   // its frame (its first picture is the world's whole canvas, 941 wide, at this size)
   // the camera's move from the takeover (tracked from this cut, frame by frame, around the lion: seconds
   // after the reveal, then the scale and offset in the frame's pixels that carry the takeover frame onto
@@ -100,6 +101,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (!active || held) return;
     raf = requestAnimationFrame(tick);
     const at = songTime(), now = performance.now();
+    if (shown) ringsFade();
     if (!v.paused && v.readyState >= 2) {
       // the takeover, once its frame is really on screen
       if (!shown && v.currentTime >= FINALE.reveal && at >= FINALE.reveal) {
@@ -120,6 +122,14 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
       }
     } else if (now >= nextGo) { nextGo = now + 300; go(); }   // (not a play() every frame)
     if (!shown && (at > FINALE.reveal + FINALE.giveUp || v.error)) { failed = true; stop(); }
+  }
+  // the carried rings fade on the video's own clock: full until FINALE.rings[0], gone at FINALE.rings[1]
+  function ringsFade() {
+    const layer = wrap.querySelector(".tj-finaleRings"); if (!layer) return;
+    const [a, b] = FINALE.rings, t = v.currentTime;
+    if (t >= b) { layer.remove(); return; }
+    const o = t <= a ? "1" : (1 - (t - a) / (b - a)).toFixed(3);
+    if (layer.style.opacity !== o) layer.style.opacity = o;
   }
   // (not used now: the carried rings stay only while the camera holds still) the carried rings could ride
   // the camera's tracked move, through the way the frame is fitted to the screen
