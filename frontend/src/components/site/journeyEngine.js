@@ -342,9 +342,13 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
     <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
     <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
 const BISON_AUTO_MS = [2600, 2800];
-const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap, as the lion comes   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
+const INTRO_FADE_MS = 5000;
+const ACHIEVED_MS = 4200;   // all five found: the animals' auras blaze this long (as the bison becomes the lion)   // the intro fades out from the fifth totem's tap, as the lion comes   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
 const ALIGN_MS = 600;
-const RINGS_FADE_MS = 500;   // the roar's rings, carried over the video's first moments, fade out over this   // the world eases onto the finale video's frame over this, from the lion's tap
+// the roar's rings over the video's first moments: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS
+// apart; all held RINGS_HOLD_MS from the takeover, then faded out over RINGS_FADE_MS
+const RING_PULSES = 3, RING_PULSE_GAP_MS = 450, RINGS_HOLD_MS = 1650, RINGS_FADE_MS = 600;   // the world eases onto the finale video's frame over this, from the lion's tap
+const TOTEMS_FROM = 0.85;   // the totems (and their quest) fade in this far down the descent
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -696,26 +700,37 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     onOutro: () => showUnlocks(0),   // (the song plays on under the card and fades away: 5 s past the video's end)   // the card rises over the video's last frame (held there until the card is closed)
     onEnd: (played) => { root.classList.remove("finale"); docEl.classList.remove("tj-finale-on"); release(); if (!played) showUnlocks(1200); },   // (it never got going: the card anyway)
   });
-  // the roar's rings, as they are at the takeover (the world sits exactly on the video's frame by then):
-  // copied over the video, each still on its own animation, and faded out over RINGS_FADE_MS
+  // The roar's rings at the takeover (the world sits exactly on the video's frame by then): copied over the
+  // video as they are, each on its own animation, and the same pulse rises from the lion again as the
+  // camera moves off (finale.js carries them with its tracked move); they fade out RINGS_HOLD_MS on.
+  // The set from behind the lion stays clear of him (in the world he hides its middle).
   function carryRings(wrap) {
     const layer = document.createElement("div");
     layer.className = "tj-finaleRings";
+    const lionBox = $(".tj-cr-lion .tj-crBody"), L = lionBox && lionBox.getBoundingClientRect();
     for (const src of CREATURES.filter((c) => c.kind === "roarwave" && c.el)) {
       const body = src.el.querySelector(".tj-crBody"); if (!body) continue;
-      const b = body.getBoundingClientRect(), at = document.createElement("div");
-      Object.assign(at.style, { position: "absolute", left: b.left + "px", top: b.top + "px", width: b.width + "px", height: b.height + "px", opacity: getComputedStyle(body).opacity });
+      const b = body.getBoundingClientRect(), set = document.createElement("div"), at = document.createElement("div");
+      set.className = "tj-finaleRingSet"; set.style.opacity = getComputedStyle(body).opacity;
+      if (L && !src.over) { const cx = L.left + L.width / 2, cy = L.top + L.height / 2, rad = Math.min(L.width, L.height) * 0.5;
+        set.style.webkitMaskImage = set.style.maskImage = `radial-gradient(circle at ${cx.toFixed(0)}px ${cy.toFixed(0)}px, transparent ${(rad * 0.7).toFixed(0)}px, #000 ${(rad * 1.05).toFixed(0)}px)`; }
+      Object.assign(at.style, { position: "absolute", left: b.left + "px", top: b.top + "px", width: b.width + "px", height: b.height + "px" });
+      set.appendChild(at);
       body.querySelectorAll(".wave").forEach((w) => {
-        const an = w.getAnimations().find((x) => x.animationName === "tj-roarWave");
-        if (!an || an.playState === "finished") return;
-        const ring = w.cloneNode(true); at.appendChild(ring);
-        ring.animate(an.effect.getKeyframes(), an.effect.getTiming()).currentTime = an.currentTime;
+        const an = w.getAnimations().find((x) => x.animationName === "tj-roarWave"); if (!an) return;
+        const kf = an.effect.getKeyframes(), tm = an.effect.getTiming();
+        if (an.playState !== "finished") { const ring = w.cloneNode(true); at.appendChild(ring); ring.animate(kf, tm).currentTime = an.currentTime; }
+        for (let k = 0; k < RING_PULSES; k++) {   // the same pulse again (the same rings, motion and spacing)
+          const again = w.cloneNode(true); at.appendChild(again);
+          again.animate(kf, { ...tm, delay: tm.delay - 100 + k * RING_PULSE_GAP_MS });
+        }
       });
-      layer.appendChild(at);
+      layer.appendChild(set);
     }
     wrap.appendChild(layer);
-    layer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: RINGS_FADE_MS, easing: "ease-in", fill: "forwards" });
-    later(() => layer.remove(), RINGS_FADE_MS + 100);
+    layer.animate([{ opacity: 1 }, { opacity: 1, offset: RINGS_HOLD_MS / (RINGS_HOLD_MS + RINGS_FADE_MS) }, { opacity: 0 }],
+      { duration: RINGS_HOLD_MS + RINGS_FADE_MS, easing: "linear", fill: "forwards" });
+    later(() => layer.remove(), RINGS_HOLD_MS + RINGS_FADE_MS + 100);
   }
   off.push(() => finale.destroy());
   // the unlock cards (after the roar): the new song, then the unreleased music video (Laylo)
@@ -1237,7 +1252,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   let momentDone = false;
   function bisonMoment() {
     if (momentDone) return; momentDone = true;
-    totemRow.classList.add("allGlow");   // all five totems glow as he turns
+    totemRow.classList.add("allGlow");   // all five totems glow as he turns...
+    root.classList.add("achieved"); later(() => root.classList.remove("achieved"), ACHIEVED_MS);   // ...and every animal's aura blazes
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");
@@ -1803,7 +1819,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         : `rotateY(${(tx * 27 * SWORD_TILT).toFixed(2)}deg) rotateX(${(ty * -20 * SWORD_TILT).toFixed(2)}deg) scale(${(1 + 0.025 * beatShown).toFixed(4)})`;
     if (phase !== "world" || !worldBuilt) return;
     if (!prog.classList.contains("on")) prog.classList.add("on");
-    if (!totemRow.classList.contains("show") && landing.classList.contains("is-gone")) totemRow.classList.add("show");
+    { const pd = cur / DESCENT_SVH, on = totemRow.classList.contains("show");   // (from 85% of the way down; away again above 80%)
+      if (!on && pd >= TOTEMS_FROM) totemRow.classList.add("show"); else if (on && pd < TOTEMS_FROM - 0.05) totemRow.classList.remove("show"); }
     progress(); storyHint();
     const inStory = cur > STORY_START_SVH - 20;
     if (inStory !== totemRow.classList.contains("away")) totemRow.classList.toggle("away", inStory);   // the lion (and totems) fade out over the story

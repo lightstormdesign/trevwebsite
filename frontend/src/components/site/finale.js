@@ -12,6 +12,10 @@ export const FINALE = {
   reveal: 1.79,   // the video takes over on its very first frame after the black (1.7917 s; black before, never shown)
   giveUp: 2.5,    // not showing this long after the reveal time: the world carries on without it
   w: 720, h: 1280,   // its frame (its first picture is the world's whole canvas, 941 wide, at this size)
+  // the camera's move from the takeover (tracked from this cut, frame by frame, around the lion: seconds
+  // after the reveal, then the scale and offset in the frame's pixels that carry the takeover frame onto
+  // that frame), so the roar's rings carried over the video ride it and stay on him
+  track: [[0.0,1.0,0.0,0.0],[0.067,1.0001,-0.1,-0.0],[0.133,1.0001,-0.2,0.1],[0.2,1.0001,-0.4,0.1],[0.267,1.0001,-0.5,0.2],[0.333,1.0001,-0.5,0.2],[0.4,1.0001,-0.5,0.2],[0.467,1.0001,-0.5,0.1],[0.533,1.0003,-0.6,0.0],[0.6,1.0013,-1.3,-0.9],[0.667,1.0032,-2.7,-2.4],[0.733,1.0108,-7.5,-8.8],[0.8,1.0304,-20.5,-25.1],[0.867,1.0492,-32.9,-41.0],[0.933,1.0876,-58.3,-73.3],[1.0,1.1397,-92.3,-117.0],[1.067,1.2053,-135.0,-172.3],[1.133,1.28,-184.6,-235.2],[1.2,1.3652,-240.4,-306.4],[1.267,1.4487,-294.2,-376.8],[1.333,1.5241,-344.3,-440.0],[1.4,1.5902,-387.1,-495.8],[1.467,1.6268,-411.4,-526.6],[1.533,1.674,-441.8,-566.5],[1.6,1.7225,-471.4,-608.4],[1.667,1.7505,-488.1,-632.6],[1.733,1.7703,-498.7,-650.5],[1.8,1.7858,-505.9,-664.6],[1.867,1.7956,-510.9,-673.6],[1.933,1.8049,-514.9,-682.1],[2.0,1.8078,-513.8,-685.8],[2.067,1.8113,-513.4,-689.6],[2.133,1.8119,-510.0,-691.8],[2.2,1.8128,-507.6,-693.9],[2.267,1.8131,-505.2,-695.3],[2.333,1.8134,-503.9,-696.2],[2.4,1.814,-503.3,-697.2],[2.467,1.8149,-504.0,-697.7],[2.533,1.8175,-506.4,-698.9],[2.6,1.8209,-511.1,-699.8]],
 };
 const A = "/journey/";
 const IDLE_LOOP_S = 1.2, IDLE_MAX_MS = 120000;   // waiting for the tap, it runs round 0..this (all black, inside the hidden lead-in)
@@ -77,7 +81,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (matchMedia("(pointer: coarse)").matches) goFull();
     if (v.error) { v.removeAttribute("src"); v.load(); }   // a failed load: start afresh
     if (!v.src) { v.src = blobUrl || url; v.preload = "auto"; v.load(); }
-    active = true; shown = false; held = false; failed = false; startedAt = performance.now();
+    active = true; shown = false; held = false; failed = false; fit = null; startedAt = performance.now();
     wrap.classList.remove("show", "controls", "held");
     if (v.playbackRate !== 1) v.playbackRate = 1;
     nextCheck = 0; nextGo = 0;
@@ -96,6 +100,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (!active || held) return;
     raf = requestAnimationFrame(tick);
     const at = songTime(), now = performance.now();
+    if (shown) followCamera();
     if (!v.paused && v.readyState >= 2) {
       // the takeover, once its frame is really on screen
       if (!shown && v.currentTime >= FINALE.reveal && at >= FINALE.reveal) {
@@ -116,6 +121,19 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
       }
     } else if (now >= nextGo) { nextGo = now + 300; go(); }   // (not a play() every frame)
     if (!shown && (at > FINALE.reveal + FINALE.giveUp || v.error)) { failed = true; stop(); }
+  }
+  // the carried rings (.tj-finaleRings, placed in screen pixels at the takeover, when the world sits exactly
+  // on the video's frame) ride the camera's tracked move, through the way the frame is fitted to the screen
+  let fit = null;
+  function followCamera() {
+    const layer = wrap.querySelector(".tj-finaleRings"); if (!layer) return;
+    const tr = FINALE.track, t = Math.max(0, v.currentTime - FINALE.reveal);
+    if (!fit) fit = api.frameFit(); if (!fit) return;
+    let i = 0; while (i < tr.length - 2 && tr[i + 1][0] <= t) i++;
+    const a = tr[i], b = tr[i + 1], f = Math.max(0, Math.min(1, (t - a[0]) / (b[0] - a[0])));
+    const sc = a[1] + (b[1] - a[1]) * f, tx = a[2] + (b[2] - a[2]) * f, ty = a[3] + (b[3] - a[3]) * f;
+    const X = fit.k * tx + fit.ox * (1 - sc), Y = fit.k * ty + fit.oy * (1 - sc);
+    layer.style.transform = `translate(${X.toFixed(1)}px, ${Y.toFixed(1)}px) scale(${sc.toFixed(4)})`;
   }
   // the end (or their X): it holds on the frame it's on and the unlock card rises over it; the world
   // only comes back once they're done with the card (stop)
@@ -144,7 +162,7 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     wrap.classList.add("controls"); clearTimeout(hideClose);
     hideClose = setTimeout(() => wrap.classList.remove("controls"), 3000);
   });
-  return {
+  const api = {
     preload, prepare, start, stop,
     kick: go,   // (any touch after the tap may get a held-back video going)
     get active() { return active; },
@@ -163,4 +181,5 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     get videoTime() { return v.currentTime; },
     destroy() { stopIdle(); cancelAnimationFrame(raf); v.removeAttribute("src"); if (blobUrl) URL.revokeObjectURL(blobUrl); wrap.remove(); },
   };
+  return api;
 }

@@ -449,14 +449,14 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 /* the totem row: one gold icon per sacred thing, lit as you wake it */
 .tj-totems { position: fixed; left: 50%; top: calc(62px + env(safe-area-inset-top, 0px)); z-index: 41; transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
-.tj-totemRow { display: flex; gap: 9px; align-items: center; }
+.tj-totemRow { display: flex; gap: 9px; align-items: center; filter: drop-shadow(0 2px 8px rgba(0,0,0,.6)); }
 /* the quest: gold, minimal, no box; it reads over the sky by its shadow alone */
 .tj-quest { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 11px; width: max-content; max-width: 92vw;
-  text-shadow: 0 1px 12px rgba(0,0,0,.9), 0 0 3px rgba(0,0,0,.75), 0 0 1px rgba(0,0,0,.6); }
+  text-shadow: 0 1px 14px rgba(0,0,0,1), 0 0 6px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.8); }
 .tj-quest p { margin: 0; }
-.tj-questTitle { font: 600 11.5px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em; color: #f3d48e; }
-.tj-questSub { margin-top: 7px !important; font: italic 400 14px/1.15 "Cormorant Garamond", Georgia, serif; letter-spacing: .02em; color: rgba(243,223,176,.8); }
-.tj-questCount { margin-top: 6px !important; font: 500 10.5px/1 var(--tj-display); letter-spacing: .28em; margin-right: -.28em; color: rgba(243,212,142,.85); }
+.tj-questTitle { font: 700 11.5px/1 var(--tj-display); letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em; color: #f3d48e; }
+.tj-questSub { margin-top: 7px !important; font: italic 600 14px/1.15 "Cormorant Garamond", Georgia, serif; letter-spacing: .02em; color: rgba(243,223,176,.88); }
+.tj-questCount { margin-top: 6px !important; font: 700 10.5px/1 var(--tj-display); letter-spacing: .28em; margin-right: -.28em; color: rgba(243,212,142,.85); }
 .tj-questCount .n { color: #f6dc9c; }
 .tj-quest.done .tj-questCount { color: #f6dc9c; text-shadow: 0 0 10px rgba(240,200,110,.7), 0 1px 10px rgba(0,0,0,.75); }
 @media (min-width: 900px) { .tj-questTitle { font-size: 13px; } .tj-questSub { font-size: 16px; } .tj-questCount { font-size: 11.5px; } .tj-quest { margin-bottom: 13px; } }
@@ -949,16 +949,22 @@ html:fullscreen .tj-finale video { height: 100vh; }
 .tj-unlockCard.ornate .tj-unlockClose { right: 9cqw; top: 19cqw; }
 
 /* the rings carried over the video at the takeover (journeyEngine.js carryRings) */
-.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.tj-finaleRings { position: absolute; inset: 0; pointer-events: none; z-index: 2; transform-origin: 0 0; will-change: transform; }   /* (finale.js carries it with the camera) */
 .tj-finaleRings .wave { position: absolute; inset: 0; opacity: 0; will-change: transform, opacity; }
 .tj-finaleRings .wave img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 /* all five totems glow, bright, as the bison becomes the lion */
-.tj-totems.allGlow .tj-totem.on { border-color: rgba(255,232,170,1); animation: tj-totemsBlaze 1.6s ease-in-out both; }
+.tj-totems.allGlow .tj-totem.on { border-color: rgba(255,232,170,1); animation: tj-totemsBlaze 2.6s ease-in-out both; }
 .tj-totems.allGlow .tj-totem.on svg { color: #fff1c8; filter: drop-shadow(0 0 5px rgba(255,220,140,.95)); }
 @keyframes tj-totemsBlaze { 0% { box-shadow: 0 0 12px rgba(240,200,110,.6), inset 0 0 8px rgba(240,200,110,.35); }
-  45% { box-shadow: 0 0 26px rgba(255,220,140,1), 0 0 8px rgba(255,240,200,.9), inset 0 0 14px rgba(255,230,170,.7); transform: scale(1.12); }
+  25% { box-shadow: 0 0 34px rgba(255,220,140,1), 0 0 12px rgba(255,244,210,1), inset 0 0 16px rgba(255,234,180,.85); transform: scale(1.22); background: rgba(70,50,20,.75); }
+  50% { box-shadow: 0 0 20px rgba(255,214,130,.85), inset 0 0 10px rgba(240,200,110,.5); transform: scale(1.06); }
+  72% { box-shadow: 0 0 30px rgba(255,220,140,1), 0 0 10px rgba(255,244,210,.95), inset 0 0 14px rgba(255,234,180,.8); transform: scale(1.16); }
   100% { box-shadow: 0 0 18px rgba(255,214,130,.85), inset 0 0 10px rgba(240,200,110,.5); } }
 /* the lion's totem: plain until he's tapped, then gold (his soft call keeps him noticed) */
 .tj:not(.summoned) .tj-totems.lion .tj-lionTotem { border-color: rgba(231,201,143,.45); background: rgba(10,8,6,.55); box-shadow: none; }
 .tj:not(.summoned) .tj-totems.lion .tj-lionTotem svg { color: rgba(239,230,214,.55); filter: none; }
 .tj-totems.lion .tj-lionTotem, .tj-totems.lion .tj-lionTotem svg { transition: border-color .8s ease, box-shadow .8s ease, color .8s ease, filter .8s ease; }
+/* all five found: every animal's aura blazes while the bison becomes the lion */
+.tj.achieved .tj-cr-perch .aura, .tj.achieved .tj-cr-butterfly .aura, .tj.achieved .tj-cr-owl .aura, .tj.achieved .tj-cr-aspen .aura {
+  opacity: 1 !important; filter: brightness(1.9) !important; transform: scale(1.32) !important;
+  transition: filter .9s ease, transform 1.2s cubic-bezier(.16,1,.3,1), opacity .6s ease !important; }
