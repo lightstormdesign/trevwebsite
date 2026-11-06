@@ -341,14 +341,14 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
     <path d="M103.8 11.0L106.6 11.0 M101.5 16.5L103.5 18.5 M96.0 18.8L96.0 21.6 M90.5 16.5L88.5 18.5 M88.2 11.0L85.4 11.0 M90.5 5.5L88.5 3.5 M96.0 3.2L96.0 0.4 M101.5 5.5L103.5 3.5" stroke-width=".9" opacity=".75"/>
     <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
     <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
-const BISON_AUTO_MS = [2600, 2800];
-const INTRO_FADE_MS = 5000;
-const ACHIEVED_MS = 4200;   // all five found: the animals' auras blaze this long (as the bison becomes the lion)   // the intro fades out from the fifth totem's tap, as the lion comes   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
+const BISON_AUTO_MS = [2600, 2800];   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
+const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap, as the lion comes
 const ALIGN_MS = 600;
 // the roar's rings over the video's first moments: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS
 // apart; all held RINGS_HOLD_MS from the takeover, then faded out over RINGS_FADE_MS
-const RING_PULSES = 3, RING_PULSE_GAP_MS = 450, RINGS_HOLD_MS = 1650, RINGS_FADE_MS = 600;   // the world eases onto the finale video's frame over this, from the lion's tap
-const TOTEMS_FROM = 0.85;   // the totems (and their quest) fade in this far down the descent
+// (only while the video's camera holds still, ~0.7 s, so they can't drift off him; no tracking)
+const RING_PULSES = 1, RING_PULSE_GAP_MS = 0, RINGS_HOLD_MS = 450, RINGS_FADE_MS = 300;   // the world eases onto the finale video's frame over this, from the lion's tap
+const TOTEMS_FROM = 0.7;   // the totems (and their quest) fade in this far down the descent
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -609,7 +609,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // The focus: every animal settles in a fixed place (so the finale's first frame always matches),
   // the birds and leaves leave the sky, the page glides to the bottom of the world and holds, the
   // tilt eases to centre, and everything but the lion goes muted and soft as the vignette closes in.
-  let frozen = false, focusAt = 0, chargeAt = 0, alignT = null;
+  let frozen = false, focusAt = 0, chargeAt = 0, alignT = null, alignStart = 0;
+  // where the finale video's frame will sit, relative to the world's stage
+  const videoFrameOnStage = () => {
+    const f = USE_FINALE_VIDEO && finale.frameFit ? finale.frameFit() : null, sr = worldStage.getBoundingClientRect();
+    return f ? { k: f.k, ox: f.ox - sr.left, oy: f.oy - sr.top } : null;
+  };
   // (all of this starts at the lion tap; until then the world carries on as ever)
   // The roar sets the world off: the bluebird takes flight, the butterfly lifts from its flower, the
   // owl turns and opens its eyes, and a burst of leaves falls from the aspens. Each one runs on a fixed
@@ -660,8 +665,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     later(() => scroller.classList.add("locked"), 650);
     aimFocus(); root.classList.add("frozen", "focus");
     // (where the video's frame will be, relative to the world's stage)
-    const f = USE_FINALE_VIDEO && finale.frameFit ? finale.frameFit() : null, sr = worldStage.getBoundingClientRect();
-    alignT = f ? { k: f.k, ox: f.ox - sr.left, oy: f.oy - sr.top } : null;
+    if (!alignT) { alignStart = focusAt; alignT = videoFrameOnStage(); }
     later(aimFocus, 700);   // again once the page has settled at the bottom
   }
   // the focus vignette closes in around the lion
@@ -1105,8 +1109,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // the lion's moment, with the finale video: the world eases onto exactly where the video's first
     // picture will sit on this screen (its fit, Safari's bars and all), so the takeover doesn't jump
     let wx = ox, wy = oy, wk = k;
-    if (alignT) {
-      const e = smooth((performance.now() - focusAt) / ALIGN_MS), tk = alignT.k * FINALE.w / CANVAS.w;
+    if (alignT) {   // (only at the bottom of the descent, where his reveal is)
+      const e = smooth((performance.now() - alignStart) / ALIGN_MS) * smooth((p - 0.92) / 0.08), tk = alignT.k * FINALE.w / CANVAS.w;
       wk = k + (tk - k) * e; wx = ox + (alignT.ox - ox) * e; wy = oy + (alignT.oy - oy) * e;
     }
     put(world, "transform", `translate(${wx}px, ${wy}px) scale(${wk})`);
@@ -1253,7 +1257,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function bisonMoment() {
     if (momentDone) return; momentDone = true;
     totemRow.classList.add("allGlow");   // all five totems glow as he turns...
-    root.classList.add("achieved"); later(() => root.classList.remove("achieved"), ACHIEVED_MS);   // ...and every animal's aura blazes
+    // ...and the screen glides to where his reveal happens (the bottom of the descent), so his tap shifts nothing,
+    // the world easing onto the video's frame there
+    glideTo(DESCENT_SVH / 100 * Hs(), 2200);
+    later(() => { alignStart = performance.now(); alignT = videoFrameOnStage(); }, 2400);
     bisonTapAt = performance.now(); clearTimeout(bisonOnTimer);
     bison.classList.remove("ready"); bison.classList.add("is-on", "up", "facing");
     const icon = totemRow.querySelector('[data-k="bison"]'); icon.classList.remove("half", "ready"); icon.classList.add("on", "pop");

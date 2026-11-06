@@ -458,6 +458,8 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-questSub { margin-top: 7px !important; font: italic 600 14px/1.15 "Cormorant Garamond", Georgia, serif; letter-spacing: .02em; color: rgba(243,223,176,.88); }
 .tj-questCount { margin-top: 6px !important; font: 700 10.5px/1 var(--tj-display); letter-spacing: .28em; margin-right: -.28em; color: rgba(243,212,142,.85); }
 .tj-questCount .n { color: #f6dc9c; }
+.tj-quest { transition: opacity 1.4s ease; }
+.tj-quest.done { opacity: 0; }   /* all five found: the words go; the totems (then the lion's) stay */
 .tj-quest.done .tj-questCount { color: #f6dc9c; text-shadow: 0 0 10px rgba(240,200,110,.7), 0 1px 10px rgba(0,0,0,.75); }
 @media (min-width: 900px) { .tj-questTitle { font-size: 13px; } .tj-questSub { font-size: 16px; } .tj-questCount { font-size: 11.5px; } .tj-quest { margin-bottom: 13px; } }
 .tj-totems.show { opacity: 1; }
@@ -964,7 +966,10 @@ html:fullscreen .tj-finale video { height: 100vh; }
 .tj:not(.summoned) .tj-totems.lion .tj-lionTotem { border-color: rgba(231,201,143,.45); background: rgba(10,8,6,.55); box-shadow: none; }
 .tj:not(.summoned) .tj-totems.lion .tj-lionTotem svg { color: rgba(239,230,214,.55); filter: none; }
 .tj-totems.lion .tj-lionTotem, .tj-totems.lion .tj-lionTotem svg { transition: border-color .8s ease, box-shadow .8s ease, color .8s ease, filter .8s ease; }
-/* all five found: every animal's aura blazes while the bison becomes the lion */
-.tj.achieved .tj-cr-perch .aura, .tj.achieved .tj-cr-butterfly .aura, .tj.achieved .tj-cr-owl .aura, .tj.achieved .tj-cr-aspen .aura {
-  opacity: 1 !important; filter: brightness(1.9) !important; transform: scale(1.32) !important;
-  transition: filter .9s ease, transform 1.2s cubic-bezier(.16,1,.3,1), opacity .6s ease !important; }
+/* the lion, until he's tapped: rings of light emanate from him and fade (with his breathing glow) */
+.tj-cr-lion .tj-crBody::before, .tj-cr-lion .tj-crBody::after { content: ""; position: absolute; left: 50%; top: 52%; width: 120%; aspect-ratio: 1;
+  border-radius: 50%; border: 1.5px solid rgba(255,226,160,.85); box-shadow: 0 0 10px rgba(255,214,130,.6), inset 0 0 8px rgba(255,214,130,.35);
+  transform: translate(-50%, -50%) scale(.5); opacity: 0; pointer-events: none; }
+.tj.lion:not(.summoned):not(.focus) .tj-cr-lion .tj-crBody::before { animation: tj-lionRing 3.4s ease-out infinite; }
+.tj.lion:not(.summoned):not(.focus) .tj-cr-lion .tj-crBody::after { animation: tj-lionRing 3.4s ease-out 1.7s infinite; }
+@keyframes tj-lionRing { 0% { transform: translate(-50%, -50%) scale(.5); opacity: 0; } 15% { opacity: .8; } 100% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; } }

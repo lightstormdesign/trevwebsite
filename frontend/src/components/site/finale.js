@@ -100,7 +100,6 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     if (!active || held) return;
     raf = requestAnimationFrame(tick);
     const at = songTime(), now = performance.now();
-    if (shown) followCamera();
     if (!v.paused && v.readyState >= 2) {
       // the takeover, once its frame is really on screen
       if (!shown && v.currentTime >= FINALE.reveal && at >= FINALE.reveal) {
@@ -122,8 +121,8 @@ export function createFinale(root, { onEnd, onReveal, onOutro, clock }) {
     } else if (now >= nextGo) { nextGo = now + 300; go(); }   // (not a play() every frame)
     if (!shown && (at > FINALE.reveal + FINALE.giveUp || v.error)) { failed = true; stop(); }
   }
-  // the carried rings (.tj-finaleRings, placed in screen pixels at the takeover, when the world sits exactly
-  // on the video's frame) ride the camera's tracked move, through the way the frame is fitted to the screen
+  // (not used now: the carried rings stay only while the camera holds still) the carried rings could ride
+  // the camera's tracked move, through the way the frame is fitted to the screen
   let fit = null;
   function followCamera() {
     const layer = wrap.querySelector(".tj-finaleRings"); if (!layer) return;
