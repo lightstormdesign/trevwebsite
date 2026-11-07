@@ -465,7 +465,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     ${phase === "hero" ? `<div class="tj-enterLayer"><button class="tj-enter" type="button" aria-label="${enterLabel}"><span class="halo"></span><span class="glow" aria-hidden="true">${enterLabel}</span><span class="word tj-gold" aria-hidden="true">${enterLabel}</span></button></div>` : ""}
     <div class="tj-unlock" hidden>
-      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME !== "clouds" ? " " + UNLOCK_FRAME : ""}" role="dialog" aria-label="The Kingdom, unreleased music video" style="--sky:url(${A}trev-unlock-sky.webp);--frame:url(${A}trev-unlock-frame-gold.webp)">
+      <div class="tj-unlockCard tj-unlockVideo${UNLOCK_FRAME !== "clouds" ? " " + UNLOCK_FRAME : ""}" role="dialog" aria-label="The Kingdom, Director's Cut: the full cinematic music video in 4K, unreleased" style="--sky:url(${A}trev-unlock-sky.webp);--frame:url(${A}trev-unlock-frame-gold.webp)">
         ${UNLOCK_FRAME === "thin" ? THIN_FRAME : UNLOCK_FRAME === "ornate" ? '<div class="tj-ornateFrame" aria-hidden="true"></div>' : ""}
         <img class="tj-unlockDeco clouds" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
         <img class="tj-unlockDeco clouds side left" src="${A}trev-unlock-clouds.webp" alt="" aria-hidden="true">
@@ -477,7 +477,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
             <div class="tj-flower tj-unlockFlower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
           </div>
           <span class="tj-unlockHand">you've unlocked</span>
-          <p class="tj-unlockTitle">The Kingdom<small>unreleased music video</small></p>
+          <p class="tj-unlockTitle">The Kingdom<small>Director's Cut <span class="tj-4k">4K</span></small></p>
+          <p class="tj-unlockSub">The full cinematic music video · unreleased</p>
           <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Tap here</a>
         </div>
         <img class="tj-unlockDeco rocks" src="${A}trev-unlock-rocks.webp" alt="" aria-hidden="true">
