@@ -721,6 +721,10 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 .tj-flower svg.glow { filter: blur(6px); opacity: .9; }
 /* the homepage's corner geometry: TREV's own bison mandala (the Flower of Life with the bison, the buttes and
    the rivers), in place of the plain Flower of Life; the same settings: corner, opacity, fade, breath, spin */
+/* 25% bigger than the old Flower of Life, its centre (the bison's face) on the screen's right edge: half his face shows */
+.tj-flower.tj-mandala { left: 100%; top: 21%; width: 55vmax;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 55%, transparent 85%); mask-image: radial-gradient(circle, #000 0%, #000 55%, transparent 85%); }
+@media (hover: hover) and (pointer: fine) { .tj-flower.tj-mandala { top: 30%; } }
 .tj-mandala img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .tj-mandala img.glow { filter: blur(6px); opacity: .9; }
 @keyframes tj-flowerIn { from { opacity: 0; } to { opacity: 1; } }
