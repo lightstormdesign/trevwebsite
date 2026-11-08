@@ -917,6 +917,18 @@ html:fullscreen .tj-finale video { height: 100vh; }
   color: #fff1dc; text-decoration: none; background: linear-gradient(180deg, #b9592f, #8a361a); border: 1px solid rgba(255,206,150,.4);
   box-shadow: 0 4px 16px rgba(140,50,20,.45), inset 0 1px 0 rgba(255,220,180,.25); }
 .tj-unlockGo:active { transform: translateY(1px); }
+/* a small golden hand on the button: once the card is in, it taps twice, then fades away */
+.tj-unlockGo { position: relative; }
+.tj-tapHint { position: absolute; right: -14px; bottom: -20px; width: 26px; height: 26px; color: #f3d48e; opacity: 0; pointer-events: none;
+  filter: drop-shadow(0 1px 4px rgba(0,0,0,.7)) drop-shadow(0 0 4px rgba(240,200,110,.45)); transform-origin: 40% 20%; }
+.tj-unlockCard.show .tj-tapHint { animation: tj-tapHint 3.4s ease-in-out 2.6s both; }
+@keyframes tj-tapHint {
+  0% { opacity: 0; transform: translate(6px, 8px) scale(1); }
+  15% { opacity: 1; transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-1px, -2px) scale(.86); } 33% { transform: translate(0, 0) scale(1); }
+  45% { transform: translate(-1px, -2px) scale(.86); } 53% { transform: translate(0, 0) scale(1); }
+  75% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .tj-unlockCard.show .tj-tapHint { animation: none; } }
 .tj-unlockClose { position: absolute; z-index: 4; right: 54px; top: 36px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: rgba(10,6,4,.45);
   color: #f4e4c4; font: 300 20px/1 system-ui, sans-serif; cursor: pointer; }
 .tj-unlock:not([hidden]) ~ .tj-bubble { opacity: 0 !important; pointer-events: none !important; }   /* (one card at a time) */

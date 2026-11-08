@@ -31,7 +31,7 @@
 // own fixed frame, so Safari's toolbars never collapse and nothing jumps on the first scroll; the
 // stages are max(100lvh, 100vh) tall and are measured by their own size, never the live window
 // height; the copy sits in 100svh (what's visible with the toolbars showing); the vignette.
-import { sound, tilt, LION_DROP_S } from "@/utils/sound";
+import { sound, tilt, requestMotion, LION_DROP_S } from "@/utils/sound";
 import { LAYLO_URL } from "@/data/site";
 import { createFinale, FINALE } from "./finale";
 
@@ -479,7 +479,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
           <span class="tj-unlockHand">you've unlocked</span>
           <p class="tj-unlockTitle">The Kingdom<small>Director's Cut <span class="tj-4k">4K</span></small></p>
           <p class="tj-unlockSub">The full cinematic music video · unreleased</p>
-          <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Tap here</a>
+          <a class="tj-unlockGo" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">Get the 4K film<svg class="tj-tapHint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5V5a1.6 1.6 0 0 1 3.2 0v6.2"/><path d="M13.2 10.4a1.6 1.6 0 0 1 3.2 0v1.2"/><path d="M16.4 11.2a1.6 1.6 0 0 1 3.2 0v3.3a6.5 6.5 0 0 1-6.5 6.5h-1.3c-2 0-3.3-.7-4.5-1.9l-3-3a1.6 1.6 0 0 1 2.3-2.3l1.4 1.4"/><path d="M8 4.2l-1.3-1.1M11.6 2.2V.9M15.2 4.2l1.3-1.1" opacity=".7"/></svg></a>
         </div>
         <img class="tj-unlockDeco rocks" src="${A}trev-unlock-rocks.webp" alt="" aria-hidden="true">
         <button class="tj-unlockClose" type="button" aria-label="Close">&times;</button>
@@ -519,7 +519,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ---------- header + menu (client-side navigation) ----------
   const menu = $(".tj-menu");
   const go = (e, to) => { e.preventDefault(); menu.hidden = true; if (navigate) navigate(to); else window.location.href = to; };
-  on($(".tj-menuBtn"), "click", () => { menu.hidden = false; });
+  on($(".tj-menuBtn"), "click", () => { menu.hidden = false; requestMotion(); });   // (iPhone's motion permission, asked here as at the speaker; never at Tap to Enter)
   on($(".tj-menuClose"), "click", () => { menu.hidden = true; });
   on(menu, "click", (e) => { const a = e.target.closest("a"); if (a) go(e, a.getAttribute("href")); });
   on($(".tj-name"), "click", (e) => go(e, "/"));
@@ -1495,10 +1495,27 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     on(window, "pointermove", (e) => { if (e.pointerType === "mouse") { inX = e.clientX / innerWidth * 2 - 1; inY = e.clientY / innerHeight * 2 - 1; } });
 
     let px = 0, py = 0, vx = 0, vy = 0, t0 = null, last = 0, leaving = false; let meScale = "", treeT = "";
+    // A second, gentler layer on the same tilt (or the mouse): "Tap to Enter", the logo, the menu and the
+    // speaker float a little with it, in front; the Flower of Life drifts the other way, behind; the
+    // background loop stays still. The CSS translate property, so it never fights their transforms.
+    let lx = 0, ly = 0;
+    const heroFlower = heroEl.querySelector(".tj-flower");
+    const floaters = () => [enter, $(".tj-name"), $(".tj-menuBtn"), document.querySelector(".tj-sound")].filter(Boolean);
+    const setTr = (el, v) => { if (el._tr !== v) { el._tr = v; el.style.translate = v; } };
+    function layer(dt) {
+      const ix = tilt.live ? tilt.x : inX, iy = tilt.live ? tilt.y : inY, m = still ? 0 : 1;
+      lx += (ix - lx) * Math.min(1, dt * 4); ly += (iy - ly) * Math.min(1, dt * 4);
+      const front = `${(lx * 6 * m).toFixed(1)}px ${(ly * 4 * m).toFixed(1)}px`;
+      floaters().forEach((el) => setTr(el, front));
+      if (heroFlower) setTr(heroFlower, `${(-lx * 10 * m).toFixed(1)}px ${(-ly * 8 * m).toFixed(1)}px`);
+    }
+    const unlayer = () => { floaters().forEach((el) => setTr(el, "")); if (heroFlower) setTr(heroFlower, ""); };
+    off.push(unlayer);
     function heroFrame(now) {
       if (t0 === null) { t0 = now; last = now; }
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       const t = (now - t0) / 1000;
+      if (!leaving) layer(dt);
       // One movement, in depth: he comes toward you on a diagonal (growing, rising off the bottom edge
       // he sinks below when back) to one side, eases back to centre, then comes forward to the other side.
       // On a phone with motion, or a mouse, you lead it: the side you tilt or point to, nearer the further.
@@ -1683,6 +1700,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     let inMemory = false, fetching = false;
     function onEnter() {
       if (leaving) return; leaving = true;
+      unlayer();   // (the journey starts: the floating layer settles back)
       sound.enter();
       if (!warm) warmUp();
       const go = (fadeNow) => {
