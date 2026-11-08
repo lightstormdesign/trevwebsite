@@ -429,7 +429,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         <img class="tj-meImg" alt="TREV" hidden>
       </div>
       <div class="tj-grade"></div>
-      <div class="tj-flower" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn">${PORTAL_FLOWER}</div></div></div></div>
+      <div class="tj-flower tj-mandala" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn"><img class="glow" src="${A}trev-bison-mandala-line.webp" alt=""><img src="${A}trev-bison-mandala-line.webp" alt=""></div></div></div></div>
     </div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-lionFocus" aria-hidden="true"><i style="background-image:url(/trev-grain.webp)"></i></div>
