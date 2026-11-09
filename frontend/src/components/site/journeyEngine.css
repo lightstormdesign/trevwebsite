@@ -1021,8 +1021,16 @@ html.tj-heroPhase .tj-menu, html.tj-heroPhase .film-grain-frame, html.tj-heroPha
 html.tj-heroPhase .sacred-geometry-portal-fx { position: absolute !important; }
 /* Safari draws a page behind its bars only if the page itself can scroll: the homepage scrolls a little
    (the hero, its layers absolute, ride with it; it's where a gentle parallax can go later) */
-html.tj-heroPhase, html.tj-heroPhase body { overflow-x: hidden; overflow-y: auto; }
+html.tj-heroPhase, html.tj-heroPhase body { overflow: visible; }   /* (the page itself scrolls: nothing in between does) */
+html.tj-heroPhase body { overflow-x: clip; }
 html.tj-heroPhase body { min-height: calc(100lvh + 14vh); }
 /* ...and the hero runs on below the screen's edge, under Safari's toolbar (TREV stays framed above it; below
    him, the photo's soft continuation), so Safari has the page to show behind the toolbar, as on a normal site */
 html.tj-heroPhase .tj-hero { height: calc(max(100lvh, 100vh) + 14vh); }
+/* (the world's scroller lies over the homepage and never hands a swipe on: let swipes reach the page) */
+html.tj-heroPhase .tj-scroller { pointer-events: none; }
+/* the top: Safari tints the strip behind its clock with the page's colour (a deep black here); the photo fades
+   into that same black just below it, so the edge reads as intended, not cut */
+.tj-hero::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 150px; z-index: 5; pointer-events: none;
+  background: linear-gradient(to bottom, rgb(5,5,6) 0%, rgba(5,5,6,.82) 22%, rgba(5,5,6,.45) 55%, rgba(5,5,6,0) 100%); }
+.tj-hero.thru::after { opacity: 0; }
