@@ -1034,4 +1034,4 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
   background: linear-gradient(to bottom, #000 0%, transparent 14%, transparent 93%, #000 100%),   /* (the bottom fade half the top's) */
     linear-gradient(to right, rgba(0,0,0,.35) 0%, transparent 10%, transparent 90%, rgba(0,0,0,.35) 100%); }
 .tj-hero:not(.thru)::before { background: #000 !important; filter: none !important; }   /* (clear once the transition plays, or it covers the video) */
-.tj-hero.thru::after { opacity: 0; }
+.tj-hero.thru::after { opacity: 0; transition: opacity 1.6s ease; }   /* (the frame fades away slowly as the transition plays) */

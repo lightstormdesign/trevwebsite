@@ -49,7 +49,7 @@ const HERO_SETS = {
              face: [470, 1380, 215, 320] },
 };
 const ENTER_AFTER_MS = 1800;   // "Tap to enter" rises this long after the portal is up
-const ME_PX = 12;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
+const ME_PX = 20;           // screen px TREV (the whole cutout, rigid: never stretched or scaled) shifts at full tilt;
                             // the background never moves, so he reads in front of it
 const MARGIN = 70;
 const ME_SCALE = 0.03;
@@ -1517,9 +1517,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function layer(dt) {
       const ix = tilt.live ? tilt.x : inX, iy = tilt.live ? tilt.y : inY, m = still ? 0 : 1;
       lx += (ix - lx) * Math.min(1, dt * 4); ly += (iy - ly) * Math.min(1, dt * 4);
-      const front = `${(lx * 6 * m).toFixed(1)}px ${(ly * 4 * m).toFixed(1)}px`;
+      const front = `${(lx * 12 * m).toFixed(1)}px ${(ly * 8 * m).toFixed(1)}px`;
       floaters().forEach((el) => setTr(el, front));
-      if (heroFlower) setTr(heroFlower, `${(-lx * 10 * m).toFixed(1)}px ${(-ly * 8 * m).toFixed(1)}px`);
+      if (heroFlower) setTr(heroFlower, `${(-lx * 22 * m).toFixed(1)}px ${(-ly * 16 * m).toFixed(1)}px`);
     }
     const unlayer = () => { floaters().forEach((el) => setTr(el, "")); if (heroFlower) setTr(heroFlower, ""); };
     off.push(unlayer);

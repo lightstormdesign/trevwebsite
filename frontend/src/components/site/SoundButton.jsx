@@ -17,8 +17,8 @@ export const SoundButton = ({ className = "" }) => {
       aria-pressed={on}
       onClick={() => {
         const unmuting = !sound.playing;
+        if (unmuting) requestMotion();   // first, while the tap is fresh (iPhone only asks inside one)
         sound.toggle();
-        if (unmuting) requestMotion();
       }}
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -168,7 +168,7 @@ export const sound = {
 // each -1..1, the resting angle slowly re-centring. iPhone only gives motion after asking, from
 // inside a tap: the speaker (when turning the sound on) and the menu button call requestMotion(), never
 // "Tap to Enter" (the dialog would interrupt the transition). Android needs no permission.
-const RANGE_DEG = 10, RECENTER = 0.004;
+const RANGE_DEG = 7, RECENTER = 0.004;   // (full effect at 7° of tilt: more responsive)
 export const tilt = { x: 0, y: 0, live: false };
 let base = null, listening = false, asked = null;
 function onOrient(e) {
