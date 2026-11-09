@@ -1453,7 +1453,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function layout() {
       pick();
       // framed in the visible screen (above Safari's bottom toolbar), so TREV is never cut off by it
-      const W = heroW(), H = Math.min(heroH(), Hs()), k = Math.max(W / set.w, H / set.h);
+      const W = heroW(), H = heroH(), k = Math.max(W / set.w, H / set.h);   // (the whole screen: Safari's floating toolbar shows the page under it)
       fit = { k,
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
@@ -1822,8 +1822,29 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     progDrop.style.transform = `translate3d(${(p * prog.clientWidth).toFixed(1)}px, 0, 0)`;
   }
   const scrolled = () => Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100);
+  // Safari (iOS 26) paints the strip behind the status bar, and around its floating toolbar, in the
+  // page's own colour: keep that the colour of the scene's top edge (the hero's sky, then the world's
+  // sky as it rises), never black. (theme-color too, for older Safari)
+  const TOP_TINTS = [[0, [41, 36, 43]], [0.21, [66, 65, 82]], [0.42, [85, 80, 104]], [0.76, [60, 71, 113]], [1, [57, 74, 116]]];
+  const HERO_TINT = [38, 46, 56];
+  let tintShown = "", themeMeta = document.querySelector('meta[name="theme-color"]');
+  function topTint() {
+    let c = HERO_TINT;
+    if (phase === "world") {
+      const p = Math.min(1, cur / DESCENT_SVH); let i = 0;
+      while (i < TOP_TINTS.length - 2 && TOP_TINTS[i + 1][0] <= p) i++;
+      const [p0, a] = TOP_TINTS[i], [p1, b] = TOP_TINTS[i + 1], f = Math.max(0, Math.min(1, (p - p0) / (p1 - p0)));
+      c = a.map((v, j) => Math.round(v + (b[j] - v) * f));
+    }
+    const v = `rgb(${c.join(",")})`;
+    if (v === tintShown) return; tintShown = v;
+    docEl.style.setProperty("--tj-top", v); document.body.style.backgroundColor = v; docEl.style.backgroundColor = v;
+    if (themeMeta) themeMeta.setAttribute("content", v);
+  }
+  off.push(() => { docEl.style.removeProperty("--tj-top"); document.body.style.backgroundColor = ""; docEl.style.backgroundColor = ""; if (themeMeta) themeMeta.setAttribute("content", "#0b0c0f"); });
   function loop(now) {
     raf = requestAnimationFrame(loop);
+    topTint();
     if (cardUp) { lastT = now; return; }   // the world rests under the card
     if (hero) hero.frame(now);
     const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;

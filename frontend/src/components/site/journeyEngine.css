@@ -59,7 +59,7 @@
 @keyframes tj-bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(5px); opacity: 1; } }
 
 /* ---------- hero ---------- */
-.tj-hero { position: fixed; left: 0; right: 0; top: 0; z-index: 20; overflow: hidden; background: var(--tj-bg); pointer-events: none; transition: opacity .7s ease; }
+.tj-hero { position: fixed; left: 0; right: 0; top: 0; z-index: 20; overflow: hidden; background: var(--tj-top, var(--tj-bg)); pointer-events: none; transition: opacity .7s ease; }
 .tj-hero.out { opacity: 0; pointer-events: none; }
 .tj-hero.lift { opacity: 0; pointer-events: none; transition: opacity .15s linear; }
 .tj-box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
@@ -105,7 +105,7 @@
 .tj-snap { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 
 /* ---------- world ---------- */
-.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: var(--tj-bg); pointer-events: none; }
+.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: var(--tj-top, var(--tj-bg)); pointer-events: none; }
 .tj-side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
 .tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
 .tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
