@@ -348,6 +348,7 @@ const ALIGN_MS = 600;
 // spot (no camera tracking); full until 2.51 s, gone by 4.01 s on the video's own clock (FINALE.rings)
 const RING_PULSES = 0, RING_PULSE_GAP_MS = 450;   // (none: only the roar's own rings, carried over the video so it doesn't cut them off)   // the world eases onto the finale video's frame over this, from the lion's tap
 const TOTEMS_FROM = 0.7;   // the totems (and their quest) fade in this far down the descent
+const MANDALA_BEHIND = typeof location !== "undefined" && /[?&]mandala=behind/.test(location.search);   // (a preview)
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -1495,6 +1496,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
       box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
+      // (?mandala=behind: the mandala inside the photo, behind the two tree cutouts; placed in the photo's own
+      // pixels so it sits exactly where it does in front)
+      const mf = MANDALA_BEHIND && heroEl.querySelector(".tj-flower");
+      if (mf) {
+        if (mf.parentNode !== box) box.insertBefore(mf, box.querySelector(".tj-tree"));
+        const topF = matchMedia("(hover: hover) and (pointer: fine)").matches ? 0.10 : 0.14;
+        Object.assign(mf.style, { left: ((W - fit.ox) / k).toFixed(1) + "px", top: ((H * topF - fit.oy) / k).toFixed(1) + "px",
+          width: (0.55 * Math.max(W, H) / k).toFixed(1) + "px" });
+      }
       // where his face is on screen: the film grain is at half strength there (FilmGrain.jsx)
       const [fx, fy, rx, ry] = set.face;
       docEl.style.setProperty("--tj-face", `${(rx * k).toFixed(0)}px ${(ry * k).toFixed(0)}px at ${(fit.ox + fx * k).toFixed(0)}px ${(fit.oy + fy * k).toFixed(0)}px`);
@@ -1544,7 +1554,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       lx += (ix - lx) * Math.min(1, dt * 4); ly += (iy - ly) * Math.min(1, dt * 4);
       const front = `${(lx * 12 * m).toFixed(1)}px ${(ly * 8 * m).toFixed(1)}px`;
       floaters().forEach((el) => setTr(el, front));
-      if (heroFlower) setTr(heroFlower, `${(-lx * 22 * m).toFixed(1)}px ${(-ly * 16 * m).toFixed(1)}px`);
+      const fk = MANDALA_BEHIND ? fit.k : 1;   // (inside the scaled photo its drift is in the photo's pixels)
+      if (heroFlower) setTr(heroFlower, `${(-lx * 22 * m / fk).toFixed(1)}px ${(-ly * 16 * m / fk).toFixed(1)}px`);
     }
     const unlayer = () => { floaters().forEach((el) => setTr(el, "")); if (heroFlower) setTr(heroFlower, ""); };
     off.push(unlayer);
