@@ -105,7 +105,7 @@ const wrap = (v, lo, hi) => lo + ((((v - lo) % (hi - lo)) + (hi - lo)) % (hi - l
 // or null when it's off stage. Kept light: small images moved and turned only; the flapping,
 // fluttering, flowing, breathing and twinkling are CSS animations.
 const FAR_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42], [-110, 46]];   // Burnell's, exactly
-const SECOND_FLOCK = [[0, 0], [-56, -22], [-56, 24], [-112, -42]];
+const SECOND_FLOCK = [[0, 0], [-56, -22], [-56, 24]];   // (3, not 4: fewer birds on screen at once)
 const NEAR_FLOCK = [[0, 0], [95, -34]];
 // TREV's white doves: a third flock, first crossing ~12s after the world opens (after Burnell's
 // swallows have been through), then every 36s
@@ -266,7 +266,7 @@ const CREATURES = [
   { kind: "rainbow", layer: "falls", w: 760, pose: () => ({ x: 470, y: 470 }) },
   ...[[330, 880], [470, 900], [600, 870], [400, 1030], [540, 960]].map(([x, y], i) =>
     ({ kind: "ripple", layer: "river", w: 70, delay: i * 0.45, pose: () => ({ x, y }) })),
-  ...Array.from({ length: 5 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
+  ...Array.from({ length: 3 }, (_, i) => ({ kind: "mote", after: "foreground", depth: 0.7, w: 7 + (i % 3) * 3, delay: i * 0.6,
     pose: (t, p) => ({ x: 120 + ((i * 263) % 700) + 22 * Math.sin(t * 0.4 + i), y: wrap(1500 - ((i * 397) % 1300) - t * 14 - p * 500, 150, 1650) }) })),
 ];
 const BISON_TAP_S = 4, BISON_UP_MS = 4000;   // its first tap: head up this long (never to you), then back to grazing      // a tap lights the bison's aura this long (Burnell's deer: TAP_S)
@@ -542,8 +542,24 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const lockPage = () => { docEl.style.overflow = "hidden"; docEl.style.overscrollBehaviorY = "none"; document.body.style.overscrollBehaviorY = "none"; };
   if (!docEl.classList.contains("tj-heroPhase")) lockPage();
   off.push(() => { docEl.style.overflow = ""; docEl.style.overscrollBehaviorY = ""; document.body.style.overscrollBehaviorY = ""; });
-  const Hs = () => svhEl.clientHeight || innerHeight;   // the visible screen with Safari's toolbars showing
-  off.push(() => docEl.classList.remove("tj-bison-hover"));
+  // Sizes are measured once and again only when the screen changes: reading one mid-frame, after the world has
+  // moved, makes the phone lay the whole world (700 elements) out again, every frame (that was most of the
+  // descent's cost on a phone)
+  const sizes = { svh: 0, sw: 0, sh: 0, scrollMax: 0, progW: 0 };
+  let scrollNow = 0;   // (the scroll position, read once at the start of each frame: loop)
+  const measure = () => {
+    sizes.svh = svhEl.clientHeight || innerHeight;
+    sizes.sw = worldStage.clientWidth || innerWidth; sizes.sh = worldStage.clientHeight || innerHeight;
+    const sc = root.querySelector(".tj-scroller"), pr = root.querySelector(".tj-progress");
+    sizes.scrollMax = sc ? sc.scrollHeight - sc.clientHeight : 0; sizes.progW = pr ? pr.clientWidth : 0;
+  };
+  let measured = false;
+  const ensure = () => { if (!measured) { measured = true; measure(); } };
+  const remeasure = () => { measured = false; };
+  on(window, "resize", remeasure); on(window, "orientationchange", remeasure);
+  if (typeof ResizeObserver !== "undefined") { const ro = new ResizeObserver(remeasure); ro.observe(root); off.push(() => ro.disconnect()); }
+  const Hs = () => { ensure(); return sizes.svh; };   // the visible screen with Safari's toolbars showing
+  off.push(() => docEl.classList.remove("tj-bison-hover", "tj-inWorld"));
 
   // ======================================================================================
   // WORLD
@@ -985,6 +1001,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const el = document.createElement("div");
     c.t0 = 0;
     el.className = `tj-cr tj-cr-${c.kind}${c.over ? " over" : ""}${c.glint ? " glint" : ""}`; el.style.opacity = "0"; el.setAttribute("aria-hidden", "true");
+    if (offObs) offObs.observe(el);
     const body = document.createElement("div"); body.className = "tj-crBody"; body.style.width = c.w + "px";
     if (c.delay) body.style.setProperty("--delay", `-${c.delay}s`);
     if (c.kind === "aspen") body.innerHTML = sacredAura();
@@ -1045,6 +1062,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     el.appendChild(body);
     return el;
   }
+  // creatures off screen: their looping animations (wings, auras, glints) pause until they're back in view
+  const offObs = typeof IntersectionObserver !== "undefined"
+    ? new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle("tj-off", !e.isIntersecting)), { rootMargin: "120px" }) : null;
+  if (offObs) off.push(() => offObs.disconnect());
   function buildWorld() {
     if (worldBuilt) return; worldBuilt = true;
     const img = (src, w) => {
@@ -1101,7 +1122,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // Sized by the stage itself (max(100lvh, 100vh): it doesn't change as Safari's toolbars come and
   // go), never by the live window height.
   function worldFit() {
-    const W = worldStage.clientWidth || innerWidth, H = worldStage.clientHeight || innerHeight;
+    ensure(); const W = sizes.sw, H = sizes.sh;
     const narrow = W / H <= 0.8;
     const colW = narrow ? W : Math.min(W, H * CANVAS.w / CANVAS.h);
     const k = Math.max(colW / CANVAS.w, H / CANVAS.h);
@@ -1145,7 +1166,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     const mt = LAYERS[1];
     rimEl.style.transform = `translate3d(${(RIM.x + gx(mt)).toFixed(1)}px, ${(RIM.y + ty0(mt) + gy(mt)).toFixed(1)}px, 0)`;
-    rimEl.style.opacity = clamp01((hid - 0.05) / 0.5).toFixed(3);
+    const rimO = clamp01((hid - 0.05) / 0.5);
+    put(rimEl, "opacity", rimO.toFixed(3)); put(rimEl, "visibility", rimO > 0.005 ? "visible" : "hidden");
     const now = performance.now() / 1000;
     CLOUDS.forEach((c, i) => {
       // they part with the same gentle ease as the rest of the world (they used to start at full speed)
@@ -1169,7 +1191,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     put(veilEl, "visibility", veil > 0.02 ? "visible" : "hidden");
     put(shade, "opacity", (0.5 * veil).toFixed(3));
     // the landing copy dissolves on the very first bit of scroll
-    const o = 1 - Math.min(1, scroller.scrollTop / (Hs() * 0.14));
+    const o = 1 - Math.min(1, scrollNow / (Hs() * 0.14));
     put(landing, "opacity", o.toFixed(3));
     put(landing, "filter", o < 0.999 ? `blur(${((1 - o) * 8).toFixed(1)}px)` : "none");
     landing.classList.toggle("is-gone", o < 0.05);
@@ -1207,13 +1229,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}${pose.scale && pose.scale !== 1 ? scaleAbout(c, pose.scale) : ""}`;
     }
   }
+  let storyShadeEl = null;
   function storyLayout(s) {
-    $(".tj-storyShade").style.opacity = (0.82 * clamp01((s + 0.7) / 0.7)).toFixed(3);
+    // (written only when they change: an unchanged write still costs a restyle)
+    put(storyShadeEl || (storyShadeEl = $(".tj-storyShade")), "opacity", (0.82 * clamp01((s + 0.7) / 0.7)).toFixed(3));
     slides.forEach((sl, i) => {
       const d = s - i, o = clamp01(1 - Math.abs(d) * 1.7);
-      sl.el.style.opacity = o.toFixed(3);
-      sl.el.style.transform = `translateY(${(-d * 22).toFixed(1)}px)`;
-      sl.el.style.visibility = o > 0 ? "visible" : "hidden";
+      put(sl.el, "opacity", o.toFixed(3));
+      put(sl.el, "visibility", o > 0 ? "visible" : "hidden");
+      if (o > 0) put(sl.el, "transform", `translateY(${(-d * 22).toFixed(1)}px)`);   // (no need to move it while unseen)
       if (sl.video) { if (o > 0.2) sl.m.play().catch(() => {}); else if (!sl.m.paused) sl.m.pause(); }
     });
   }
@@ -1344,6 +1368,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
 
   function openWorld() {
     phase = "world"; worldAt = performance.now() / 1000;
+    docEl.classList.add("tj-inWorld");   // (the film grain holds still over the moving world: index.css)
     if (awake.has("butterfly") && butterfly && cocoon) { butterfly.emerged = true; cocoon.gone = true; }
     if (climaxed && butterfly) butterfly.home = true;
     if (!climaxed && TOTEMS.every((t) => awake.has(t))) later(() => { if (bisonReady()) bisonMoment(); }, 2500);
@@ -1352,9 +1377,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
-    track.style.height = `${100 + STORY_START_SVH + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`;
+    track.style.height = `${100 + STORY_START_SVH + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`; remeasure();
     scroller.classList.add("live");
-    scroller.scrollTop = 0;
+    scroller.scrollTop = 0; scrollNow = 0;
     worldLayout(0);
   }
   const showLanding = () => landing.classList.add("show");
@@ -1713,7 +1738,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function onEnter() {
       if (leaving) return; leaving = true;
       unlayer();   // (the journey starts: the floating layer settles back)
-      window.scrollTo(0, 0); docEl.classList.remove("tj-heroPhase"); lockPage();   // (the fixed layers fixed again, the page locked)
+      window.scrollTo(0, 0); docEl.classList.remove("tj-heroPhase"); lockPage(); remeasure();   // (the fixed layers fixed again, the page locked)
       sound.enter();
       if (!warm) warmUp();
       const go = (fadeNow) => {
@@ -1771,7 +1796,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // ======================================================================================
   let target = 0, cur = 0, lastT = performance.now(), beatSm = 0, beatShown = -1, mouseX = 0, mouseY = 0;
   // About opens straight on the first chapter of the story (the world is still there above it)
-  if (start === "world") { scroller.scrollTop = STORY_START_SVH / 100 * Hs(); target = cur = Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100); }
+  if (start === "world") { scroller.scrollTop = STORY_START_SVH / 100 * Hs(); scrollNow = scroller.scrollTop; target = cur = Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100); }
   if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
     // and a faint trail of gold dust follows the pointer, now and then a Flower of Life drifting off
     // it, and a click sends one thin gold ripple out (desktop's answer to Burnell's water cursor)
@@ -1817,8 +1842,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   on(scroller, "scroll", () => {
     if (hintNear) return;
-    progHint.classList.remove("show"); clearTimeout(idleT);
-    const max = scroller.scrollHeight - scroller.clientHeight, p = max > 0 ? scroller.scrollTop / max : 0;
+    if (progHint.classList.contains("show")) progHint.classList.remove("show"); clearTimeout(idleT);
+    ensure(); const max = sizes.scrollMax, p = max > 0 ? scrollNow / max : 0;
     if (p > 0.02 && p < 0.97) idleT = later(() => {
       // in the world it names what's below; inside the story, between chapters, it just says to go on
       const label = scrolled() < STORY_START_SVH - 20 ? "My Story" : "Keep scrolling";
@@ -1827,14 +1852,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }, PROGRESS_IDLE_MS);
   }, { passive: true });
   function progress() {
-    const max = scroller.scrollHeight - scroller.clientHeight;
-    const p = max > 0 ? clamp01(scroller.scrollTop / max) : 0;
+    ensure(); const max = sizes.scrollMax;
+    const p = max > 0 ? clamp01(scrollNow / max) : 0;
     if (Math.abs(p - progShown) < 0.0005) return;
     progShown = p;
     progFill.style.transform = `scaleX(${p.toFixed(4)})`;
-    progDrop.style.transform = `translate3d(${(p * prog.clientWidth).toFixed(1)}px, 0, 0)`;
+    progDrop.style.transform = `translate3d(${(p * sizes.progW).toFixed(1)}px, 0, 0)`;
   }
-  const scrolled = () => Math.max(0, scroller.scrollTop / Math.max(1, Hs()) * 100);
+  const scrolled = () => Math.max(0, scrollNow / Math.max(1, Hs()) * 100);
   // Safari (iOS 26) paints the strip behind the status bar, and around its floating toolbar, in the
   // page's own colour: keep that the colour of the scene's top edge (the hero's sky, then the world's
   // sky as it rises), never black. (theme-color too, for older Safari)
@@ -1847,16 +1872,22 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const p = Math.min(1, cur / DESCENT_SVH); let i = 0;
       while (i < TOP_TINTS.length - 2 && TOP_TINTS[i + 1][0] <= p) i++;
       const [p0, a] = TOP_TINTS[i], [p1, b] = TOP_TINTS[i + 1], f = Math.max(0, Math.min(1, (p - p0) / (p1 - p0)));
-      c = a.map((v, j) => Math.round(v + (b[j] - v) * f));
+      c = a.map((v, j) => Math.round((v + (b[j] - v) * f) / 6) * 6);   // (in steps: a handful of changes over the descent, not one every frame)
     }
     const v = `rgb(${c.join(",")})`;
     if (v === tintShown) return; tintShown = v;
-    docEl.style.setProperty("--tj-top", v); document.body.style.backgroundColor = v; docEl.style.backgroundColor = v;
+    // (set on the two layers that use it, never on <html>: a variable there is inherited by the whole page, so
+    // changing it restyled every element; the page's own colour is only for Safari's strips)
+    worldStage.style.setProperty("--tj-top", v); const hr = root.querySelector(".tj-hero"); if (hr) hr.style.setProperty("--tj-top", v);
+    document.body.style.backgroundColor = v; docEl.style.backgroundColor = v;
     if (themeMeta) themeMeta.setAttribute("content", v);
   }
-  off.push(() => { docEl.style.removeProperty("--tj-top"); document.body.style.backgroundColor = ""; docEl.style.backgroundColor = ""; if (themeMeta) themeMeta.setAttribute("content", "#0b0c0f"); });
+  off.push(() => { document.body.style.backgroundColor = ""; docEl.style.backgroundColor = ""; if (themeMeta) themeMeta.setAttribute("content", "#0b0c0f"); });
+  // the scroll position, read once at the very start of each frame, before anything is written (read later,
+  // after styles have changed, it makes the phone lay the page out again first)
   function loop(now) {
     raf = requestAnimationFrame(loop);
+    scrollNow = scroller.scrollTop;
     topTint();
     if (cardUp) { lastT = now; return; }   // the world rests under the card
     if (hero) hero.frame(now);

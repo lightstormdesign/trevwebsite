@@ -591,6 +591,7 @@ body:has(form:hover) .sacred-geometry-reveal { opacity: 0; }
 html.tj-face-grain .film-grain-frame {
   -webkit-mask-image: radial-gradient(ellipse var(--tj-face, 0 0 at -100px -100px), rgba(0,0,0,.5) 60%, #000 100%);
   mask-image: radial-gradient(ellipse var(--tj-face, 0 0 at -100px -100px), rgba(0,0,0,.5) 60%, #000 100%); }
+html.tj-inWorld .film-grain { animation: none !important; }   /* (in the scroll world the grain holds still: one less full-screen repaint) */
 .film-grain { position: absolute; inset: -64px; pointer-events: none;
   background-size: 128px 128px; /* the tile (trev-grain.webp) is set inline in FilmGrain.jsx */
   opacity: 0.25;

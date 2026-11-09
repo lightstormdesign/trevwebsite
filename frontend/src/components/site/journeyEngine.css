@@ -1035,3 +1035,6 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
     linear-gradient(to right, rgba(0,0,0,.35) 0%, transparent 10%, transparent 90%, rgba(0,0,0,.35) 100%); }
 .tj-hero:not(.thru)::before { background: #000 !important; filter: none !important; }   /* (clear once the transition plays, or it covers the video) */
 .tj-hero.thru::after { opacity: 0; transition: opacity 1.6s ease; }   /* (the frame fades away slowly as the transition plays) */
+/* performance: a creature off screen pauses its loops; the spinning auras rotate as composited layers (no repaint) */
+.tj-cr.tj-off, .tj-cr.tj-off * { animation-play-state: paused !important; }
+.tj-world .glow i, .tj-world .geo svg { will-change: transform; }
