@@ -1023,3 +1023,6 @@ html.tj-heroPhase .sacred-geometry-portal-fx { position: absolute !important; }
    (the hero, its layers absolute, ride with it; it's where a gentle parallax can go later) */
 html.tj-heroPhase, html.tj-heroPhase body { overflow-x: hidden; overflow-y: auto; }
 html.tj-heroPhase body { min-height: calc(100lvh + 14vh); }
+/* ...and the hero runs on below the screen's edge, under Safari's toolbar (TREV stays framed above it; below
+   him, the photo's soft continuation), so Safari has the page to show behind the toolbar, as on a normal site */
+html.tj-heroPhase .tj-hero { height: calc(max(100lvh, 100vh) + 14vh); }
