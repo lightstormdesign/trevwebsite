@@ -348,7 +348,8 @@ const ALIGN_MS = 600;
 // spot (no camera tracking); full until 2.51 s, gone by 4.01 s on the video's own clock (FINALE.rings)
 const RING_PULSES = 0, RING_PULSE_GAP_MS = 450;   // (none: only the roar's own rings, carried over the video so it doesn't cut them off)   // the world eases onto the finale video's frame over this, from the lion's tap
 const TOTEMS_FROM = 0.7;   // the totems (and their quest) fade in this far down the descent
-const MANDALA_BEHIND = typeof location !== "undefined" && /[?&]mandala=behind/.test(location.search);   // (a preview)
+const MANDALA_BEHIND = !(typeof location !== "undefined" && /[?&]mandala=front/.test(location.search));   // (behind the tree cutouts; ?mandala=front for the old way)
+const TREE_TILT_PX = [7, 4];   // the portal's tree cutouts drift this far (screen px) at full tilt, with TREV (he moves most)
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
@@ -1545,19 +1546,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     // A second, gentler layer on the same tilt (or the mouse): "Tap to Enter", the logo, the menu and the
     // speaker float a little with it, in front; the Flower of Life drifts the other way, behind; the
     // background loop stays still. The CSS translate property, so it never fights their transforms.
+    // With the tilt (or the mouse) only the scene moves: TREV's portrait (heroFrame) and, a little, the two tree
+    // cutouts in front of the sky; the words, the header and the mandala stay put
     let lx = 0, ly = 0;
-    const heroFlower = heroEl.querySelector(".tj-flower");
-    const floaters = () => [enter, $(".tj-name"), $(".tj-menuBtn"), document.querySelector(".tj-sound")].filter(Boolean);
     const setTr = (el, v) => { if (el._tr !== v) { el._tr = v; el.style.translate = v; } };
     function layer(dt) {
       const ix = tilt.live ? tilt.x : inX, iy = tilt.live ? tilt.y : inY, m = still ? 0 : 1;
       lx += (ix - lx) * Math.min(1, dt * 4); ly += (iy - ly) * Math.min(1, dt * 4);
-      const front = `${(lx * 12 * m).toFixed(1)}px ${(ly * 8 * m).toFixed(1)}px`;
-      floaters().forEach((el) => setTr(el, front));
-      const fk = MANDALA_BEHIND ? fit.k : 1;   // (inside the scaled photo its drift is in the photo's pixels)
-      if (heroFlower) setTr(heroFlower, `${(-lx * 22 * m / fk).toFixed(1)}px ${(-ly * 16 * m / fk).toFixed(1)}px`);
+      const k = fit.k || 1;   // (the trees are in the scaled photo: their drift in its pixels)
+      const v = `${(lx * TREE_TILT_PX[0] * m / k).toFixed(1)}px ${(ly * TREE_TILT_PX[1] * m / k).toFixed(1)}px`;
+      trees.forEach((el) => setTr(el, v));
     }
-    const unlayer = () => { floaters().forEach((el) => setTr(el, "")); if (heroFlower) setTr(heroFlower, ""); };
+    const unlayer = () => trees.forEach((el) => setTr(el, ""));
     off.push(unlayer);
     function heroFrame(now) {
       if (t0 === null) { t0 = now; last = now; }
