@@ -1030,4 +1030,9 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
    into that same black just below it, so the edge reads as intended, not cut */
 .tj-hero::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 150px; z-index: 5; pointer-events: none;
   background: linear-gradient(to bottom, rgb(5,5,6) 0%, rgba(5,5,6,.82) 22%, rgba(5,5,6,.45) 55%, rgba(5,5,6,0) 100%); }
+/* ...and the bottom fades into the same black, into Safari's toolbar strip: a letterbox at both ends */
+.tj-box::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 9%; pointer-events: none; z-index: 5;
+  background: linear-gradient(to top, rgb(5,5,6) 0%, rgba(5,5,6,.75) 30%, rgba(5,5,6,.3) 65%, rgba(5,5,6,0) 100%); }
+.tj-hero::before { background: rgb(5,5,6) !important; filter: none !important; }
 .tj-hero.thru::after { opacity: 0; }
+.tj-hero.thru .tj-box::after { opacity: 0; }
