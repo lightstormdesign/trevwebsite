@@ -387,6 +387,7 @@ function afterFirstFrame(v, cb) {
   if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(go);
 }
 
+const docEl0 = () => document.documentElement;
 export function mountJourney(root, { start = "hero", navigate } = {}) {
   const off = [];
   const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); off.push(() => target.removeEventListener(type, fn, opts)); };
@@ -399,6 +400,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const enterLabel = `${mouse ? "Click" : "Tap"} to enter`;
 
   root.classList.add("tj");
+  // (test: ?flow=1 puts the hero in the page itself instead of a fixed layer, so iOS Safari can draw it behind
+  // its status bar and toolbar, as on a normal page)
+  if (/[?&]flow=1/.test(location.search)) docEl0().classList.add("tj-flowHero");
   // nothing may fade on the page's very first frames: an iPhone (WebKit) can start hidden things shown on
   // its first style pass and fade them out (the totems' words, "keep scrolling" flashed at load). So no
   // transitions until it has settled; then they're on

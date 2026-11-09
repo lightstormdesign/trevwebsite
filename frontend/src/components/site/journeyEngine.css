@@ -1011,3 +1011,5 @@ html:fullscreen .tj-finale video { height: 100vh; }
 .tj-hero::before, .tj-worldStage::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--tj-top, var(--tj-bg)); pointer-events: none; }
 .tj-hero::before { background: var(--tj-heroFill) center bottom / cover no-repeat, var(--tj-top, var(--tj-bg)); filter: blur(22px) brightness(.8); transform: scale(1.12); }
 .tj-hero.thru::before { background: transparent; }
+/* (test, ?flow=1) the hero in the page itself, not fixed: iOS Safari draws page content behind its bars */
+html.tj-flowHero .tj-hero { position: absolute; }
