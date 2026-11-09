@@ -1028,11 +1028,10 @@ html.tj-heroPhase, html.tj-heroPhase body { overflow: hidden; }   /* (the homepa
 html.tj-heroPhase .tj-scroller { pointer-events: none; }
 /* the top: Safari tints the strip behind its clock with the page's colour (a deep black here); the photo fades
    into that same black just below it, so the edge reads as intended, not cut */
-.tj-hero::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 150px; z-index: 5; pointer-events: none;
-  background: linear-gradient(to bottom, rgb(5,5,6) 0%, rgba(5,5,6,.82) 22%, rgba(5,5,6,.45) 55%, rgba(5,5,6,0) 100%); }
-/* ...and the bottom fades into the same black, into Safari's toolbar strip: a letterbox at both ends */
-.tj-box::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 9%; pointer-events: none; z-index: 5;
-  background: linear-gradient(to top, rgb(5,5,6) 0%, rgba(5,5,6,.75) 30%, rgba(5,5,6,.3) 65%, rgba(5,5,6,0) 100%); }
-.tj-hero::before { background: rgb(5,5,6) !important; filter: none !important; }
+/* Sierra's portal frame: pure black over the top and bottom 14%, a soft darkening down the sides; Safari's
+   strips (behind the clock and the toolbar) are that same black, so both ends read as one intended letterbox */
+.tj-hero::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 100svh; z-index: 5; pointer-events: none;   /* (the visible screen: it ends where the toolbar begins) */
+  background: linear-gradient(to bottom, #000 0%, transparent 14%, transparent 86%, #000 100%),
+    linear-gradient(to right, rgba(0,0,0,.35) 0%, transparent 10%, transparent 90%, rgba(0,0,0,.35) 100%); }
+.tj-hero::before { background: #000 !important; filter: none !important; }
 .tj-hero.thru::after { opacity: 0; }
-.tj-hero.thru .tj-box::after { opacity: 0; }

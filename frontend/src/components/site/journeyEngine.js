@@ -1839,7 +1839,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // page's own colour: keep that the colour of the scene's top edge (the hero's sky, then the world's
   // sky as it rises), never black. (theme-color too, for older Safari)
   const TOP_TINTS = [[0, [41, 36, 43]], [0.21, [66, 65, 82]], [0.42, [85, 80, 104]], [0.76, [60, 71, 113]], [1, [57, 74, 116]]];
-  const HERO_TINT = [5, 5, 6];   // (deep black: the hero's top fades into it)
+  const HERO_TINT = [0, 0, 0];   // (deep black: the hero's top fades into it)
   let tintShown = "", themeMeta = document.querySelector('meta[name="theme-color"]');
   function topTint() {
     let c = HERO_TINT;
