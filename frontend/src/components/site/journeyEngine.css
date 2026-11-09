@@ -32,7 +32,9 @@
 /* ---------- header: a soft shadow band, the name left, the menu right ---------- */
 .tj-header { position: fixed; left: 0; right: 0; top: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between;
   padding: calc(18px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) 46px max(22px, env(safe-area-inset-left, 0px));
-  background: linear-gradient(to bottom, rgba(6,5,4,.38) 0%, rgba(6,5,4,.14) 55%, rgba(6,5,4,0) 100%); pointer-events: none; }
+  pointer-events: none; }
+.tj-header::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(6,5,4,.38) 0%, rgba(6,5,4,.14) 55%, rgba(6,5,4,0) 100%); }
 .tj-headLeft { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
 .tj-name { display: block; line-height: 0; }
 .tj-name img { height: clamp(17px, 1.7vw, 22px); width: auto; filter: drop-shadow(0 1px 10px rgba(0,0,0,.5)); }
@@ -59,7 +61,7 @@
 @keyframes tj-bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(5px); opacity: 1; } }
 
 /* ---------- hero ---------- */
-.tj-hero { position: fixed; left: 0; right: 0; top: 0; z-index: 20; overflow: hidden; background: var(--tj-top, var(--tj-bg)); pointer-events: none; transition: opacity .7s ease; }
+.tj-hero { position: fixed; left: 0; right: 0; top: 0; z-index: 20; overflow: hidden; background: transparent; pointer-events: none; transition: opacity .7s ease; }
 .tj-hero.out { opacity: 0; pointer-events: none; }
 .tj-hero.lift { opacity: 0; pointer-events: none; transition: opacity .15s linear; }
 .tj-box { position: absolute; left: 0; top: 0; transform-origin: 0 0; opacity: 0; transition: opacity .6s ease; }
@@ -105,7 +107,7 @@
 .tj-snap { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 
 /* ---------- world ---------- */
-.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: var(--tj-top, var(--tj-bg)); pointer-events: none; }
+.tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: transparent; pointer-events: none; }
 .tj-side { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); display: none; }
 .tj-world { position: absolute; left: 0; top: 0; width: 941px; height: 1672px; transform-origin: 0 0; }
 .tj-world img, .tj-world canvas { position: absolute; left: 0; top: 0; will-change: transform; user-select: none; pointer-events: none; }
@@ -1002,3 +1004,9 @@ html:fullscreen .tj-finale video { height: 100vh; }
 @keyframes tj-lionRing { 0% { transform: translate(-50%, -50%) scale(.5); opacity: 0; } 15% { opacity: .8; } 100% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; } }
 /* the page's first moments: no transitions at all (journeyEngine.js tj-settling), so nothing hidden can flash and fade */
 .tj-settling *, .tj-settling *::before, .tj-settling *::after { transition: none !important; }
+/* iOS 26 Safari paints its status-bar strip (and around its floating toolbar) in the background colour of
+   a fixed layer touching the screen's edge, instead of showing the page there. So the full-screen fixed
+   layers have no background of their own (it's on a ::before inside them): Safari draws the page right
+   up behind the status bar and down behind the toolbar, edge to edge, like a normal scrolling site */
+.tj-hero::before, .tj-worldStage::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--tj-top, var(--tj-bg)); pointer-events: none; }
+.tj-hero.thru::before { background: transparent; }
