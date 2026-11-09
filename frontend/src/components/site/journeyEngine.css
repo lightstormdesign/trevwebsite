@@ -1031,7 +1031,7 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
 /* Sierra's portal frame: pure black over the top and bottom 14%, a soft darkening down the sides; Safari's
    strips (behind the clock and the toolbar) are that same black, so both ends read as one intended letterbox */
 .tj-hero::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 100svh; z-index: 5; pointer-events: none;   /* (the visible screen: it ends where the toolbar begins) */
-  background: linear-gradient(to bottom, #000 0%, transparent 14%, transparent 86%, #000 100%),
+  background: linear-gradient(to bottom, #000 0%, transparent 14%, transparent 93%, #000 100%),   /* (the bottom fade half the top's) */
     linear-gradient(to right, rgba(0,0,0,.35) 0%, transparent 10%, transparent 90%, rgba(0,0,0,.35) 100%); }
-.tj-hero::before { background: #000 !important; filter: none !important; }
+.tj-hero:not(.thru)::before { background: #000 !important; filter: none !important; }   /* (clear once the transition plays, or it covers the video) */
 .tj-hero.thru::after { opacity: 0; }
