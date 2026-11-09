@@ -402,7 +402,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   root.classList.add("tj");
   // (test: ?flow=1 puts the hero in the page itself instead of a fixed layer, so iOS Safari can draw it behind
   // its status bar and toolbar, as on a normal page)
-  if (/[?&]flow=1/.test(location.search)) docEl0().classList.add("tj-flowHero");
+  // (while the homepage is up, every fixed layer becomes page content too, or Safari still paints its strips;
+  // the tap puts them back: the transition and the world stay fixed, smooth)
+  if (/[?&]flow=1/.test(location.search) && start === "hero") docEl0().classList.add("tj-flowHero", "tj-heroPhase");
   // nothing may fade on the page's very first frames: an iPhone (WebKit) can start hidden things shown on
   // its first style pass and fade them out (the totems' words, "keep scrolling" flashed at load). So no
   // transitions until it has settled; then they're on
@@ -1708,6 +1710,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function onEnter() {
       if (leaving) return; leaving = true;
       unlayer();   // (the journey starts: the floating layer settles back)
+      docEl.classList.remove("tj-heroPhase");   // (the fixed layers fixed again)
       sound.enter();
       if (!warm) warmUp();
       const go = (fadeNow) => {
