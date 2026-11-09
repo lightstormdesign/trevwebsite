@@ -1850,6 +1850,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (v === tintShown) return; tintShown = v;
     docEl.style.setProperty("--tj-top", v); document.body.style.backgroundColor = v; docEl.style.backgroundColor = v;
     if (themeMeta) themeMeta.setAttribute("content", v);
+    if (themeMeta && docEl.classList.contains("tj-flowHero")) { themeMeta.remove(); themeMeta = null; }   // (none in the flow test, as on the test pages)
   }
   off.push(() => { docEl.style.removeProperty("--tj-top"); document.body.style.backgroundColor = ""; docEl.style.backgroundColor = ""; if (themeMeta) themeMeta.setAttribute("content", "#0b0c0f"); });
   function loop(now) {
