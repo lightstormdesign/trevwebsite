@@ -1009,4 +1009,5 @@ html:fullscreen .tj-finale video { height: 100vh; }
    layers have no background of their own (it's on a ::before inside them): Safari draws the page right
    up behind the status bar and down behind the toolbar, edge to edge, like a normal scrolling site */
 .tj-hero::before, .tj-worldStage::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--tj-top, var(--tj-bg)); pointer-events: none; }
+.tj-hero::before { background: var(--tj-heroFill) center bottom / cover no-repeat, var(--tj-top, var(--tj-bg)); filter: blur(22px) brightness(.8); transform: scale(1.12); }
 .tj-hero.thru::before { background: transparent; }

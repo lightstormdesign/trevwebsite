@@ -1453,7 +1453,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     function layout() {
       pick();
       // framed in the visible screen (above Safari's bottom toolbar), so TREV is never cut off by it
-      const W = heroW(), H = heroH(), k = Math.max(W / set.w, H / set.h);   // (the whole screen: Safari's floating toolbar shows the page under it)
+      const W = heroW(), H = Math.min(heroH(), Hs()), k = Math.max(W / set.w, H / set.h);
+      // (framed in the visible screen, so he's never cut off by the bottom toolbar; under the toolbar, where
+      // the page shows through it, a soft blurred continuation of the same photo: .tj-hero::before)
+      heroEl.style.setProperty("--tj-heroFill", `url(${A}${set.poster})`);
       fit = { k,
         ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
