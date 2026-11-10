@@ -64,32 +64,47 @@ const PressPhoto = ({ g, className = "" }) => (
   </a>
 );
 
-// The stage plot: the stage from above, the audience at the bottom. TREV center; the live musicians'
-// spots (dashed) for band shows; the tracks table stage left.
+// The stage plot (his "Celebrate Life Together" layout): the stage from above, the audience at the
+// bottom. Backup mic upstage, lead vocal center, the stool and the laptop table either side of it,
+// the two DIs downstage.
 const StagePlot = () => {
   const gold = "rgba(243,212,142,0.9)";
-  const dim = "rgba(255,255,255,0.38)";
-  const person = (x, label, sub, dashed) => (
+  const dim = "rgba(255,255,255,0.4)";
+  const label = (x, y, t, sub, c = gold) => (
     <g>
-      <circle cx={x} cy={96} r={20} fill={dashed ? "none" : "rgba(227,163,92,0.16)"} stroke={dashed ? dim : gold} strokeDasharray={dashed ? "4 4" : undefined} />
-      <text x={x} y={132} textAnchor="middle" fill={dashed ? dim : gold} fontSize="10" letterSpacing="1">{label}</text>
-      <text x={x} y={145} textAnchor="middle" fill={dim} fontSize="8.5">{sub}</text>
-      <path d={`M${x - 14} 166 h28 l-5 10 h-18 z`} fill="none" stroke={dashed ? dim : gold} strokeDasharray={dashed ? "3 3" : undefined} />
+      <text x={x} y={y} textAnchor="middle" fill={c} fontSize="8.5" letterSpacing="1">{t}</text>
+      {sub && <text x={x} y={y + 11} textAnchor="middle" fill={dim} fontSize="7.5">{sub}</text>}
+    </g>
+  );
+  const mic = (x, y, r, c) => (
+    <g>
+      <circle cx={x} cy={y} r={r} fill={c === gold ? "rgba(227,163,92,0.16)" : "none"} stroke={c} />
+      <circle cx={x} cy={y} r={2.2} fill={c} />
+    </g>
+  );
+  const di = (x, y, t) => (
+    <g>
+      <rect x={x - 20} y={y} width="40" height="16" rx="2" fill="none" stroke={gold} />
+      <text x={x} y={y + 11} textAnchor="middle" fill={gold} fontSize="7.5">{t}</text>
     </g>
   );
   return (
-    <svg viewBox="0 0 320 222" className="w-full" role="img" aria-label="Stage plot: TREV center, guitar and percussion either side for band shows, tracks table stage left">
-      <rect x="6" y="6" width="308" height="192" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.15)" />
-      <text x="160" y="24" textAnchor="middle" fill={dim} fontSize="8.5" letterSpacing="2">UPSTAGE</text>
-      {person(75, "GUITAR", "DI (band shows)", true)}
-      {person(160, "TREV", "vocal mic", false)}
-      {person(245, "PERCUSSION", "1 mic (band shows)", true)}
-      <rect x="18" y="38" width="46" height="22" rx="3" fill="none" stroke={gold} />
-      <text x="41" y="52" textAnchor="middle" fill={gold} fontSize="7.5">TRACKS</text>
-      <text x="41" y="72" textAnchor="middle" fill={dim} fontSize="7">stereo DI</text>
-      <text x="160" y="58" textAnchor="middle" fill={gold} fontSize="9">⚡ power</text>
-      <text x="41" y="32" textAnchor="middle" fill={gold} fontSize="8">⚡</text>
-      <text x="160" y="214" textAnchor="middle" fill={dim} fontSize="8.5" letterSpacing="2">AUDIENCE</text>
+    <svg viewBox="0 0 320 236" className="w-full" role="img" aria-label="Stage plot: backup mic upstage, lead vocal center, stool to its left, laptop table to its right, vocal and guitar DIs downstage">
+      <rect x="6" y="6" width="308" height="204" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.15)" />
+      <text x="160" y="22" textAnchor="middle" fill={dim} fontSize="8" letterSpacing="2">UPSTAGE</text>
+      {mic(160, 40, 8, dim)}
+      {label(160, 62, "BACKUP MIC", "wired · venue", dim)}
+      {mic(160, 100, 14, gold)}
+      {label(160, 127, "LEAD VOCAL", "TREV · wireless")}
+      <rect x="57" y="91" width="18" height="18" rx="9" fill="none" stroke={gold} />
+      {label(66, 127, "STOOL")}
+      <rect x="228" y="89" width="54" height="22" rx="3" fill="none" stroke={gold} />
+      <text x="255" y="103" textAnchor="middle" fill={gold} fontSize="7.5">LAPTOP</text>
+      {label(255, 127, "TABLE", "\u26A1 power · stereo L/R")}
+      {di(115, 160, "VOCAL DI")}
+      {di(205, 160, "GUITAR DI")}
+      <line x1="24" y1="196" x2="296" y2="196" stroke="rgba(255,255,255,0.25)" strokeDasharray="5 4" />
+      <text x="160" y="228" textAnchor="middle" fill={dim} fontSize="8.5" letterSpacing="2">AUDIENCE</text>
     </svg>
   );
 };
@@ -99,29 +114,34 @@ const TechRider = () => (
     <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
       <span>
         <span className="font-display block text-xl text-white">Stage Plot &amp; Tech Rider</span>
-        <span className="font-body mt-0.5 block text-xs text-white/45">{TECH_RIDER.lineup}</span>
+        <span className="font-body mt-0.5 block text-xs text-white/45">
+          {TECH_RIDER.show && <span className="text-white/70">{TECH_RIDER.show}: </span>}
+          {TECH_RIDER.lineup}
+        </span>
       </span>
       <span className="font-accent shrink-0 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)] group-open:hidden">View</span>
       <span className="font-accent hidden shrink-0 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)] group-open:inline">Close</span>
     </summary>
     <div className="mt-5">
       <StagePlot />
-      <p className="font-body mt-4 text-xs text-white/55">
-        Set length: {TECH_RIDER.setLength} · {TECH_RIDER.changeover}
-      </p>
+      {(TECH_RIDER.setLength || TECH_RIDER.changeover) && (
+        <p className="font-body mt-4 text-xs text-white/55">
+          {[TECH_RIDER.setLength && `Set length: ${TECH_RIDER.setLength}`, TECH_RIDER.changeover].filter(Boolean).join(" · ")}
+        </p>
+      )}
       <p className="font-accent mt-5 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Input List</p>
       <table className="font-body mt-2 w-full text-xs text-white/70">
         <tbody>
           {TECH_RIDER.inputs.map((x) => (
             <tr key={x.ch} className="border-b border-white/10 align-top">
               <td className="py-1.5 pr-3 tabular-nums text-white/40">{x.ch}</td>
-              <td className="py-1.5 pr-3 text-white/80">{x.source}</td>
+              <td className="whitespace-nowrap py-1.5 pr-3 text-white/80">{x.source}</td>
               <td className="py-1.5 text-white/55">{x.mic}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <p className="font-body mt-3 text-xs text-white/55">Monitors: {TECH_RIDER.monitors}</p>
+      {TECH_RIDER.monitors && <p className="font-body mt-3 text-xs text-white/55">Monitors: {TECH_RIDER.monitors}</p>}
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {[
           ["Venue Provides", TECH_RIDER.venueProvides],

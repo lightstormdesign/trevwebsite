@@ -154,24 +154,33 @@ export const EPK_PERFORMANCE_VIDEO = null;
 // EPK press quotes: { quote, source, href? }. The section shows once there's at least one.
 export const PRESS_QUOTES = [];
 
-// EPK stage plot & tech rider.
-// MOCKUP, to confirm with TREV: a sensible draft for a conscious hip-hop / spoken-word set (vocal over
-// tracks, optional live guitar and percussion). Replace with his real setup.
+// EPK stage plot & tech rider, from TREV's "Celebrate Life Together" stage plot & input list.
+// setLength, changeover and monitors are optional (each line hides while it's null).
 export const TECH_RIDER = {
-  lineup: "TREV on vocals over tracks, or with up to two live musicians (guitar / percussion)",
-  setLength: "30–75 minutes",
-  changeover: "15 minutes changeover · 20 minutes soundcheck",
+  show: "Celebrate Life Together",
+  lineup: "Lead vocal (wireless), backup vocal, guitar and stereo playback from laptop",
+  setLength: null,
+  changeover: null,
   inputs: [
-    { ch: 1, source: "Lead vocal", mic: "Shure SM58 or Beta 58, boom stand" },
-    { ch: 2, source: "Backing tracks L", mic: "DI from laptop / interface" },
-    { ch: 3, source: "Backing tracks R", mic: "DI from laptop / interface" },
-    { ch: 4, source: "Guitar", mic: "DI (band shows)" },
-    { ch: 5, source: "Percussion", mic: "SM57 or similar (band shows)" },
-    { ch: 6, source: "Spare vocal / host mic", mic: "SM58, straight stand" },
+    { ch: 1, source: "Stereo output L", mic: '1/4" line output' },
+    { ch: 2, source: "Stereo output R", mic: '1/4" line output' },
+    { ch: 3, source: "Lead vocal", mic: "Artist-provided wireless mic receiver → DI" },
+    { ch: 4, source: "Backup vocal", mic: "Venue-provided wired vocal mic" },
+    { ch: 5, source: "Guitar", mic: 'DI input (1/4")' },
   ],
-  monitors: "One wedge for TREV, center front (one more per live musician)",
-  venueProvides: ["PA system and sound engineer", "Vocal mic, boom stand and spare", "Stereo DI for tracks", "Monitor wedge(s)", "Small table for the laptop, side of stage", "Power at center stage and at the table", "Water on stage"],
-  artistBrings: ["Laptop and audio interface for tracks", "Instrument cables", "Musicians' own instruments (band shows)"],
+  monitors: null,
+  venueProvides: [
+    "1 wired backup vocal microphone",
+    "1 backup vocal mic stand",
+    "1 lead vocal mic stand",
+    "1 stool (for the artist)",
+    "1 small table (for laptop / interface)",
+    "1 DI for the wireless vocal receiver",
+    "1 DI for guitar",
+    'Inputs to FOH for the artist\'s stereo outputs (2 × 1/4" L/R)',
+    "1 power outlet at the performance position",
+  ],
+  artistBrings: ["Wireless lead vocal mic and receiver", 'Laptop / interface with stereo outputs (2 × 1/4" L/R)'],
 };
 
 // Featured release: "Kingdom". The Music page plays a 20-second preview of the official video, then
