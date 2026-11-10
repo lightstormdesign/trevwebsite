@@ -33,20 +33,33 @@ import {
 // The "Kingdom" video stills are limited to a few strong ones, never mid-verse.
 // Every crowd/live photo goes here (shown first, full width). Add more as they come in.
 // Each also downloads full size (press: public/press, up to 3000px JPGs, and all of them in one zip).
+// Live shots first (stage, crowds), then portraits. Each one's press: the full-size JPG it downloads (public/press,
+// numbered in this order; the crowd photo is 01).
 const EPK_CROWD = [
-  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show", press: "/press/trev-press-01.jpg" },
+  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show", press: "/press/trev-press-01.jpg?v=2" },
 ];
 const EPK_GALLERY = [
-  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona", press: "/press/trev-press-02.jpg" },
-  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica", press: "/press/trev-press-03.jpg" },
-  { src: "/trev-epk-sign.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-04.jpg" },
-  { src: "/trev-epk-beach.jpg", alt: "TREV on the beach", press: "/press/trev-press-05.jpg" },
-  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio", press: "/press/trev-press-06.jpg" },
-  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona", press: "/press/trev-press-07.jpg" },
-  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona", press: "/press/trev-press-08.jpg" },
-  { src: "/trev-epk-11.jpg", alt: "TREV at sunset", press: "/press/trev-press-09.jpg" },
+  { src: "/trev-epk-live-01.jpg", alt: "TREV performing live, festival main stage", press: "/press/trev-press-02.jpg?v=2" },
+  { src: "/trev-epk-live-02.jpg", alt: "TREV on the festival main stage", press: "/press/trev-press-03.jpg?v=2" },
+  { src: "/trev-epk-live-03.jpg", alt: "The view from the stage over a festival crowd", press: "/press/trev-press-04.jpg?v=2" },
+  { src: "/trev-epk-live-04.jpg", alt: "TREV with a full house after an indoor show", press: "/press/trev-press-05.jpg?v=2" },
+  { src: "/trev-epk-live-05.jpg", alt: "TREV singing a duet on stage", press: "/press/trev-press-06.jpg?v=2" },
+  { src: "/trev-epk-live-06.jpg", alt: "TREV singing outdoors in golden light", press: "/press/trev-press-07.jpg?v=2" },
+  { src: "/trev-epk-live-07.jpg", alt: "TREV with a festival crowd after his set", press: "/press/trev-press-08.jpg?v=2" },
+  { src: "/trev-epk-live-08.jpg", alt: "TREV and fellow artists on stage, festival crowd behind", press: "/press/trev-press-09.jpg?v=2" },
+  { src: "/trev-epk-live-09.jpg", alt: "TREV and fellow artists on stage with the crowd", press: "/press/trev-press-10.jpg?v=2" },
+  { src: "/trev-epk-live-10.jpg", alt: "TREV and friends on stage at sunset, festival crowd behind", press: "/press/trev-press-11.jpg?v=2" },
+  { src: "/trev-epk-live-11.jpg", alt: "TREV with the crowd in a festival tent at night", press: "/press/trev-press-12.jpg?v=2" },
+  { src: "/trev-epk-sign-2.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-13.jpg?v=2" },
+  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona", press: "/press/trev-press-14.jpg?v=2" },
+  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica", press: "/press/trev-press-15.jpg?v=2" },
+  { src: "/trev-epk-beach-2.jpg", alt: "TREV on the beach", press: "/press/trev-press-16.jpg?v=2" },
+  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona", press: "/press/trev-press-17.jpg?v=2" },
+  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona", press: "/press/trev-press-18.jpg?v=2" },
+  { src: "/trev-epk-11.jpg", alt: "TREV at sunset", press: "/press/trev-press-19.jpg?v=2" },
+  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio", press: "/press/trev-press-20.jpg?v=2" },
 ];
-const PRESS_ZIP = "/press/trev-press-photos.zip";
+const PRESS_ZIP = "/press/trev-press-photos.zip?v=2";
 
 // a photo that downloads full size when tapped, a small download mark in its corner
 const PressPhoto = ({ g, className = "" }) => (
