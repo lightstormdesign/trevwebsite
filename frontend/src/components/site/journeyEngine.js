@@ -1151,7 +1151,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       // a body line is plain text, { em } (a line held for emphasis) or { lead } (the closing line, set large)
       for (const b of c.body || []) t.insertAdjacentHTML("beforeend", typeof b === "string" ? `<p>${b}</p>` : b.lead ? `<p class="lead">${b.lead}</p>` : `<p class="em">${b.em}</p>`);
       const words = (c.body || []).map((b) => (typeof b === "string" ? b : b.em || b.lead)).join(" ").length;
-      if (words + (c.cta ? 160 : 0) > 420) el.classList.add("long");   // (the sign-up button counts too)   // the longer chapters: a touch tighter, so the whole chapter fits its screen
+      if (words + (c.cta ? 160 : 0) > 420 || (c.body || []).length >= 6) el.classList.add("long");   // (the sign-up button counts too; so do many short lines)   // the longer chapters: a touch tighter, so the whole chapter fits its screen
       if (c.cta) t.insertAdjacentHTML("beforeend", `<a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a>`
         + (c.ctaNote ? `<span class="tj-ctaNote">${c.ctaNote}</span>` : ""));
       el.append(m, t); storyEl.appendChild(el);
@@ -1278,6 +1278,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       put(sl.el, "opacity", o.toFixed(3));
       put(sl.el, "visibility", o > 0 ? "visible" : "hidden");
       if (o > 0) put(sl.el, "transform", `translateY(${(-d * 22).toFixed(1)}px)`);   // (no need to move it while unseen)
+      // the title's glint: once as the chapter arrives (again only after it has gone and comes back)
+      if (o > 0.55 && !sl.glint) { sl.glint = true; sl.el.classList.add("glint"); }
+      else if (o === 0 && sl.glint) { sl.glint = false; sl.el.classList.remove("glint"); }
       if (sl.video) { if (o > 0.2) sl.m.play().catch(() => {}); else if (!sl.m.paused) sl.m.pause(); }
     });
   }
@@ -1895,6 +1898,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     ensure(); const max = sizes.scrollMax, p = max > 0 ? scrollNow / max : 0;
     if (p > 0.02 && p < 0.97) idleT = later(() => {
       // in the world it names what's below; inside the story, between chapters, it just says to go on
+      if ((scrolled() - STORY_START_SVH) / STEP_SVH > STORY.length - 1.6) return;   // (the last chapter: nothing further)
       const label = scrolled() < STORY_START_SVH - 20 ? "My Story" : "Keep scrolling";
       if (progHintLabel.textContent !== label) progHintLabel.textContent = label;
       progHint.classList.add("show");

@@ -137,43 +137,62 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 
 .tj-story { position: fixed; left: 0; right: 0; top: 0; z-index: 30; pointer-events: none; }
 .tj-storyShade { position: absolute; inset: 0; background: #070605; opacity: 0; }
-.tj-slide { position: absolute; left: 0; right: 0; top: 0; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(16px, 2.6svh, 26px);
-  padding: 9svh max(22px, env(safe-area-inset-right, 0px)) 8svh max(22px, env(safe-area-inset-left, 0px)); opacity: 0; visibility: hidden; will-change: opacity, transform; }
-.tj-slide .media { width: min(86vw, 520px); height: min(46svh, 560px); object-fit: cover; display: block; border-radius: 2px;
+/* ---------- the story's chapters: an art-book page each (photo, metallic title, the words) ---------- */
+.tj-slide { position: absolute; left: 0; right: 0; top: 0; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(14px, 2.3svh, 22px);
+  padding: 8.5svh max(22px, env(safe-area-inset-right, 0px)) calc(7svh + 40px) max(22px, env(safe-area-inset-left, 0px)); opacity: 0; visibility: hidden; will-change: opacity, transform; }
+/* (the bottom keeps clear of the "Keep scrolling" cue) */
+/* photos ~12% smaller on a phone than before; they give up height (never below 20svh) so a long chapter fits its screen */
+.tj-slide .media { width: min(76vw, 460px); height: min(40svh, 490px); object-fit: cover; display: block; border-radius: 2px; flex-shrink: 1; min-height: 20svh;
   -webkit-mask: radial-gradient(ellipse 80% 84% at 50% 50%, #000 60%, rgba(0,0,0,.4) 82%, transparent 100%);
   mask: radial-gradient(ellipse 80% 84% at 50% 50%, #000 60%, rgba(0,0,0,.4) 82%, transparent 100%); }
-.tj-slide .text { max-width: 34ch; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+.tj-slide.cover .media { height: min(46svh, 560px); }
+.tj-slide .text { position: relative; isolation: isolate; flex-shrink: 0; max-width: 33ch; text-align: center; display: flex; flex-direction: column; gap: 10px; }
+/* a soft darkness behind the words, no edges: the artwork stays, the text reads */
+.tj-slide .text::before { content: ""; position: absolute; inset: -8% -16%; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 60% 56% at 50% 50%, rgba(6,5,4,.5), rgba(6,5,4,.28) 55%, transparent 78%); }
 .tj-slide .eyebrow { font: 400 11px/1 var(--tj-sans); letter-spacing: .42em; text-transform: uppercase; color: rgba(239,230,214,.7); padding-left: .42em; }
-.tj-slide h2 { margin: 0; font: 500 clamp(22px, 5.6vw, 34px)/1.25 var(--tj-display); letter-spacing: .1em; text-transform: uppercase; text-wrap: balance; color: var(--tj-fg); }
-.tj-slide.cover h2 { font-size: clamp(30px, 8vw, 52px); letter-spacing: .16em; }
-.tj-slide.cover .media { height: min(52svh, 620px); }
-.tj-slide p { margin: 0; font: 400 clamp(17px, 4.3vw, 21px)/1.55 var(--tj-serif); color: rgba(239,230,214,.92); }
+.tj-slide h2 { margin: 0 0 2px; font: 500 clamp(22px, 5.6vw, 34px)/1.25 var(--tj-display); letter-spacing: .1em; text-transform: uppercase; text-wrap: balance; color: var(--tj-fg); }
+.tj-slide.cover h2 { margin: 0; font-size: clamp(30px, 8vw, 52px); letter-spacing: .16em; }
+.tj-slide p { margin: 0; font: 400 clamp(18px, 4.65vw, 20px)/1.55 var(--tj-serif); letter-spacing: 0; color: rgba(243,236,224,.96);
+  text-shadow: 0 1px 10px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.35); }
 .tj-slide p.lead { font-size: clamp(22px, 5.6vw, 30px); line-height: 1.35; font-style: italic; }
-/* the lines TREV holds for emphasis: the lead's italic, a step up from the body and a touch brighter */
-.tj-slide p.em { font-size: clamp(19px, 4.8vw, 24px); line-height: 1.4; font-style: italic; color: #f4ead6; }
-/* on a phone the photo gives up height (never below 22svh) so a long chapter's words all fit their screen */
-.tj-slide .media { flex-shrink: 1; min-height: 22svh; }
-.tj-slide .text { flex-shrink: 0; }
+/* the lines TREV holds for emphasis: italic, a step up from the body and a touch brighter */
+.tj-slide p.em { font-size: clamp(19.5px, 5vw, 22px); line-height: 1.45; font-style: italic; color: #f6eedd; }
+
+/* the chapter titles: antique silver warming to champagne gold, line by line; a glint crosses once as the chapter arrives */
+.tj-slide:not(.cover) h2 { color: #e2dacb; }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .tj-slide:not(.cover) h2 {
+    background-image:
+      linear-gradient(105deg, transparent 0%, transparent 42%, rgba(255,251,240,.9) 50%, transparent 58%, transparent 100%),
+      linear-gradient(180deg, #f4f0e8 0%, #d3cec5 30%, #aaa59d 50%, #cdbd9c 72%, #b49b70 100%);
+    background-size: 300% 100%, 100% 1.25em; background-repeat: no-repeat, repeat-y; background-position: 0% 0, 0 0;
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+  .tj-slide.glint:not(.cover) h2 { animation: tj-titleGlint 1.3s cubic-bezier(.45, 0, .2, 1) .3s 1 both; }
+}
+@keyframes tj-titleGlint { from { background-position: 100% 0, 0 0; } to { background-position: 0% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { .tj-slide.glint:not(.cover) h2 { animation: none; } }
+
 /* the longer chapters on a phone: the same type, a little tighter (a desktop has the room) */
 @media not all and (min-width: 900px) and (min-aspect-ratio: 1/1) {
-  .tj-slide.long .text { gap: 9px; }
-  .tj-slide.long p { font-size: clamp(15.5px, 4vw, 19px); line-height: 1.48; }
-  .tj-slide.long p.em { font-size: clamp(17px, 4.4vw, 21.5px); }
+  .tj-slide.long .text { gap: 7.5px; }
+  .tj-slide.long p { font-size: clamp(16px, 4.15vw, 18px); line-height: 1.5; }
+  .tj-slide.long p.em { font-size: clamp(17.5px, 4.5vw, 20px); line-height: 1.42; }
   .tj-slide.long p.lead { font-size: clamp(20px, 5.2vw, 28px); }
 }
 /* short laptop screens: the longer chapters a touch tighter too */
 @media (min-width: 900px) and (min-aspect-ratio: 1/1) and (max-height: 820px) {
-  .tj-slide.long .text { gap: 9px; }
-  .tj-slide.long p { font-size: 17.5px; line-height: 1.45; }
+  .tj-slide.long .text { gap: 7.5px; }
+  .tj-slide.long p { font-size: 17.5px; line-height: 1.5; }
   .tj-slide.long p.em { font-size: 19.5px; }
 }
 /* short phone screens (an SE with its toolbars, small Androids): a step tighter again */
 @media (max-height: 700px) and (max-width: 899px) {
-  .tj-slide.long { gap: 12px; }
-  .tj-slide.long .media { min-height: 17svh; }
-  .tj-slide.long .text { gap: 7px; }
-  .tj-slide.long p { font-size: clamp(14.5px, 3.85vw, 17px); line-height: 1.42; }
-  .tj-slide.long p.em { font-size: clamp(16px, 4.2vw, 19px); }
+  .tj-slide.long { gap: 11px; }
+  .tj-slide.long .media { min-height: 16svh; }
+  .tj-slide.long .text { gap: 6px; }
+  .tj-slide.long p { font-size: clamp(14.5px, 3.9vw, 17px); line-height: 1.45; }
+  .tj-slide.long p.em { font-size: clamp(16px, 4.2vw, 18.5px); }
   .tj-slide.long p.lead { font-size: clamp(19px, 5vw, 24px); }
   .tj-slide.long .tj-cta { margin-top: 4px; padding: 11px 24px; }
 }
