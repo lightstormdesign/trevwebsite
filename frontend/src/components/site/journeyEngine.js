@@ -280,60 +280,76 @@ const FLOWER = (() => {
   return pts;
 })();
 
-// TREV's story (the About copy, his own words). It opens on him in Sedona, hand on heart, and closes
-// on him pulling the sword from the stone. It only starts once the whole world is in view and you've
-// had a moment with it (STORY_HOLD_SVH past the end of the descent).
+// TREV's story (the About copy, his own words): an opening, a prologue and nine chapters, read as an ordinary
+// scrolling page over a still, softened painting of the world (the live world rests while you read).
+// mode: "a" editorial (photo beside the words on a desktop) | "b" cinematic (larger, parallax or a push-in) |
+// "quiet" (small or no photo, centred, still). lay: "left"/"right" (the photo's side on a desktop) or "stack".
+// mood: the light behind it (aboutBg). Body lines: text, { em } (a held line), { reveal } (the story pauses on it),
+// { statement }, { quote, cite }.
+// Chapter 4's photo (TREV on the couch) goes in as story-14-couch.webp; until then the chapter has none.
 const STORY = [
-  { cover: true, eyebrow: "About", title: "My Story", media: "story-00-heart.webp", pos: "50% 55%" },
-  { lead: "This whole thing started the day I quit music.", media: "story-01-quit-music.webp" },
-  { title: "Not Chosen", media: "story-02-first-dream.webp", body: [
+  { kind: "open", eyebrow: "About", title: "My Story", media: "story-00-heart.webp", w: 1400, h: 933, pos: "44% 55%", mood: "open",
+    alt: "TREV in Sedona, his hand over his heart" },
+  { kind: "prologue", line: "This whole thing started the day I quit music.", media: "story-01-quit-music.webp", w: 1056, h: 1400, mood: "memory",
+    alt: "TREV as a boy, holding a microphone beside another child" },
+  { n: 1, title: "Not Chosen", media: "story-02-first-dream.webp", w: 1400, h: 1050, mode: "a", lay: "left", mood: "memory",
+    alt: "TREV as a boy in his basketball jersey", body: [
     "Basketball was my religion and Michael Jordan was God.",
     "Then I didn’t make the high school team. The coach was the bishop, and every kid he picked was from his church.",
     "My first lesson on the “Kingdom of Heaven”: it was an exclusive club, and I wasn’t chosen."] },
-  { title: "Becoming Somebody", media: "story-03-the-room.webp", body: [
+  { n: 2, title: "Becoming Somebody", media: "story-03-the-room.webp", w: 414, h: 414, mode: "a", lay: "right", push: true, mood: "memory",
+    alt: "TREV in his room, under his T-MENTAL graffiti", body: [
     "If I couldn’t find God in basketball, I’d find it through hip-hop.",
     "I locked myself in my room to meditate and write until I became the best rapper in the world.",
     "But behind all that ambition, I was caught in cycles of addiction. I was chasing the person I thought I needed to become, without learning how to be myself."] },
-  { title: "The Mirage", media: "story-04-the-leap.webp", body: [
+  { n: 3, title: "The Mirage", media: "story-04-the-leap.webp", w: 1400, h: 1400, mode: "b", lay: "left", para: true, mood: "mirage",
+    alt: "TREV on a porch in Costa Rica, looking out at a rainbow over the hills", body: [
     "Years later, a few videos took off: over a million views, opening for artists I idolized.",
     "Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
     "The net was a mirage.",
     { em: "And maybe I was too." }] },
-  { title: "Rock Bottom", media: "story-05-kingdom-sign.webp", pos: "50% 30%", body: [
+  { n: 4, title: "Rock Bottom", media: null, w: 0, h: 0, mode: "quiet", lay: "stack", mood: "low",
+    alt: "TREV on a couch in a hoodie and glasses", body: [
     "I gave up on music and ended up in my mom’s basement, working night shifts at the post office.",
     "My dream was dead for a second time.",
     "But in that basement, something finally changed.",
     "I stopped waiting for someone to believe in me.",
     "No label, no manager, no miracle was coming.",
-    { em: "I was the one I’d been waiting for." },
+    { reveal: "I was the one I’d been waiting for." },
     "So I wrote my way out."] },
-  { title: "Choosing Myself", media: "story-06-the-crowd.webp", body: [
+  { n: 5, title: "Choosing Myself", media: "story-06-the-crowd.webp", w: 1120, h: 1400, mode: "a", lay: "right", push: true, mood: "warm",
+    alt: "TREV singing in the middle of a packed house show", body: [
     "I started to build. I saved post office checks for my first tour and did every job myself.",
     "After that tour, I wasn’t trying to “make it” anymore.",
-    { em: "I WAS making it." }] },
-  { title: "Remember Who You Are", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed-fade.mp4", pos: "50% 35%", body: [
+    { reveal: "I WAS making it." }] },
+  { n: 6, title: "Remember Who You Are", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed-fade.mp4", w: 1280, h: 720, mode: "a", lay: "left", mood: "sunset",
+    alt: "TREV at sunset, his eyes closed", body: [
     "I spent my whole life trying to become somebody.",
     "Then I finally understood The Lion King.",
-    { em: "Remember who you are." },
+    { reveal: "Remember who you are." },
     "I’d spent years building identities around who I thought I needed to become. Chasing achievements, approval, and some future version of myself that would finally be enough.",
     "But the mission was never to become someone else.",
     "It was to strip away everything that wasn’t me. To speak my naked truth. To see how much more of myself I could bring into every moment.",
-    { em: "To fully become who I AM." }] },
-  { title: "Living My Truth", media: "story-05-kingdom-sign.webp", pos: "50% 30%", body: [
+    { reveal: "To fully become who I AM." }] },
+  { n: 7, title: "Living My Truth", media: "story-05-kingdom-sign.webp", w: 1400, h: 870, mode: "b", lay: "stack", push: true, mood: "open2",
+    alt: "TREV holding a handmade cardboard sign: The Kingdom Is Within You", body: [
     "I stopped searching for a kingdom outside myself and started creating a life that reflected who I really am.",
     "Today, I tour internationally and make my living through music.",
     "Not because someone chose me. Because I chose to follow my own path."] },
-  { title: "Why I Make Music", media: "story-13-stage.webp", pos: "47% 52%", body: [
-    { em: "My name is TREV." },
+  { n: 8, title: "Why I Make Music", media: "story-13-stage.webp", w: 960, h: 1280, mode: "b", lay: "right", para: true, mood: "stage",
+    alt: "TREV performing under a glowing purple circle, the audience’s hands raised", body: [
+    { statement: "My name is TREV." },
     "I believe in the infinite power of the spoken word.",
     "Through music, I turn my experiences into expressions of truth, love, and everything that makes us human.",
     "Every song carries a piece of my journey, in the hope that it might inspire someone else to stand in the knowing of all that they are."] },
-  { title: "The Greatest Story Ever Told", media: "story-08-sword.webp", pos: "50% 45%", body: [
+  { n: 9, title: "The Greatest Story Ever Told", media: "story-08-sword.webp", w: 1400, h: 939, mode: "quiet", lay: "stack", mood: "kingdom",
+    alt: "TREV as a boy, trying to pull a sword from a stone", body: [
     "My story began with a boy who believed the Kingdom of Heaven was a place he hadn’t been chosen to enter.",
     "For years, I searched for my way in. Through greatness, success, and becoming somebody.",
     "But perhaps the greatest story ever told isn’t about becoming someone worthy of the Kingdom.",
     "It’s about remembering that we were never separate from it.",
-    { lead: "The Kingdom is within." }],
+    { quote: "“Except ye be converted, and become as little children, ye shall not enter into the kingdom of heaven.”", cite: "Matthew 18:3 (KJV)" },
+    { reveal: "The Kingdom is within.", last: true }],
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
@@ -378,8 +394,10 @@ const TREE_TILT_PX = [7, 4];   // the portal's tree cutouts drift this far (scre
 const GLIDE_MS = 2600;   // the glide down to "My Story" once the card is closed
 const UNLOCK_AFTER_ROAR_MS = 4200;   // the unlock card begins its slow fade-in this long after the roar   // the unlock card rises this long after the roar (the shake is over by then)     // the baked finale video (finale.js), set aside for now: the lion's song and the unlock cards instead
 const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the descent (just before the world settles)
-const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
-const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
+// past the descent the world recedes behind its still (ABOUT_FADE_FROM..TO); the story rises in from there, and its
+// opening fills the screen at STORY_START_SVH
+const ABOUT_FADE_FROM = DESCENT_SVH + 4, ABOUT_FADE_TO = DESCENT_SVH + 44;
+const STORY_START_SVH = ABOUT_FADE_TO + 100;
 
 const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Gallery", "/gallery"], ["Community", "/community"], ["Tour", "/tour"],
   ["Shop", "/shop"], ["EPK", "/epk"], ["Contact", "/contact"]];
@@ -442,6 +460,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   requestAnimationFrame(() => requestAnimationFrame(() => later(() => root.classList.remove("tj-settling"), 400)));
   root.innerHTML = `
     <div class="tj-scroller"><div class="tj-track"></div></div>
+    <div class="tj-aboutEdge top" aria-hidden="true"></div><div class="tj-aboutEdge bottom" aria-hidden="true"></div>
     <div class="tj-svh" aria-hidden="true"></div>
     <div class="tj-worldStage" ${phase === "hero" ? 'style="visibility:hidden"' : ""}>
       <div class="tj-side"></div>
@@ -469,7 +488,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-lionFocus" aria-hidden="true"><i style="background-image:url(/trev-grain.webp)"></i></div>
-    <div class="tj-story"><div class="tj-storyShade"></div></div>
+    <div class="tj-aboutBg" aria-hidden="true" data-mood="open"><i class="still phone"></i><i class="still desk"></i><i class="tone"></i>
+      ${["open", "memory", "mirage", "low", "warm", "sunset", "open2", "stage", "kingdom"].map((m) => `<i class="mood m-${m}"></i>`).join("")}</div>
     <div class="tj-landing">
       <div class="tj-landingCol">
         <div class="tj-emblem" style="--sword:url(${sword})">
@@ -604,13 +624,16 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const worldStage = $(".tj-worldStage"), world = $(".tj-world");
   const landing = $(".tj-landing"), shade = $(".tj-shade"), veilEl = $(".tj-veil");
   const swordTilt = $(".tj-swordTilt"), swordBeat = $(".tj-emblem .beat"), vignette = $(".tj-vignette");
-  const storyEl = $(".tj-story");
+  const aboutBg = $(".tj-aboutBg");
+  aboutBg.querySelector(".still.phone").style.backgroundImage = `url(${A}trev-about-world-phone.webp)`;
+  aboutBg.querySelector(".still.desk").style.backgroundImage = `url(${A}trev-about-world-desk.webp)`;
+  const aboutEl = document.createElement("div"); aboutEl.className = "tj-about";
   let worldBuilt = false, layersLoaded = 0, layersReady = false;
   const layersWanted = LAYERS.length + CLOUDS.length + 1;
   const sunsetEl = document.createElement("canvas"); sunsetEl.width = 941; sunsetEl.height = 1672;
   const sctx = sunsetEl.getContext("2d");
   const rimEl = document.createElement("img");
-  const slides = [];
+  let aboutVideo = null;
 
   function onLayer() { if (++layersLoaded >= layersWanted) layersReady = true; }
   // The white bison, with Burnell's deer treatment in gold and white: a slow golden glow and a faint
@@ -1103,6 +1126,59 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const offObs = typeof IntersectionObserver !== "undefined"
     ? new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle("tj-off", !e.isIntersecting)), { rootMargin: "120px" }) : null;
   if (offObs) off.push(() => offObs.disconnect());
+  // ---------- the About story: an ordinary page in the scroller, below the world ----------
+  function buildAbout() {
+    const fig = (c, cls = "") => {
+      if (!c.media) return "";
+      const img = `<img src="${A + c.media}" alt="${c.alt}" width="${c.w}" height="${c.h}" loading="lazy" decoding="async"${c.pos ? ` style="object-position:${c.pos}"` : ""}>`;
+      const inner = c.video
+        ? `<div class="ab-vid">${img}<video class="tj-hidden" muted loop playsinline preload="none" aria-hidden="true" src="${A + c.video + MV}"></video></div>`
+        : img;
+      // (--r, its shape: a desktop sizes it from that, so it has its size before it loads)
+      return `<figure class="ab-fig ab-rv${c.push ? " push" : ""}${c.para ? " para" : ""}${c.w && c.w < c.h ? " tall" : ""} ${cls}" style="--r:${(c.w / c.h).toFixed(4)}">${inner}</figure>`;
+    };
+    const line = (b) => typeof b === "string" ? `<p>${b}</p>`
+      : b.reveal ? `<p class="ab-reveal ab-rv${b.last ? " last" : ""}">${b.reveal}</p>`
+      : b.em ? `<p class="ab-em">${b.em}</p>`
+      : b.statement ? `<p class="ab-statement">${b.statement}</p>`
+      : b.quote ? `<blockquote class="ab-quote ab-rv"><p>${b.quote}</p><cite>${b.cite}</cite></blockquote>` : "";
+    let html = "";
+    for (const c of STORY) {
+      if (c.kind === "open") {
+        html += `<section class="ab-open" data-mood="${c.mood}" aria-label="About">${fig(c, "ab-openFig")}`
+          + `<div class="ab-openText ab-rv"><span class="ab-eyebrow">${c.eyebrow}</span><h2 class="ab-metal ab-title-xl">${c.title}</h2></div></section>`;
+      } else if (c.kind === "prologue") {
+        html += `<section class="ab-prologue" data-mood="${c.mood}">${fig(c, "archival")}<p class="ab-line ab-rv">${c.line}</p></section>`;
+      } else {
+        const text = `<div class="ab-text">${`<span class="ab-num ab-rv">${String(c.n).padStart(2, "0")}</span>`}`
+          + `<h3 class="ab-metal ab-rv">${c.title}</h3>${c.body.map(line).join("")}`
+          + (c.cta ? `<div class="ab-cta ab-rv"><a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a><span class="tj-ctaNote">${c.ctaNote}</span></div>` : "")
+          + `</div>`;
+        html += `<article class="ab-ch mode-${c.mode} lay-${c.lay}${c.media ? "" : " nofig"}" data-mood="${c.mood}" data-ch="${c.n}">${fig(c)}${text}</article>`;
+      }
+    }
+    aboutEl.innerHTML = html;
+    const v = aboutEl.querySelector(".ab-vid video");
+    if (v) { v.muted = true; showWhenPlaying(v); aboutVideo = v; }
+    const reduce = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (typeof IntersectionObserver === "undefined") { aboutEl.querySelectorAll(".ab-rv").forEach((e) => e.classList.add("in")); return; }
+    // things rise in once as they come into view (the titles' glint with them)
+    const rv = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); rv.unobserve(e.target); } }),
+      { root: scroller, rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
+    aboutEl.querySelectorAll(".ab-rv").forEach((e) => rv.observe(e));
+    // the light behind the story follows the chapter crossing the middle of the screen
+    const mo = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) aboutBg.dataset.mood = e.target.dataset.mood; }),
+      { root: scroller, rootMargin: "-48% 0px -48% 0px", threshold: 0 });
+    aboutEl.querySelectorAll("[data-mood]").forEach((e) => mo.observe(e));
+    // chapter 6's loop plays only while it's on screen (never with reduced motion)
+    const vo = aboutVideo && !reduce ? new IntersectionObserver(([e]) => { if (e.isIntersecting) aboutVideo.play().catch(() => {}); else aboutVideo.pause(); },
+      { root: scroller, threshold: 0.3 }) : null;
+    if (vo) vo.observe(aboutVideo.parentElement);
+    // the page's height follows the story's (images settle in their boxes, fonts load)
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(remeasure) : null;
+    if (ro) ro.observe(aboutEl);
+    off.push(() => { rv.disconnect(); mo.disconnect(); if (vo) vo.disconnect(); if (ro) ro.disconnect(); });
+  }
   function buildWorld() {
     if (worldBuilt) return; worldBuilt = true;
     const img = (src, w) => {
@@ -1130,33 +1206,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     homeward = world.lastChild;
     for (const c of CREATURES) if (c.top) { c.el = creatureEl(c); world.appendChild(c.el); }
     $(".tj-side").style.backgroundImage = `url(${A}w3-sky.webp)`;
-    for (const c of STORY) {
-      const el = document.createElement("section"); el.className = "tj-slide" + (c.cover ? " cover" : "");
-      let m;
-      if (c.video) {   // its still underneath, the video over it only once it's playing (never a play button)
-        m = document.createElement("div"); m.className = "media media-v";
-        m.innerHTML = `<img src="${A + c.media}" alt="" loading="lazy" decoding="async"><video class="tj-hidden" muted loop playsinline preload="none" src="${A + c.video + MV}"></video>`;
-        const v = m.querySelector("video"); v.muted = true; showWhenPlaying(v);
-        if (c.pos) m.querySelectorAll("img, video").forEach((e) => { e.style.objectPosition = c.pos; });
-        m.play = () => v.play(); Object.defineProperty(m, "paused", { get: () => v.paused }); m.pause = () => v.pause();
-      } else {
-        m = document.createElement("img"); m.className = "media";
-        m.src = A + c.media; m.alt = ""; m.loading = "lazy"; m.decoding = "async";
-        if (c.pos) m.style.objectPosition = c.pos;
-      }
-      const t = document.createElement("div"); t.className = "text";
-      if (c.eyebrow) t.insertAdjacentHTML("beforeend", `<span class="eyebrow">${c.eyebrow}</span>`);
-      if (c.title) t.insertAdjacentHTML("beforeend", `<h2 class="${c.cover ? "tj-gold" : ""}">${c.title}</h2>`);
-      if (c.lead) t.insertAdjacentHTML("beforeend", `<p class="lead">${c.lead}</p>`);
-      // a body line is plain text, { em } (a line held for emphasis) or { lead } (the closing line, set large)
-      for (const b of c.body || []) t.insertAdjacentHTML("beforeend", typeof b === "string" ? `<p>${b}</p>` : b.lead ? `<p class="lead">${b.lead}</p>` : `<p class="em">${b.em}</p>`);
-      const words = (c.body || []).map((b) => (typeof b === "string" ? b : b.em || b.lead)).join(" ").length;
-      if (words + (c.cta ? 160 : 0) > 420 || (c.body || []).length >= 6) el.classList.add("long");   // (the sign-up button counts too; so do many short lines)   // the longer chapters: a touch tighter, so the whole chapter fits its screen
-      if (c.cta) t.insertAdjacentHTML("beforeend", `<a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a>`
-        + (c.ctaNote ? `<span class="tj-ctaNote">${c.ctaNote}</span>` : ""));
-      el.append(m, t); storyEl.appendChild(el);
-      slides.push({ el, m, video: !!c.video });
-    }
+    buildAbout();
   }
 
   // Sized by the stage itself (max(100lvh, 100vh): it doesn't change as Safari's toolbars come and
@@ -1269,20 +1319,19 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)${pose.rot ? ` rotate(${pose.rot.toFixed(1)}deg)` : ""}${sx != null ? ` scaleX(${sx.toFixed(3)})` : ""}${pose.scale && pose.scale !== 1 ? scaleAbout(c, pose.scale) : ""}`;
     }
   }
-  let storyShadeEl = null;
-  function storyLayout(s) {
-    // (written only when they change: an unchanged write still costs a restyle)
-    put(storyShadeEl || (storyShadeEl = $(".tj-storyShade")), "opacity", (0.82 * clamp01((s + 0.7) / 0.7)).toFixed(3));
-    slides.forEach((sl, i) => {
-      const d = s - i, o = clamp01(1 - Math.abs(d) * 1.7);
-      put(sl.el, "opacity", o.toFixed(3));
-      put(sl.el, "visibility", o > 0 ? "visible" : "hidden");
-      if (o > 0) put(sl.el, "transform", `translateY(${(-d * 22).toFixed(1)}px)`);   // (no need to move it while unseen)
-      // the title's glint: once as the chapter arrives (again only after it has gone and comes back)
-      if (o > 0.55 && !sl.glint) { sl.glint = true; sl.el.classList.add("glint"); }
-      else if (o === 0 && sl.glint) { sl.glint = false; sl.el.classList.remove("glint"); }
-      if (sl.video) { if (o > 0.2) sl.m.play().catch(() => {}); else if (!sl.m.paused) sl.m.pause(); }
-    });
+  // Past the descent the world recedes: its still (softened, dimmed) fades in over it; once that covers it,
+  // the live world is hidden (nothing in it is drawn while you read) and the story, an ordinary page in the
+  // scroller, comes up over it (the scroller rises above the world from there)
+  let bgShown = -1, worldResting = false, aboutUp = false;
+  function aboutLayout() {
+    const o = smooth(clamp01((cur - ABOUT_FADE_FROM) / (ABOUT_FADE_TO - ABOUT_FADE_FROM)));
+    if (o !== bgShown && (Math.abs(o - bgShown) > 0.003 || o === 0 || o === 1)) {
+      bgShown = o; aboutBg.style.opacity = o.toFixed(3); aboutBg.style.visibility = o > 0 ? "visible" : "hidden";
+    }
+    const rest = o >= 0.999;
+    if (rest !== worldResting) { worldResting = rest; worldStage.style.visibility = rest ? "hidden" : "visible"; root.classList.toggle("tj-worldRest", rest); }
+    const up = scrolled() >= ABOUT_FADE_TO - 2;
+    if (up !== aboutUp) { aboutUp = up; scroller.classList.toggle("tj-aboutUp", up); }
   }
   // the vignette: full on the portal, 15% lighter by the end of the transition (following the video's
   // clock), then down to 15% through the descent, coming back as you scroll up; one opacity, set only
@@ -1420,7 +1469,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
-    track.style.height = `${100 + STORY_START_SVH + (STORY.length - 1) * STEP_SVH + TAIL_SVH}svh`; remeasure();
+    if (!aboutEl.parentNode) {
+      const spacer = document.createElement("div"); spacer.className = "tj-trackSpacer"; spacer.style.height = `${ABOUT_FADE_TO + 100}svh`;
+      track.style.height = "auto"; track.append(spacer, aboutEl);
+    }
+    remeasure();
     scroller.classList.add("live");
     scroller.scrollTop = 0; scrollNow = 0;
     worldLayout(0);
@@ -1886,7 +1939,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // arrow rise on their own and breathe, so nobody thinks the world is the end
   let hintNear = false;
   function storyHint() {
-    const near = phase === "world" && cur / DESCENT_SVH > STORY_HINT_AT && cur < STORY_START_SVH - 20;
+    const near = phase === "world" && cur / DESCENT_SVH > STORY_HINT_AT && cur < ABOUT_FADE_FROM + 20;
     if (near === hintNear) return;
     hintNear = near;
     if (near) { progHintLabel.textContent = "My Story"; progHint.classList.add("show", "call"); clearTimeout(idleT); }
@@ -1898,8 +1951,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     ensure(); const max = sizes.scrollMax, p = max > 0 ? scrollNow / max : 0;
     if (p > 0.02 && p < 0.97) idleT = later(() => {
       // in the world it names what's below; inside the story, between chapters, it just says to go on
-      if ((scrolled() - STORY_START_SVH) / STEP_SVH > STORY.length - 1.6) return;   // (the last chapter: nothing further)
-      const label = scrolled() < STORY_START_SVH - 20 ? "My Story" : "Keep scrolling";
+      if (sizes.scrollMax - scrollNow < Hs() * 1.2) return;   // (the end of the story: nothing further)
+      const label = scrolled() < ABOUT_FADE_TO ? "My Story" : "Keep scrolling";
       if (progHintLabel.textContent !== label) progHintLabel.textContent = label;
       progHint.classList.add("show");
     }, PROGRESS_IDLE_MS);
@@ -1969,14 +2022,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     { const pd = cur / DESCENT_SVH, on = totemRow.classList.contains("show");   // (from 85% of the way down; away again above 80%)
       if (!on && pd >= TOTEMS_FROM) totemRow.classList.add("show"); else if (on && pd < TOTEMS_FROM - 0.05) totemRow.classList.remove("show"); }
     progress(); storyHint();
-    const inStory = cur > STORY_START_SVH - 20;
+    const inStory = cur > ABOUT_FADE_FROM + 10;
     if (inStory !== totemRow.classList.contains("away")) totemRow.classList.toggle("away", inStory);   // the lion (and totems) fade out over the story
     target = scrolled();
     cur += (target - cur) * (1 - Math.exp(-dt * SCROLL_EASE));
     if (Math.abs(target - cur) < 0.03) cur = target;
-    const s = (cur - STORY_START_SVH) / STEP_SVH;
-    if (s < 0.35) worldLayout(Math.min(1, cur / DESCENT_SVH));   // once a chapter covers it, the world holds still
-    storyLayout(s);
+    if (!worldResting) worldLayout(Math.min(1, cur / DESCENT_SVH));   // (resting behind the story: nothing to lay out)
+    aboutLayout();
   }
   raf = requestAnimationFrame(loop);
   on(window, "resize", () => { if (phase === "world") worldLayout(Math.min(1, cur / DESCENT_SVH)); });

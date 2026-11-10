@@ -24,7 +24,7 @@
 .tj-svh { position: fixed; left: 0; top: 0; width: 1px; height: 100svh; visibility: hidden; pointer-events: none; }
 /* the full-screen layers: as tall as the screen with the toolbars retracted, never shorter than vh,
    and the same whichever way the toolbars are (Soleil's .world-full) */
-.tj-hero, .tj-trans, .tj-worldStage, .tj-enterLayer, .tj-vignette, .tj-story { height: 100vh; height: max(100lvh, 100vh); }
+.tj-hero, .tj-trans, .tj-worldStage, .tj-enterLayer, .tj-vignette, .tj-aboutBg { height: 100vh; height: max(100lvh, 100vh); }
 /* never a native play button over a video (iPhone shows one when autoplay is held back) */
 .tj video::-webkit-media-controls, .tj video::-webkit-media-controls-start-playback-button,
 .tj video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none; opacity: 0; }
@@ -82,9 +82,6 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-plate, .tj-me, .tj-meImg { position: absolute; left: 0; top: 0; display: block; }
 .tj-plate { object-fit: fill; transform-origin: 50% 50%; }
 .tj-hidden { opacity: 0 !important; }
-.tj-slide .media-v { position: relative; overflow: hidden; }
-.tj-slide .media-v img, .tj-slide .media-v video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.tj-slide .media-v video { transition: opacity .7s ease; }   /* (the photo dissolves into the clip once it plays) */
 .tj-me, .tj-meImg { transition: none; }
 .tj-gone { opacity: 0 !important; }
 /* once the video's first frame is up the plate goes; TREV's real photo stays over the playing video
@@ -134,74 +131,177 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-vignette .top { position: absolute; left: 0; right: 0; top: 0; height: 46svh;
   background: linear-gradient(to bottom, rgba(10,4,4,0.49) 0%, rgba(10,4,4,0.28) 42%, transparent 100%); }
 .tj-vignette .sides { position: absolute; left: 0; right: 0; top: 0; height: 100svh;
-  background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 52%, rgba(10,4,4,0.45) 100%); }
+  background: radial-gradient(ellipse 85% 75% at 50% 48%, transparent 52%, rgba(10,4,4,0.45) 100%); }/* ======================================================================================
+   ABOUT: the story, an ordinary page over a still, softened painting of the world
+   ====================================================================================== */
+/* the world's still (a softened capture of it), toned down, and the light of each chapter over it */
+.tj-aboutBg { position: fixed; left: 0; right: 0; top: 0; z-index: 30; pointer-events: none; opacity: 0; visibility: hidden; }
+.tj-aboutBg > i { position: absolute; inset: 0; display: block; }
+.tj-aboutBg .still { background: #0b0806 center / cover no-repeat; }
+.tj-aboutBg .still.desk { display: none; }
+@media (min-aspect-ratio: 1/1) { .tj-aboutBg .still.phone { display: none; } .tj-aboutBg .still.desk { display: block; } }
+.tj-aboutBg .tone { background: radial-gradient(ellipse 120% 90% at 50% 45%, rgba(8,6,5,.5), rgba(5,4,3,.78) 75%, rgba(4,3,2,.9));
+  transition: opacity 2.4s ease; }
+.tj-aboutBg .mood { opacity: 0; transition: opacity 2s ease; }
+.tj-aboutBg .m-open { background: radial-gradient(ellipse 90% 60% at 50% 20%, rgba(214,150,80,.16), transparent 70%); }
+.tj-aboutBg .m-memory { background: linear-gradient(180deg, rgba(120,84,46,.16), rgba(40,26,14,.22)); }
+.tj-aboutBg .m-mirage { background: radial-gradient(ellipse 100% 70% at 50% 25%, rgba(150,180,190,.12), rgba(10,14,18,.25) 80%); }
+.tj-aboutBg .m-low { background: rgba(3,3,4,.5); }
+.tj-aboutBg .m-warm { background: radial-gradient(ellipse 100% 70% at 50% 60%, rgba(214,150,80,.14), transparent 75%); }
+.tj-aboutBg .m-sunset { background: radial-gradient(ellipse 110% 70% at 50% 35%, rgba(226,140,96,.17), rgba(40,18,24,.2) 80%); }
+.tj-aboutBg .m-open2 { background: radial-gradient(ellipse 110% 80% at 50% 40%, rgba(200,170,120,.12), transparent 75%); }
+.tj-aboutBg .m-stage { background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(150,60,170,.18), rgba(170,40,50,.1) 55%, transparent 80%); }
+.tj-aboutBg .m-kingdom { background: radial-gradient(ellipse 90% 70% at 50% 30%, rgba(255,222,160,.2), rgba(255,200,130,.06) 60%, transparent 85%); }
+.tj-aboutBg[data-mood="open"] .m-open, .tj-aboutBg[data-mood="memory"] .m-memory, .tj-aboutBg[data-mood="mirage"] .m-mirage,
+.tj-aboutBg[data-mood="low"] .m-low, .tj-aboutBg[data-mood="warm"] .m-warm, .tj-aboutBg[data-mood="sunset"] .m-sunset,
+.tj-aboutBg[data-mood="open2"] .m-open2, .tj-aboutBg[data-mood="stage"] .m-stage, .tj-aboutBg[data-mood="kingdom"] .m-kingdom { opacity: 1; }
+/* the end: the world grows luminous again behind the revelation */
+.tj-aboutBg[data-mood="kingdom"] .tone { opacity: .62; }
+/* resting behind the story: hidden, its loops paused */
+.tj.tj-worldRest .tj-worldStage * { animation-play-state: paused !important; }
+/* the scroller (and the story in it) rises above the world once it has receded */
+.tj-scroller.tj-aboutUp { z-index: 36; }
 
-.tj-story { position: fixed; left: 0; right: 0; top: 0; z-index: 30; pointer-events: none; }
-.tj-storyShade { position: absolute; inset: 0; background: #070605; opacity: 0; }
-/* ---------- the story's chapters: an art-book page each (photo, metallic title, the words) ---------- */
-.tj-slide { position: absolute; left: 0; right: 0; top: 0; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(14px, 2.3svh, 22px);
-  padding: 8.5svh max(22px, env(safe-area-inset-right, 0px)) calc(7svh + 40px) max(22px, env(safe-area-inset-left, 0px)); opacity: 0; visibility: hidden; will-change: opacity, transform; }
-/* (the bottom keeps clear of the "Keep scrolling" cue) */
-/* photos ~12% smaller on a phone than before; they give up height (never below 20svh) so a long chapter fits its screen */
-.tj-slide .media { width: min(76vw, 460px); height: min(40svh, 490px); object-fit: cover; display: block; border-radius: 2px; flex-shrink: 1; min-height: 20svh;
-  -webkit-mask: radial-gradient(ellipse 80% 84% at 50% 50%, #000 60%, rgba(0,0,0,.4) 82%, transparent 100%);
-  mask: radial-gradient(ellipse 80% 84% at 50% 50%, #000 60%, rgba(0,0,0,.4) 82%, transparent 100%); }
-.tj-slide.cover .media { height: min(46svh, 560px); }
-.tj-slide .text { position: relative; isolation: isolate; flex-shrink: 0; max-width: 33ch; text-align: center; display: flex; flex-direction: column; gap: 10px; }
-/* a soft darkness behind the words, no edges: the artwork stays, the text reads */
-.tj-slide .text::before { content: ""; position: absolute; inset: -8% -16%; z-index: -1; pointer-events: none;
-  background: radial-gradient(ellipse 60% 56% at 50% 50%, rgba(6,5,4,.5), rgba(6,5,4,.28) 55%, transparent 78%); }
-.tj-slide .eyebrow { font: 400 11px/1 var(--tj-sans); letter-spacing: .42em; text-transform: uppercase; color: rgba(239,230,214,.7); padding-left: .42em; }
-.tj-slide h2 { margin: 0 0 2px; font: 500 clamp(22px, 5.6vw, 34px)/1.25 var(--tj-display); letter-spacing: .1em; text-transform: uppercase; text-wrap: balance; color: var(--tj-fg); }
-.tj-slide.cover h2 { margin: 0; font-size: clamp(30px, 8vw, 52px); letter-spacing: .16em; }
-.tj-slide p { margin: 0; font: 400 clamp(18px, 4.65vw, 20px)/1.55 var(--tj-serif); letter-spacing: 0; color: rgba(243,236,224,.96);
-  text-shadow: 0 1px 10px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.35); }
-.tj-slide p.lead { font-size: clamp(22px, 5.6vw, 30px); line-height: 1.35; font-style: italic; }
-/* the lines TREV holds for emphasis: italic, a step up from the body and a touch brighter */
-.tj-slide p.em { font-size: clamp(19.5px, 5vw, 22px); line-height: 1.45; font-style: italic; color: #f6eedd; }
-
-/* the chapter titles: antique silver warming to champagne gold, line by line; a glint crosses once as the chapter arrives */
-.tj-slide:not(.cover) h2 { color: #e2dacb; }
+/* ---------- the page ---------- */
+.tj-about { position: relative; color: #f1e9d8; padding-bottom: 14svh; overflow-x: clip; }
+/* while the story is up: a soft dark at the top and bottom edges, so words pass under the header and the scroll
+   line cleanly */
+.tj-aboutEdge { position: fixed; left: 0; right: 0; z-index: 37; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
+.tj-aboutEdge.top { top: 0; height: calc(96px + env(safe-area-inset-top, 0px)); background: linear-gradient(180deg, rgba(5,4,3,.92), rgba(5,4,3,.6) 55%, transparent); }
+.tj-aboutEdge.bottom { bottom: 0; height: 64px; background: linear-gradient(0deg, rgba(5,4,3,.85), transparent); }
+.tj-scroller.tj-aboutUp ~ .tj-aboutEdge { opacity: 1; }
+.tj-about p { margin: 0; }
+.ab-text, .ab-line, .ab-openText { position: relative; isolation: isolate; }
+/* a soft, edgeless darkness behind the words: the artwork stays, the words read */
+.ab-text::before, .ab-line::before { content: ""; position: absolute; inset: -6% -14%; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 62% 58% at 50% 50%, rgba(6,5,4,.55), rgba(6,5,4,.28) 58%, transparent 80%); }
+.ab-text { max-width: 34rem; margin: 0 auto; padding: 0 22px; text-align: center; }
+.ab-text p { font: 400 clamp(18px, 4.7vw, 19.5px)/1.58 var(--tj-serif); letter-spacing: .005em; color: rgba(243,236,222,.97);
+  text-shadow: 0 1px 12px rgba(0,0,0,.65), 0 0 2px rgba(0,0,0,.35); }
+.ab-text p + p { margin-top: .78em; }
+/* the chapter's number and title */
+.ab-num { display: block; font: 500 12px/1 var(--tj-display); letter-spacing: .5em; padding-left: .5em; color: rgba(214,200,172,.62); margin-bottom: 14px; }
+.ab-metal { margin: 0; font: 600 clamp(27px, 7.4vw, 36px)/1.18 var(--tj-display); letter-spacing: .085em; text-transform: uppercase; text-wrap: balance; color: #e6ddcd; }
+.ab-text h3 { margin-bottom: .78em; }
+.ab-title-xl { font-size: clamp(44px, 12.5vw, 92px); letter-spacing: .12em; line-height: 1.04; }
+/* antique silver warming to champagne gold, line by line; a glint crosses it once as it arrives */
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .tj-slide:not(.cover) h2 {
+  .ab-metal {
     background-image:
-      linear-gradient(105deg, transparent 0%, transparent 42%, rgba(255,251,240,.9) 50%, transparent 58%, transparent 100%),
-      linear-gradient(180deg, #f4f0e8 0%, #d3cec5 30%, #aaa59d 50%, #cdbd9c 72%, #b49b70 100%);
-    background-size: 300% 100%, 100% 1.25em; background-repeat: no-repeat, repeat-y; background-position: 0% 0, 0 0;
-    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
-  .tj-slide.glint:not(.cover) h2 { animation: tj-titleGlint 1.3s cubic-bezier(.45, 0, .2, 1) .3s 1 both; }
+      linear-gradient(105deg, transparent 0%, transparent 42%, rgba(255,251,240,.92) 50%, transparent 58%, transparent 100%),
+      linear-gradient(180deg, #f7f3ea 0%, #dbd6cd 26%, #aea89f 48%, #d6c6a3 70%, #b8a074 100%);
+    background-size: 300% 100%, 100% 1.18em; background-repeat: no-repeat, repeat-y; background-position: 0% 0, 0 0;
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,.55)); }
+  .ab-metal.in { animation: ab-glint 1.3s cubic-bezier(.45, 0, .2, 1) .45s 1 both; }
 }
-@keyframes tj-titleGlint { from { background-position: 100% 0, 0 0; } to { background-position: 0% 0, 0 0; } }
-@media (prefers-reduced-motion: reduce) { .tj-slide.glint:not(.cover) h2 { animation: none; } }
+@keyframes ab-glint { from { background-position: 100% 0, 0 0; } to { background-position: 0% 0, 0 0; } }
+/* the lines the story pauses on */
+.ab-text p.ab-reveal { margin: 1.15em 0; font: italic 400 clamp(23px, 6.2vw, 30px)/1.32 var(--tj-serif); color: #fcf5e6;
+  text-shadow: 0 0 24px rgba(255,214,150,.18), 0 1px 14px rgba(0,0,0,.7); }
+.ab-text p.ab-reveal + p { margin-top: 0; }
+.ab-text p.ab-reveal:last-child { margin-bottom: 0; }
+.ab-text p.ab-reveal.last { margin: 1.3em 0 .2em; font-size: clamp(30px, 8.4vw, 46px); line-height: 1.2; color: #fff6e2;
+  text-shadow: 0 0 34px rgba(255,214,150,.3), 0 1px 16px rgba(0,0,0,.7); }
+.ab-text p.ab-em { margin-top: .9em; font-style: italic; font-size: 1.1em; line-height: 1.45; color: #f8f0df; }
+.ab-text p.ab-statement { margin-bottom: .9em; font: italic 500 clamp(24px, 6.4vw, 30px)/1.25 var(--tj-serif); color: #f6e7c6; letter-spacing: .01em; }
+.ab-quote { margin: 1.6em auto 0; max-width: 28rem; padding: 1.1em 0 0; border-top: 1px solid rgba(214,196,160,.28); }
+.ab-quote p { font: italic 400 clamp(16.5px, 4.3vw, 18px)/1.55 var(--tj-serif) !important; color: rgba(236,226,206,.82) !important; }
+.ab-quote cite { display: block; margin-top: .7em; font: 500 10.5px/1 var(--tj-display); font-style: normal; letter-spacing: .32em; text-transform: uppercase; color: rgba(214,196,160,.66); }
+.ab-cta { margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.ab-cta .tj-cta { display: inline-block; border-radius: 999px; padding: 14px 30px; text-decoration: none; color: #1a1208;
+  background: linear-gradient(100deg, #b99a64, #efe0bb 45%, #cdb17c 70%, #b99a64);
+  font: 600 13px/1 var(--tj-display); letter-spacing: .18em; text-transform: uppercase; box-shadow: 0 8px 30px rgba(214,179,101,.22); }
+.ab-cta .tj-ctaNote { font: 300 13px/1.5 var(--tj-sans); color: rgba(239,230,214,.7); }
 
-/* the longer chapters on a phone: the same type, a little tighter (a desktop has the room) */
-@media not all and (min-width: 900px) and (min-aspect-ratio: 1/1) {
-  .tj-slide.long .text { gap: 7.5px; }
-  .tj-slide.long p { font-size: clamp(16px, 4.15vw, 18px); line-height: 1.5; }
-  .tj-slide.long p.em { font-size: clamp(17.5px, 4.5vw, 20px); line-height: 1.42; }
-  .tj-slide.long p.lead { font-size: clamp(20px, 5.2vw, 28px); }
+/* ---------- photographs ---------- */
+.ab-fig { margin: 0 auto; position: relative; overflow: hidden; width: min(84vw, 500px); }
+.ab-fig img, .ab-fig video { display: block; width: 100%; height: auto; }
+.ab-fig, .ab-vid { -webkit-mask: radial-gradient(ellipse 84% 88% at 50% 50%, #000 64%, rgba(0,0,0,.45) 84%, transparent 100%);
+  mask: radial-gradient(ellipse 84% 88% at 50% 50%, #000 64%, rgba(0,0,0,.45) 84%, transparent 100%); }
+.ab-fig .ab-vid { -webkit-mask: none; mask: none; position: relative; }
+.ab-vid video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .7s ease; }
+/* the prologue: an old photograph, a little warm and soft, as remembered */
+.ab-fig.archival img { filter: sepia(.14) saturate(.9) contrast(.96) brightness(.97); }
+/* the cinematic ones: larger, edge to edge on a phone, fading out top and bottom */
+.mode-b .ab-fig { width: 100vw; max-width: none;
+  -webkit-mask: linear-gradient(180deg, transparent, #000 13%, #000 87%, transparent); mask: linear-gradient(180deg, transparent, #000 13%, #000 87%, transparent); }
+/* the quiet ones: smaller */
+.mode-quiet .ab-fig { width: min(72vw, 420px); }
+
+/* ---------- each moment ---------- */
+.ab-open { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 0 13svh; }
+.ab-open .ab-openFig { position: absolute; inset: 0 0 auto; width: 100%; height: 78svh;
+  -webkit-mask: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.5) 18%, #000 34%, #000 60%, transparent 100%); mask: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.5) 18%, #000 34%, #000 60%, transparent 100%); }
+.ab-open .ab-openFig img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.9); }
+.ab-openText { text-align: center; padding: 0 18px; }
+.ab-eyebrow { display: block; margin-bottom: 14px; font: 400 12px/1 var(--tj-sans); letter-spacing: .5em; padding-left: .5em; text-transform: uppercase; color: rgba(239,230,214,.78);
+  text-shadow: 0 1px 10px rgba(0,0,0,.8); }
+.ab-prologue { padding: 16svh 0 6svh; display: flex; flex-direction: column; align-items: center; gap: 7svh; }
+.ab-prologue .ab-fig { width: min(70vw, 400px); }
+.ab-line { max-width: 22ch; margin: 0 auto; padding: 0 22px; text-align: center; font: italic 400 clamp(29px, 8vw, 46px)/1.25 var(--tj-serif); color: #fbf3e3;
+  text-shadow: 0 1px 16px rgba(0,0,0,.75); }
+.ab-ch { padding: 17svh 0 0; display: flex; flex-direction: column; align-items: center; gap: 5.5svh; }
+.ab-ch.mode-quiet { gap: 6.5svh; }
+.ab-ch.nofig { padding-top: 20svh; }
+.ab-ch[data-ch="9"] { padding-top: 22svh; }
+
+/* ---------- motion: things rise in once; a few photographs push in or drift ---------- */
+.ab-rv { opacity: 0; transform: translateY(18px); transition: opacity 1.1s ease, transform 1.3s cubic-bezier(.2, .7, .2, 1); }
+.ab-rv.in { opacity: 1; transform: none; }
+.ab-reveal.ab-rv { transition-duration: 1.6s, 1.8s; transition-delay: .15s; }
+.ab-metal.ab-rv { transform: translateY(10px); }
+.ab-open .ab-openFig img { transform: scale(1); transition: transform 9s cubic-bezier(.2, .6, .2, 1); }
+.ab-open .ab-openFig.in img { transform: scale(1.03); }
+.ab-fig.push img { transform: scale(1); transition: transform 7s cubic-bezier(.2, .6, .2, 1); }
+.ab-fig.push.in img { transform: scale(1.045); }
+@supports (animation-timeline: view()) {
+  .ab-fig.para img { animation: ab-drift linear both; animation-timeline: view(); animation-range: cover; }
+  @keyframes ab-drift { from { transform: translateY(-3.5%) scale(1.08); } to { transform: translateY(3.5%) scale(1.08); } }
 }
-/* short laptop screens: the longer chapters a touch tighter too */
-@media (min-width: 900px) and (min-aspect-ratio: 1/1) and (max-height: 820px) {
-  .tj-slide.long .text { gap: 7.5px; }
-  .tj-slide.long p { font-size: 17.5px; line-height: 1.5; }
-  .tj-slide.long p.em { font-size: 19.5px; }
+@media (prefers-reduced-motion: reduce) {
+  .ab-rv, .ab-rv.in { opacity: 1; transform: none; transition: none; }
+  .ab-metal.in { animation: none; }
+  .ab-open .ab-openFig img, .ab-fig.push img, .ab-fig.para img { transform: none !important; transition: none; animation: none; }
 }
-/* short phone screens (an SE with its toolbars, small Androids): a step tighter again */
-@media (max-height: 700px) and (max-width: 899px) {
-  .tj-slide.long { gap: 11px; }
-  .tj-slide.long .media { min-height: 16svh; }
-  .tj-slide.long .text { gap: 6px; }
-  .tj-slide.long p { font-size: clamp(14.5px, 3.9vw, 17px); line-height: 1.45; }
-  .tj-slide.long p.em { font-size: clamp(16px, 4.2vw, 18.5px); }
-  .tj-slide.long p.lead { font-size: clamp(19px, 5vw, 24px); }
-  .tj-slide.long .tj-cta { margin-top: 4px; padding: 11px 24px; }
+
+/* ---------- desktop: editorial spreads ---------- */
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  .ab-text p { font-size: 20.5px; }
+  .ab-metal { font-size: clamp(34px, 2.9vw, 44px); }
+  .ab-title-xl { font-size: clamp(64px, 7vw, 110px); }
+  .ab-open { padding-bottom: 12svh; }
+  .ab-open .ab-openFig { height: 86svh; -webkit-mask: linear-gradient(180deg, transparent 0%, #000 14%, #000 60%, transparent 100%), linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    -webkit-mask-composite: source-in; mask: linear-gradient(180deg, transparent 0%, #000 14%, #000 60%, transparent 100%), linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-composite: intersect; }
+  .ab-prologue { flex-direction: row; justify-content: center; gap: 6vw; padding: 20svh 6vw 4svh; }
+  .ab-prologue .ab-fig { flex: 0 0 auto; }
+  .ab-prologue .ab-fig { width: min(34vw, calc(74svh * var(--r))); }
+  .ab-line { margin: 0; text-align: left; max-width: 15ch; font-size: clamp(40px, 3.6vw, 56px); }
+  .ab-ch { padding-top: 22svh; flex-direction: row; justify-content: center; align-items: center; gap: 6vw; max-width: 1240px; margin: 0 auto; padding-left: 5vw; padding-right: 5vw; }
+  .ab-ch.lay-right { flex-direction: row-reverse; }
+  .ab-ch .ab-fig { flex: 0 0 auto; }
+  .ab-ch .ab-fig { width: min(44vw, calc(72svh * var(--r))); }
+  .ab-ch .ab-text { flex: 0 1 31rem; margin: 0; padding: 0; text-align: left; }
+  .ab-ch .ab-num { padding-left: 0; }
+  .ab-ch .ab-cta { align-items: flex-start; }
+  /* the cinematic ones: bigger */
+  .ab-ch.mode-b .ab-fig { -webkit-mask: radial-gradient(ellipse 84% 88% at 50% 50%, #000 64%, rgba(0,0,0,.45) 84%, transparent 100%);
+    mask: radial-gradient(ellipse 84% 88% at 50% 50%, #000 64%, rgba(0,0,0,.45) 84%, transparent 100%); }
+  .ab-ch.mode-b .ab-fig { width: min(46vw, calc(84svh * var(--r))); }
+  .ab-ch.mode-b .ab-text { flex-basis: 30rem; min-width: 22rem; }
+  /* stacked: the photo wide, the words centred under it */
+  .ab-ch.lay-stack { flex-direction: column; gap: 6svh; }
+  .ab-ch.lay-stack .ab-text { flex: none; text-align: center; max-width: 36rem; }
+  .ab-ch.lay-stack .ab-num { padding-left: .5em; }
+  .ab-ch.lay-stack .ab-cta { align-items: center; }
+  .ab-ch.lay-stack.mode-b .ab-fig { width: min(76vw, 1100px, calc(74svh * var(--r))); }
+  .ab-ch.mode-quiet .ab-fig { width: min(46vw, 640px, calc(60svh * var(--r))); }
+  .ab-ch.mode-quiet .ab-text { max-width: 34rem; }
+  .ab-ch[data-ch="6"] .ab-fig { width: min(40vw, calc(72svh * var(--r))); }
+  .ab-ch[data-ch="2"] .ab-fig { width: min(30vw, 440px); }
 }
-.tj-slide .tj-cta { pointer-events: auto; align-self: center; margin-top: 10px; display: inline-block; border-radius: 999px; padding: 13px 28px;
-  background: linear-gradient(100deg, #c09245, #f6e2aa 45%, #deb05a 70%, #c09245); color: #1a1208; text-decoration: none;
-  font: 600 13px/1 var(--tj-display); letter-spacing: .18em; text-transform: uppercase; box-shadow: 0 8px 30px rgba(214,179,101,.35); }
-.tj-slide .tj-ctaNote { font: 300 13px/1.5 var(--tj-sans); color: rgba(239,230,214,.7); }
-@media (min-width: 900px) and (min-aspect-ratio: 1/1) { .tj-slide .tj-cta { align-self: flex-start; } }
+
+
 /* Burnell's scroll guide along the bottom (journeyEngine.js progress) */
 .tj-progress { position: fixed; left: 0; right: 0; bottom: 0; z-index: 43; pointer-events: none; opacity: 0;
   transition: opacity 1.2s ease 1.5s; padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -239,12 +339,6 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-bubbleText b { font: 500 12.5px/1.2 var(--tj-display); letter-spacing: .06em; color: #f2dca5; }
 .tj-bubbleClose { position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; border: 0; background: none; color: rgba(239,230,214,.6);
   font: 300 18px/1 var(--tj-sans); cursor: pointer; }
-@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
-  .tj-slide { flex-direction: row; gap: 5vw; }
-  .tj-slide .media { width: min(42vw, 640px); height: min(70svh, 640px); }
-  .tj-slide .text { text-align: left; max-width: 36ch; }
-  .tj-slide.cover .media { width: min(48vw, 760px); height: min(70svh, 600px); }
-}
 /* ---------- landing (Burnell's): the sword rises in over the veiled world, then the words, then the cue ---------- */
 .tj-landing { position: fixed; left: 0; right: 0; top: 0; height: 100svh; z-index: 35; pointer-events: none; visibility: hidden;
   padding: 0 max(24px, env(safe-area-inset-right, 0px)) 0 max(24px, env(safe-area-inset-left, 0px)); text-align: center; }
@@ -1075,7 +1169,7 @@ html:fullscreen .tj-finale video { height: 100vh; }
 /* (test, ?flow=1) the hero in the page itself, not fixed: iOS Safari draws page content behind its bars */
 html.tj-flowHero .tj-hero { position: absolute; }
 html.tj-heroPhase .tj-scroller, html.tj-heroPhase .tj-svh, html.tj-heroPhase .tj-header, html.tj-heroPhase .tj-enterLayer,
-html.tj-heroPhase .tj-trans, html.tj-heroPhase .tj-worldStage, html.tj-heroPhase .tj-vignette, html.tj-heroPhase .tj-story,
+html.tj-heroPhase .tj-trans, html.tj-heroPhase .tj-worldStage, html.tj-heroPhase .tj-vignette, html.tj-heroPhase .tj-aboutBg,
 html.tj-heroPhase .tj-progress, html.tj-heroPhase .tj-landing, html.tj-heroPhase .tj-totems, html.tj-heroPhase .tj-dust,
 html.tj-heroPhase .tj-lionFocus, html.tj-heroPhase .tj-finale, html.tj-heroPhase .tj-unlock, html.tj-heroPhase .tj-bubble,
 html.tj-heroPhase .tj-menu, html.tj-heroPhase .film-grain-frame, html.tj-heroPhase .tj-sound.tj-soundFixed,
