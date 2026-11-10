@@ -13,7 +13,6 @@ import {
   CAREER_HIGHLIGHTS,
   EPK_TOURED_WITH,
   SHARED_STAGE,
-  EPK_BANNER_TEXT,
   FESTIVALS,
   SITE_GENRE_TAGS,
   SITE_LOCATION,
@@ -129,7 +128,7 @@ const TechRider = () => (
 
 // Live performance highlight reel, front and centre. public/trev-epk-reel.mp4 (web-compressed from
 // TREV's highlight reel); the block hides itself until that file exists.
-const EPK_REEL = { src: "/trev-epk-reel.mp4?v=1", poster: "/trev-epk-reel.jpg?v=1" };
+const EPK_REEL = { src: "/trev-epk-reel.mp4?v=1", poster: "/trev-epk-reel.jpg?v=2" };
 
 const PerformanceReel = () => {
   const [missing, setMissing] = useState(false);
@@ -312,11 +311,14 @@ const EpkBackdrop = () => {
           style={{ opacity: shown ? 0.45 : 0 }}
         />
       )}
+      {/* (his face, in the photo at 46.5% across and 47% down, set high and a little left: the upper fifth of
+          the screen, left of the TREV title, there as soon as the page settles) */}
       <img
         src={EPK_BG_STILL}
         alt=""
-        className="absolute inset-0 h-full w-full scale-110 object-cover"
-        style={{ opacity: done ? 0.36 : 0, transition: "opacity 2s ease" }}
+        className="absolute max-w-none"
+        style={{ "--w": "max(140vw, 130vh)", width: "var(--w)", height: "auto", left: "calc(30vw - var(--w) * 0.465)", top: "calc(18vh - var(--w) * 0.6267)",
+          opacity: done ? 0.36 : 0, transition: "opacity 2s ease" }}
       />
       <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 40%, rgba(0,0,0,.25), rgba(0,0,0,.7) 85%)" }} />
     </div>
@@ -358,9 +360,7 @@ export default function EPK() {
           <PerformanceReel />
         </Reveal>
 
-        <Reveal delay={0.1}>
-          <p className="font-accent mt-10 text-sm uppercase tracking-[0.2em] text-[var(--sm-gold)]">{EPK_BANNER_TEXT}</p>
-        </Reveal>
+        <div className="mt-10" />
 
         {/* Slow-scrolling festival-name ticker — ambient, readable at a glance. */}
         <Reveal delay={0.12}>
