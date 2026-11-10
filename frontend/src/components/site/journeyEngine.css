@@ -213,7 +213,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-scroller.tj-aboutUp { z-index: 36; }
 
 /* ---------- the page ---------- */
-.tj-about { position: relative; color: #f1e9d8; padding-bottom: 30svh; overflow-x: clip; }   /* (room for the texts card under the last line) */
+.tj-about { position: relative; color: #f1e9d8; padding-bottom: 16svh; overflow-x: clip; }
 /* while the story is up: a soft dark at the top and bottom edges, so words pass under the header and the scroll
    line cleanly */
 .tj-aboutEdge { position: fixed; left: 0; right: 0; z-index: 37; pointer-events: none; opacity: 0; transition: opacity .6s ease; }

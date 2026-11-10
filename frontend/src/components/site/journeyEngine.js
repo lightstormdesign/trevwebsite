@@ -351,9 +351,10 @@ const STORY = [
     "But perhaps the greatest story ever told isn’t about becoming someone worthy of the Kingdom.",
     "It’s about remembering that we were never separate from it.",
     { quote: "“Except ye be converted, and become as little children, ye shall not enter into the kingdom of heaven.”", cite: "Matthew 18:3 (KJV)" },
-    { reveal: "The Kingdom is within.", last: true }] },
+    { reveal: "The Kingdom is within.", last: true }],
+    cta: "Receive High-Vibe Texts", ctaNote: "Messages of inspiration, unreleased songs and meditations from TREV." },
 ];
-const BUBBLE_AFTER_MS = 20000;   // the texts card rises this long after the world's bottom is reached (not over the story)
+const BUBBLE_AFTER_MS = 20000, BUBBLE_SHOW_MS = 7000;   // the texts card rises this long after the world's bottom is reached (not over the story)
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
@@ -551,7 +552,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
       <span class="tj-bubbleIcon" aria-hidden="true">✦</span>
-      <span class="tj-bubbleText"><b>Receive high-vibe texts</b><span>Unreleased music, new shows and messages from TREV, first.</span></span>
+      <span class="tj-bubbleText"><b>Receive high-vibe texts</b><span>Messages of inspiration, unreleased songs and meditations from TREV.</span></span>
       <button class="tj-bubbleClose" type="button" aria-label="Close">&times;</button>
     </a>
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
@@ -2007,17 +2008,20 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // just before the world settles (the end of the descent, until the story comes up), "My Story" and its
   // arrow rise on their own and breathe, so nobody thinks the world is the end
   let hintNear = false;
-  // "Receive high-vibe texts": a small card, bottom left. It rises BUBBLE_AFTER_MS after the bottom of the world
-  // is reached, if they aren't reading the story by then; and at the end of the story. Closed, it stays closed.
-  let bottomAt = 0, bubbleDue = false;
+  // "Receive high-vibe texts": a small card, bottom left, in the world only. It rises BUBBLE_AFTER_MS after the
+  // bottom of the world is reached, stays BUBBLE_SHOW_MS (longer while the pointer is on it), then fades; it
+  // fades at once if they scroll on into the story. Once a visit. (The story ends on its own sign-up.)
+  let bottomAt = 0, bubbleAt = 0, bubbleDone = false, bubbleHover = false;
+  on(bubble, "pointerenter", () => { bubbleHover = true; }); on(bubble, "pointerleave", () => { bubbleHover = false; bubbleAt = performance.now() - BUBBLE_SHOW_MS + 2500; });
   function bubbleTick() {
-    if (bubbleClosed) return;
-    const now = performance.now();
+    if (bubbleClosed || bubbleDone) return;
+    const now = performance.now(), inStory = cur > ABOUT_FADE_FROM;
     if (!bottomAt && cur / DESCENT_SVH >= 0.97) bottomAt = now;
-    if (bottomAt && !bubbleDue && now - bottomAt > BUBBLE_AFTER_MS) bubbleDue = true;
-    const inStory = cur > ABOUT_FADE_FROM, atEnd = inStory && sizes.scrollMax - scrollNow < Hs() * 0.9;
-    const want = (bubbleDue && !inStory) || atEnd;
-    if (want !== bubble.classList.contains("show")) bubble.classList.toggle("show", want);
+    if (!bubbleAt) {
+      if (bottomAt && now - bottomAt > BUBBLE_AFTER_MS && !inStory) { bubbleAt = now; bubble.classList.add("show"); }
+      return;
+    }
+    if (inStory || (!bubbleHover && now - bubbleAt > BUBBLE_SHOW_MS)) { bubble.classList.remove("show"); bubbleDone = true; }
   }
   function storyHint() {
     const near = phase === "world" && cur / DESCENT_SVH > STORY_HINT_AT && cur < ABOUT_FADE_FROM + 20;
