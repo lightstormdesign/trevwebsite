@@ -79,9 +79,11 @@ export const TrackPlayer = ({ tracks, cover, className = "" }) => {
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <span data-testid="track-title" className="font-display block truncate text-base leading-tight text-[var(--sm-text)]">{track.title}</span>
-          <span data-testid="track-count" className="font-body shrink-0 text-[0.6rem] tabular-nums text-white/40">
-            {i + 1} / {tracks.length}
-          </span>
+          {tracks.length > 1 && (
+            <span data-testid="track-count" className="font-body shrink-0 text-[0.6rem] tabular-nums text-white/40">
+              {i + 1} / {tracks.length}
+            </span>
+          )}
         </div>
         <div className="mt-1 flex items-center gap-2">
           <div
