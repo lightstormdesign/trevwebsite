@@ -519,16 +519,23 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <button class="tj-menuBtn" type="button" aria-label="Open menu"><span></span><span></span><span></span></button>
     </header>
     <nav class="tj-menu" hidden>
-      <button class="tj-menuClose" type="button" aria-label="Close menu">&times;</button>
-      ${NAV.map(([l, h]) => `<a href="${h}">${l}</a>`).join("")}
+      ${NAV.map(([l, h]) => `<a href="${h}"${h === "/" ? ' aria-current="page"' : ""}>${l}</a>`).join("")}
     </nav>`;
   const $ = (s) => root.querySelector(s);
 
   // ---------- header + menu (client-side navigation) ----------
   const menu = $(".tj-menu");
-  const go = (e, to) => { e.preventDefault(); menu.hidden = true; if (navigate) navigate(to); else window.location.href = to; };
-  on($(".tj-menuBtn"), "click", () => { menu.hidden = false; requestMotion(); });   // (iPhone's motion permission, asked here as at the speaker; never at Tap to Enter)
-  on($(".tj-menuClose"), "click", () => { menu.hidden = true; });
+  const menuBtn = $(".tj-menuBtn");
+  const setMenu = (open) => {
+    menu.hidden = !open;
+    menuBtn.classList.toggle("open", open);
+    menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    menuBtn.setAttribute("aria-expanded", String(open));
+    document.documentElement.classList.toggle("tj-menuOpen", open);
+  };
+  off.push(() => document.documentElement.classList.remove("tj-menuOpen"));
+  const go = (e, to) => { e.preventDefault(); setMenu(false); if (navigate) navigate(to); else window.location.href = to; };
+  on(menuBtn, "click", () => { const open = menu.hidden; setMenu(open); if (open) requestMotion(); });   // (iPhone's motion permission, asked here as at the speaker; never at Tap to Enter)
   on(menu, "click", (e) => { const a = e.target.closest("a"); if (a) go(e, a.getAttribute("href")); });
   on($(".tj-name"), "click", (e) => go(e, "/"));
 

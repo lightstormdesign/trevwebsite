@@ -41,7 +41,7 @@ export const Navbar = () => {
     // shadow keeps them legible over imagery). Home hides the logo — the hero's big logo is it.
     <header
       data-testid="site-navbar"
-      className="fixed inset-x-0 top-0 z-50 [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]"
+      className={`fixed inset-x-0 top-0 z-50 [text-shadow:0_1px_12px_rgba(0,0,0,0.6)]${open ? " bg-[#070707] shadow-[0_24px_48px_rgba(0,0,0,0.55)]" : ""}`}
     >
       {/* Portal/Hero: hamburger is right-aligned, matching the same
           position used on every other page's header (supersedes an
@@ -84,7 +84,8 @@ export const Navbar = () => {
       </nav>
 
       {open && (
-        <div data-testid="nav-mobile-menu" className="border-t border-white/10 bg-black/90 backdrop-blur-xl md:hidden">
+        // no background of its own: it carries on the header's, so the bar and the links read as one panel (as Burnell's)
+        <div data-testid="nav-mobile-menu" className="md:hidden">
           <div className="flex flex-col px-6 pb-4 pt-2">
             {NAV_LINKS.map((l) => (
               <NavLink

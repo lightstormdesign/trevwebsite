@@ -43,12 +43,25 @@
 .tj-menuBtn { pointer-events: auto; width: 44px; height: 44px; display: grid; place-content: center; gap: 6px; background: none; border: 0; cursor: pointer; padding: 0; }
 .tj-menuBtn span { display: block; width: 24px; height: 1.5px; background: var(--tj-fg); box-shadow: 0 1px 6px rgba(0,0,0,.4); }
 .tj-menuBtn:focus-visible, .tj-enter:focus-visible, .tj-name:focus-visible { outline: 1px solid var(--tj-gold); outline-offset: 6px; }
-.tj-menu { position: fixed; inset: 0; z-index: 60; background: rgba(8,7,6,.94); display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 26px; }
-.tj-menu a { font: 500 18px/1 var(--tj-display); letter-spacing: .32em; text-transform: uppercase; color: var(--tj-fg); text-decoration: none; padding-left: .32em; }
-.tj-menu a:hover { color: var(--tj-gold); }
-.tj-menuClose { position: absolute; top: calc(18px + env(safe-area-inset-top, 0px)); right: max(14px, env(safe-area-inset-right, 0px));
-  width: 44px; height: 44px; background: none; border: 0; color: var(--tj-fg); font: 300 30px/1 var(--tj-sans); cursor: pointer; }
+/* the menu (Burnell's): a dark panel that drops from the top, the header (name, speaker, the button now an X)
+   staying on it, and the links listed down the left with hairline dividers */
+.tj-menu { position: fixed; left: 0; right: 0; top: 0; z-index: 60; background: #070707; display: flex; flex-direction: column;
+  padding: calc(80px + env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) 16px max(24px, env(safe-area-inset-left, 0px));
+  max-height: 100svh; overflow-y: auto; box-shadow: 0 24px 48px rgba(0,0,0,.55); }
+.tj-menu[hidden] { display: none; }
+.tj-menu a { display: block; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.05); text-align: left;
+  font: 400 14px/1.25 "Cormorant Garamond", Georgia, serif; letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(255,255,255,.8); text-decoration: none; }
+.tj-menu a:last-child { border-bottom: 0; }
+.tj-menu a[aria-current="page"], .tj-menu a:hover { color: #f3d48e; }
+/* while it's open the header and the speaker sit on the panel */
+html.tj-menuOpen .tj-header { z-index: 61; }
+html.tj-menuOpen .tj-header::before { opacity: 0; }
+html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
+.tj-menuBtn span { transition: transform .25s ease, opacity .2s ease; }
+.tj-menuBtn.open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+.tj-menuBtn.open span:nth-child(2) { opacity: 0; }
+.tj-menuBtn.open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
 
 /* ---------- the polished gold used for "Tap to enter", "Kingdom Within" and "My Story" ---------- */
 .tj-gold { background-image: linear-gradient(100deg, #c09245 0%, #dcb062 14%, #f6e2aa 26%, #deb05a 38%, #c69a4a 50%,
