@@ -352,7 +352,7 @@ const STORY = [
     "It’s about remembering that we were never separate from it.",
     { quote: "“Except ye be converted, and become as little children, ye shall not enter into the kingdom of heaven.”", cite: "Matthew 18:3 (KJV)" },
     { reveal: "The Kingdom is within.", last: true }],
-    cta: "Receive High-Vibe Texts", ctaNote: "Messages of inspiration, unreleased songs and meditations from TREV." },
+    song: "Hear this story in song", cta: "Receive High-Vibe Texts", ctaNote: "Messages of inspiration, unreleased songs and meditations from TREV." },
 ];
 const BUBBLE_AFTER_MS = 20000, BUBBLE_SHOW_MS = 7000;   // the texts card rises this long after the world's bottom is reached (not over the story)
 const ROAR_MS = 3200;
@@ -1164,15 +1164,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     for (const c of STORY) {
       if (c.kind === "open") {   // (its photograph is in the background: aboutBg .photo)
         html += `<section class="ab-open" data-mood="${c.mood}" aria-label="About"><span class="ab-openAlt" role="img" aria-label="${c.alt}"></span>`
-          + `<div class="ab-openText ab-rv"><span class="ab-eyebrow">${c.eyebrow}</span><h2 class="ab-metal ab-title-xl">${c.title}</h2></div>`
-          // a small card: the story's own song while you read (unnamed)
-          + `<button class="ab-play" type="button" aria-pressed="false"><span class="ic" aria-hidden="true"></span><span class="lb">Play audio</span></button></section>`;
+          + `<div class="ab-openText ab-rv"><span class="ab-eyebrow">${c.eyebrow}</span><h2 class="ab-metal ab-title-xl">${c.title}</h2></div></section>`;
       } else if (c.kind === "prologue") {
         html += `<section class="ab-prologue" data-mood="${c.mood}">${fig(c, "archival")}<p class="ab-line ab-rv">${c.line}</p></section>`;
       } else {
         // the chapter in three pieces (its title, photograph and words), so each can be composed on its own
         const head = `<header class="ab-head"><span class="ab-num ab-rv">${String(c.n).padStart(2, "0")}</span><h3 class="ab-metal ab-rv">${c.title}</h3></header>`;
         const body = `<div class="ab-body">${c.body.map(line).join("")}`
+          // the story, ended, in song (We Are The I Am): a small card under the last line
+          + (c.song ? `<div class="ab-song ab-rv"><button class="ab-play" type="button" aria-pressed="false"><span class="ic" aria-hidden="true"></span><span class="lb">${c.song}</span></button></div>` : "")
           + (c.cta ? `<div class="ab-cta ab-rv"><a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a><span class="tj-ctaNote">${c.ctaNote}</span></div>` : "")
           + `</div>`;
         html += `<article class="ab-ch mode-${c.mode} lay-${c.lay} m-${c.m}${c.media ? "" : " nofig"}" data-mood="${c.mood}" data-ch="${c.n}">${head}${fig(c)}${body}</article>`;
@@ -1182,7 +1182,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const play = aboutEl.querySelector(".ab-play");
     if (play) {
       const paint = () => { const on = sound.storyPlaying; play.classList.toggle("on", on); play.setAttribute("aria-pressed", String(on));
-        play.querySelector(".lb").textContent = on ? "Pause audio" : "Play audio"; };
+        play.querySelector(".lb").textContent = on ? "Pause" : "Hear this story in song"; };
       on(play, "click", (e) => { e.preventDefault(); sound.story(); paint(); });
       off.push(sound.subscribe(paint)); paint();
     }
