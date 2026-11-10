@@ -145,7 +145,7 @@ export const STREAMING_LINKS = MUSIC_PLATFORM_LINKS;
 export const EPK_TRACKS = [
   { title: "We Are The I Am", src: "/tracks/we-are-the-i-am.mp3", duration: 325 },
 ];
-export const ALBUM_COVER = "/tracks/we-are-the-i-am-cover.jpg";
+export const ALBUM_COVER = "/tracks/we-are-the-i-am-cover.jpg?v=2";
 
 // EPK video: a live performance (YouTube) leads once there is one; until then the highlight reel
 // (public/trev-epk-reel.mp4, hidden while it doesn't exist). { youtubeId: "...", title: "Live at ..." }
