@@ -311,7 +311,7 @@ const STORY = [
     "I started to build. I saved post office checks for my first tour and did every job myself.",
     "After that tour, I wasn’t trying to “make it” anymore.",
     { em: "I WAS making it." }] },
-  { title: "Remember Who You Are", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed.mp4", pos: "50% 35%", body: [
+  { title: "Remember Who You Are", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed-fade.mp4", pos: "50% 35%", body: [
     "I spent my whole life trying to become somebody.",
     "Then I finally understood The Lion King.",
     { em: "Remember who you are." },

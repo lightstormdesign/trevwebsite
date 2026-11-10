@@ -84,6 +84,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-hidden { opacity: 0 !important; }
 .tj-slide .media-v { position: relative; overflow: hidden; }
 .tj-slide .media-v img, .tj-slide .media-v video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.tj-slide .media-v video { transition: opacity .7s ease; }   /* (the photo dissolves into the clip once it plays) */
 .tj-me, .tj-meImg { transition: none; }
 .tj-gone { opacity: 0 !important; }
 /* once the video's first frame is up the plate goes; TREV's real photo stays over the playing video
