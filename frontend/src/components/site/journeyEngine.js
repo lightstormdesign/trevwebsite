@@ -407,6 +407,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // (while the homepage is up, every fixed layer becomes page content too, or Safari still paints its strips;
   // the tap puts them back: the transition and the world stay fixed, smooth)
   if (!/[?&]flow=0/.test(location.search) && start === "hero") docEl0().classList.add("tj-flowHero", "tj-heroPhase");   // (the default; ?flow=0 for the old fixed homepage)
+  // ...and leaving the homepage before the tap (the menu, the name) takes them off again: html.tj-heroPhase
+  // holds the page still (overflow: hidden), so the next page wouldn't scroll at all
+  off.push(() => docEl0().classList.remove("tj-flowHero", "tj-heroPhase"));
   // nothing may fade on the page's very first frames: an iPhone (WebKit) can start hidden things shown on
   // its first style pass and fade them out (the totems' words, "keep scrolling" flashed at load). So no
   // transitions until it has settled; then they're on
