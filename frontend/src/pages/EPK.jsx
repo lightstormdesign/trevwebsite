@@ -285,11 +285,51 @@ export const BookingForm = () => {
   );
 };
 
+// Behind the whole EPK: TREV's three crowd clips (the fire, the festival, the basement), giant, soft and very
+// dark, each once, then resting on the stage photo from the About story (chapter 8), as dark. Small soft copies
+// (public/epk-bg); reduced motion: the photo alone.
+const EPK_BG_CLIPS = ["/epk-bg/crowd-03.mp4", "/epk-bg/crowd-01.mp4", "/epk-bg/crowd-02.mp4"];
+const EPK_BG_STILL = "/epk-bg/stage.jpg";
+const EpkBackdrop = () => {
+  const reduce = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [i, setI] = useState(reduce ? EPK_BG_CLIPS.length : 0);
+  const [shown, setShown] = useState(false);
+  const done = i >= EPK_BG_CLIPS.length;
+  const next = () => { setShown(false); setTimeout(() => setI((n) => n + 1), 700); };
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-black">
+      {!done && (
+        <video
+          key={EPK_BG_CLIPS[i]}
+          src={EPK_BG_CLIPS[i]}
+          muted
+          autoPlay
+          playsInline
+          preload="auto"
+          onPlaying={() => setShown(true)}
+          onEnded={next}
+          onError={next}
+          className="absolute inset-0 h-full w-full scale-110 object-cover transition-opacity duration-700"
+          style={{ opacity: shown ? 0.3 : 0 }}
+        />
+      )}
+      <img
+        src={EPK_BG_STILL}
+        alt=""
+        className="absolute inset-0 h-full w-full scale-110 object-cover"
+        style={{ opacity: done ? 0.24 : 0, transition: "opacity 2s ease" }}
+      />
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 40%, rgba(0,0,0,.25), rgba(0,0,0,.7) 85%)" }} />
+    </div>
+  );
+};
+
 export default function EPK() {
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const galleryTopRef = useRef(null);
   return (
-    <div className="starfield relative min-h-screen">
+    <div className="starfield relative isolate min-h-screen">
+      <EpkBackdrop />
       <Navbar />
       <main className="relative mx-auto max-w-4xl px-6 pb-10 pt-40 text-center">
         {/* Header / info */}

@@ -145,6 +145,7 @@ export const STREAMING_LINKS = MUSIC_PLATFORM_LINKS;
 // duration (seconds) shows each song's length before it loads.
 export const EPK_TRACKS = [
   { title: "The Essence", src: "/tracks/the-essence.mp3", duration: 288 },
+  { title: "Most High", src: "/tracks/most-high.mp3", duration: 145 },
 ];
 export const ALBUM_COVER = "/tracks/the-essence-cover.jpg";   // (a stand-in from his live photos until The Essence has its own art)
 

@@ -19,7 +19,7 @@ export const EPK_GALLERY = [
   { src: "/trev-epk-live-01.jpg", alt: "TREV performing live, festival main stage", press: "/press/trev-press-02.jpg?v=5", featured: true },
   { src: "/trev-epk-live-18.jpg", alt: "TREV, his band and the front row shouting together", press: "/press/trev-press-03.jpg?v=5", featured: true },
   { src: "/trev-epk-live-19.jpg", alt: "TREV and his band on stage with a festival crowd behind", press: "/press/trev-press-04.jpg?v=5", featured: true },
-  { video: "/trev-epk-clip-01.mp4", poster: "/trev-epk-clip-01.jpg", alt: "Video: a festival crowd cheering for TREV", featured: true },
+  { video: "/trev-epk-clip-01.mp4", poster: "/trev-epk-clip-01.jpg", ratio: "16 / 9", alt: "Video: a festival crowd cheering for TREV", featured: true },
   { src: "/trev-epk-live-03.jpg", alt: "The view from the stage over a festival crowd", press: "/press/trev-press-05.jpg?v=5", featured: true },
   { src: "/trev-epk-live-17.jpg", alt: "TREV and his band with a packed pavilion crowd at night", press: "/press/trev-press-06.jpg?v=5", featured: true },
   { src: "/trev-epk-hawaii.jpg", alt: "TREV above the Hawaiian coast at sunset", press: "/press/trev-press-07.jpg?v=5", featured: true },
@@ -29,7 +29,7 @@ export const EPK_GALLERY = [
   { src: "/trev-epk-live-13.jpg", alt: "TREV singing a duet under purple stage light", press: "/press/trev-press-11.jpg?v=5" },
   { src: "/trev-epk-live-14.jpg", alt: "TREV on a stool on stage, eyes closed, in golden light", press: "/press/trev-press-12.jpg?v=5" },
   { src: "/trev-epk-live-05.jpg", alt: "TREV singing a duet on stage", press: "/press/trev-press-13.jpg?v=5" },
-  { video: "/trev-epk-clip-02.mp4", poster: "/trev-epk-clip-02.jpg", alt: "Video: TREV performing in the middle of the crowd at a house show" },
+  { video: "/trev-epk-clip-02.mp4", poster: "/trev-epk-clip-02.jpg", ratio: "9 / 16", featured: true, alt: "Video: TREV performing in the middle of the crowd at a house show" },
   { src: "/trev-epk-live-06.jpg", alt: "TREV singing outdoors in golden light", press: "/press/trev-press-14.jpg?v=5" },
   { src: "/trev-epk-live-04.jpg", alt: "TREV with a full house after an indoor show", press: "/press/trev-press-15.jpg?v=5" },
   { src: "/trev-epk-live-08.jpg?v=2", alt: "TREV and fellow artists on stage, festival crowd behind", press: "/press/trev-press-16.jpg?v=5" },
@@ -39,7 +39,7 @@ export const EPK_GALLERY = [
   { src: "/trev-epk-live-20.jpg", alt: "TREV rapping into the mic", press: "/press/trev-press-20.jpg?v=5" },
   { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show", press: "/press/trev-press-21.jpg?v=5" },
   { src: "/trev-epk-live-09.jpg", alt: "TREV and fellow artists on stage with the crowd", press: "/press/trev-press-22.jpg?v=5" },
-  { video: "/trev-epk-clip-03.mp4", poster: "/trev-epk-clip-03.jpg", alt: "Video: a crowd around the fire at night" },
+  { video: "/trev-epk-clip-03.mp4", poster: "/trev-epk-clip-03.jpg", ratio: "9 / 16", featured: true, alt: "Video: a crowd around the fire at night" },
   { src: "/trev-epk-live-11.jpg", alt: "TREV with the crowd in a festival tent at night", press: "/press/trev-press-23.jpg?v=5" },
   { src: "/trev-epk-live-16.jpg", alt: "TREV with friends in a festival tent", press: "/press/trev-press-24.jpg?v=5" },
   { src: "/trev-epk-sign-2.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-25.jpg?v=5" },
@@ -109,7 +109,8 @@ export const GalleryVideo = ({ g, className = "" }) => {
         playsInline
         preload="metadata"
         aria-label={g.alt}
-        className="block h-auto w-full"
+        className="block h-auto w-full bg-black object-cover"
+        style={{ aspectRatio: g.ratio }}
       />
       <button
         type="button"
