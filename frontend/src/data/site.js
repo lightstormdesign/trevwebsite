@@ -159,8 +159,8 @@ export const PRESS_QUOTES = [];
 export const TECH_RIDER = {
   show: "Celebrate Life Together",
   lineup: "Lead vocal (wireless), backup vocal, guitar and stereo playback from laptop",
-  setLength: null,
-  changeover: null,
+  setLength: "45–90 minutes",
+  changeover: "15 minutes changeover · 30 minutes soundcheck",
   inputs: [
     { ch: 1, source: "Stereo output L", mic: '1/4" line output' },
     { ch: 2, source: "Stereo output R", mic: '1/4" line output' },

@@ -163,7 +163,7 @@ const TechRider = () => (
 
 // Live performance highlight reel, front and centre. public/trev-epk-reel.mp4 (web-compressed from
 // TREV's highlight reel); the block hides itself until that file exists.
-const EPK_REEL = { src: "/trev-epk-reel.mp4", poster: "/trev-epk-reel.jpg" };
+const EPK_REEL = { src: "/trev-epk-reel.mp4?v=1", poster: "/trev-epk-reel.jpg?v=1" };
 
 const PerformanceReel = () => {
   const [missing, setMissing] = useState(false);
@@ -191,7 +191,7 @@ const PerformanceReel = () => {
       <span className="overline">Live Performance</span>
       <div className="mt-4 overflow-hidden rounded-xl border border-[var(--sm-gold)]/25 bg-black shadow-[0_0_60px_rgba(227,163,92,0.12)]">
         <video
-          className="aspect-video w-full bg-black object-contain"
+          className="aspect-[3/2] w-full bg-black object-cover"
           src={EPK_REEL.src}
           poster={EPK_REEL.poster}
           controls
