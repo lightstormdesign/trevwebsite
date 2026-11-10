@@ -311,7 +311,7 @@ const STORY = [
     "I started to build. I saved post office checks for my first tour and did every job myself.",
     "After that tour, I wasn’t trying to “make it” anymore.",
     { em: "I WAS making it." }] },
-  { title: "Remember Who You Are", media: "story-11-within.webp", body: [
+  { title: "Remember Who You Are", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed.mp4", pos: "50% 35%", body: [
     "I spent my whole life trying to become somebody.",
     "Then I finally understood The Lion King.",
     { em: "Remember who you are." },
@@ -319,11 +319,11 @@ const STORY = [
     "But the mission was never to become someone else.",
     "It was to strip away everything that wasn’t me. To speak my naked truth. To see how much more of myself I could bring into every moment.",
     { em: "To fully become who I AM." }] },
-  { title: "Living My Truth", media: "story-09-the-reward.webp", video: "story-09-the-reward.mp4", body: [
+  { title: "Living My Truth", media: "story-05-kingdom-sign.webp", pos: "50% 30%", body: [
     "I stopped searching for a kingdom outside myself and started creating a life that reflected who I really am.",
     "Today, I tour internationally and make my living through music.",
     "Not because someone chose me. Because I chose to follow my own path."] },
-  { title: "Why I Make Music", media: "story-10-my-name.webp", body: [
+  { title: "Why I Make Music", media: "story-13-stage.webp", pos: "47% 52%", body: [
     { em: "My name is TREV." },
     "I believe in the infinite power of the spoken word.",
     "Through music, I turn my experiences into expressions of truth, love, and everything that makes us human.",

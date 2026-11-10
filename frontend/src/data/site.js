@@ -158,7 +158,7 @@ export const PRESS_QUOTES = [];
 // EPK stage plot & tech rider, from TREV's "Celebrate Life Together" stage plot & input list.
 // setLength, changeover and monitors are optional (each line hides while it's null).
 export const TECH_RIDER = {
-  show: "Celebrate Life Together",
+  show: null,
   lineup: "Lead vocal (wireless), backup vocal, guitar and stereo playback from laptop",
   setLength: "45–90 minutes",
   changeover: "15 minutes changeover · 30 minutes soundcheck",
