@@ -285,11 +285,10 @@ export const BookingForm = () => {
   );
 };
 
-// Behind the whole EPK: TREV's three crowd clips (the fire, the festival, the basement), giant, soft and very
-// dark, each once, then resting on the stage photo from the About story (chapter 8), as dark. Small soft copies
+// Behind the whole EPK: TREV's three crowd clips (the fire, the festival, the basement), giant and dark (sharp), each once, then resting on the stage photo from the About story (chapter 8), as dark. Small copies
 // (public/epk-bg); reduced motion: the photo alone.
-const EPK_BG_CLIPS = ["/epk-bg/crowd-03.mp4", "/epk-bg/crowd-01.mp4", "/epk-bg/crowd-02.mp4"];
-const EPK_BG_STILL = "/epk-bg/stage.jpg";
+const EPK_BG_CLIPS = ["/epk-bg/crowd-03.mp4?v=2", "/epk-bg/crowd-01.mp4?v=2", "/epk-bg/crowd-02.mp4?v=2"];
+const EPK_BG_STILL = "/epk-bg/stage.jpg?v=2";
 const EpkBackdrop = () => {
   const reduce = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const [i, setI] = useState(reduce ? EPK_BG_CLIPS.length : 0);
@@ -310,14 +309,14 @@ const EpkBackdrop = () => {
           onEnded={next}
           onError={next}
           className="absolute inset-0 h-full w-full scale-110 object-cover transition-opacity duration-700"
-          style={{ opacity: shown ? 0.3 : 0 }}
+          style={{ opacity: shown ? 0.45 : 0 }}
         />
       )}
       <img
         src={EPK_BG_STILL}
         alt=""
         className="absolute inset-0 h-full w-full scale-110 object-cover"
-        style={{ opacity: done ? 0.24 : 0, transition: "opacity 2s ease" }}
+        style={{ opacity: done ? 0.36 : 0, transition: "opacity 2s ease" }}
       />
       <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 40%, rgba(0,0,0,.25), rgba(0,0,0,.7) 85%)" }} />
     </div>
