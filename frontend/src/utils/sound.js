@@ -11,7 +11,9 @@
 //    "K-ingdom", which lands with the bass LION_DROP_S after the tap: the roar
 // Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
 // player's file makes iPhone start late).
-const SRC = "/journey/trev-kingdom-intro.m4a?v=3";   // bump with the file (phones cache it)
+// The song from Tap to Enter on (and on every page after): "We Are The I Am", from its very start, looping
+// (70% volume baked in). "Kingdom" stays the lion's (LION_SRC, its beat map).
+const SRC = "/journey/trev-intro-we-are-the-i-am.m4a?v=1";   // bump with the file (phones cache it)
 let LION_SRC = "/journey/trev-kingdom-lion.m4a?v=5"; const LION_FROM = 26.55;   // (through the hook: it fades out across the breakdown)
 export const LION_HOOK_END_S = 28.4;   // into the lion cut: the hook is over (the fade is nearly done)
 export const LION_DROP_S = 0.94;   // into the lion cut: "K-ingdom" and the bass, together (27.49s in the song): the roar

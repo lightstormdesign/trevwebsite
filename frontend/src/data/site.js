@@ -144,9 +144,9 @@ export const STREAMING_LINKS = MUSIC_PLATFORM_LINKS;
 // EPK player: his own files (not Spotify's embed: 30-second previews to anyone logged out, no skip).
 // duration (seconds) shows each song's length before it loads.
 export const EPK_TRACKS = [
-  { title: "We Are The I Am", src: "/tracks/we-are-the-i-am.mp3", duration: 325 },
+  { title: "The Essence", src: "/tracks/the-essence.mp3", duration: 288 },
 ];
-export const ALBUM_COVER = "/tracks/we-are-the-i-am-cover.jpg?v=2";
+export const ALBUM_COVER = "/tracks/the-essence-cover.jpg";   // (a stand-in from his live photos until The Essence has its own art)
 
 // EPK video: a live performance (YouTube) leads once there is one; until then the highlight reel
 // (public/trev-epk-reel.mp4, hidden while it doesn't exist). { youtubeId: "...", title: "Live at ..." }
