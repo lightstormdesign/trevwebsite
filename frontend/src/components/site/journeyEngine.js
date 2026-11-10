@@ -286,29 +286,54 @@ const FLOWER = (() => {
 const STORY = [
   { cover: true, eyebrow: "About", title: "My Story", media: "story-00-heart.webp", pos: "50% 55%" },
   { lead: "This whole thing started the day I quit music.", media: "story-01-quit-music.webp" },
-  { title: "The First Dream", media: "story-02-first-dream.webp", body: [
-    "Basketball was my religion and Michael Jordan was God. Then I didn't make the high school team. The coach was the bishop, and every kid he picked was from his church.",
-    "My first lesson on the “Kingdom of Heaven”: it was an exclusive club, and I wasn't chosen."] },
-  { title: "The Second Dream", media: "story-03-the-room.webp", body: [
-    "If I couldn't find God in basketball, I'd find it through hip-hop. I locked myself in my room to meditate and write until I became the best rapper in the world.",
-    "But I was caught in cycles of addiction, and I wasn't building anything."] },
-  { title: "The Leap", media: "story-04-the-leap.webp", body: [
-    "Years later, a few videos took off: over a million views, opening for artists I idolized. Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
-    "The net was a mirage. And maybe I was too."] },
-  { title: "Rise Free", media: "story-05-kingdom-sign.webp", pos: "50% 30%", body: [
-    "I gave up on music and ended up in my mom's basement, working night shifts at the post office. My dream was dead for a second time.",
-    "In that basement I finally understood: no label, no manager, no miracle was coming. I was the one I'd been waiting for.",
+  { title: "Not Chosen", media: "story-02-first-dream.webp", body: [
+    "Basketball was my religion and Michael Jordan was God.",
+    "Then I didn’t make the high school team. The coach was the bishop, and every kid he picked was from his church.",
+    "My first lesson on the “Kingdom of Heaven”: it was an exclusive club, and I wasn’t chosen."] },
+  { title: "Becoming Somebody", media: "story-03-the-room.webp", body: [
+    "If I couldn’t find God in basketball, I’d find it through hip-hop.",
+    "I locked myself in my room to meditate and write until I became the best rapper in the world.",
+    "But behind all that ambition, I was caught in cycles of addiction. I was chasing the person I thought I needed to become, without learning how to be myself."] },
+  { title: "The Mirage", media: "story-04-the-leap.webp", body: [
+    "Years later, a few videos took off: over a million views, opening for artists I idolized.",
+    "Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
+    "The net was a mirage.",
+    { em: "And maybe I was too." }] },
+  { title: "Rock Bottom", media: "story-05-kingdom-sign.webp", pos: "50% 30%", body: [
+    "I gave up on music and ended up in my mom’s basement, working night shifts at the post office.",
+    "My dream was dead for a second time.",
+    "But in that basement, something finally changed.",
+    "I stopped waiting for someone to believe in me.",
+    "No label, no manager, no miracle was coming.",
+    { em: "I was the one I’d been waiting for." },
     "So I wrote my way out."] },
-  { title: "Making It", media: "story-06-the-crowd.webp", body: [
+  { title: "Choosing Myself", media: "story-06-the-crowd.webp", body: [
     "I started to build. I saved post office checks for my first tour and did every job myself.",
-    "After that tour, I wasn't trying to “make it” anymore. I WAS making it."] },
-  { title: "Create Who I Am", media: "story-11-within.webp", body: [
-    "I finally understood The Lion King. The mission wasn't just to remember who I am. It was to CREATE who I am."] },
-  { title: "My Own Kingdom", media: "story-09-the-reward.webp", video: "story-09-the-reward.mp4", body: [
-    "I stopped seeking a kingdom and started building my own. Now I tour internationally and live from my music."] },
-  { title: "My Name Is TREV", media: "story-10-my-name.webp", body: [
-    "I come with the infinite power of the spoken word. Every song is medicine made from my journey, a prayerformance for the man I needed during my own dark night of the soul."] },
-  { title: "The Kingdom Within", media: "story-08-sword.webp", pos: "50% 45%", lead: "The Kingdom of Heaven is within.",
+    "After that tour, I wasn’t trying to “make it” anymore.",
+    { em: "I WAS making it." }] },
+  { title: "Remember Who You Are", media: "story-11-within.webp", body: [
+    "I spent my whole life trying to become somebody.",
+    "Then I finally understood The Lion King.",
+    { em: "Remember who you are." },
+    "I’d spent years building identities around who I thought I needed to become. Chasing achievements, approval, and some future version of myself that would finally be enough.",
+    "But the mission was never to become someone else.",
+    "It was to strip away everything that wasn’t me. To speak my naked truth. To see how much more of myself I could bring into every moment.",
+    { em: "To fully become who I AM." }] },
+  { title: "Living My Truth", media: "story-09-the-reward.webp", video: "story-09-the-reward.mp4", body: [
+    "I stopped searching for a kingdom outside myself and started creating a life that reflected who I really am.",
+    "Today, I tour internationally and make my living through music.",
+    "Not because someone chose me. Because I chose to follow my own path."] },
+  { title: "Why I Make Music", media: "story-10-my-name.webp", body: [
+    { em: "My name is TREV." },
+    "I believe in the infinite power of the spoken word.",
+    "Through music, I turn my experiences into expressions of truth, love, and everything that makes us human.",
+    "Every song carries a piece of my journey, in the hope that it might inspire someone else to stand in the knowing of all that they are."] },
+  { title: "The Greatest Story Ever Told", media: "story-08-sword.webp", pos: "50% 45%", body: [
+    "My story began with a boy who believed the Kingdom of Heaven was a place he hadn’t been chosen to enter.",
+    "For years, I searched for my way in. Through greatness, success, and becoming somebody.",
+    "But perhaps the greatest story ever told isn’t about becoming someone worthy of the Kingdom.",
+    "It’s about remembering that we were never separate from it.",
+    { lead: "The Kingdom is within." }],
     cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
 ];
 const BUBBLE_AFTER_MS = 10000;
@@ -1123,7 +1148,10 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (c.eyebrow) t.insertAdjacentHTML("beforeend", `<span class="eyebrow">${c.eyebrow}</span>`);
       if (c.title) t.insertAdjacentHTML("beforeend", `<h2 class="${c.cover ? "tj-gold" : ""}">${c.title}</h2>`);
       if (c.lead) t.insertAdjacentHTML("beforeend", `<p class="lead">${c.lead}</p>`);
-      for (const b of c.body || []) t.insertAdjacentHTML("beforeend", `<p>${b}</p>`);
+      // a body line is plain text, { em } (a line held for emphasis) or { lead } (the closing line, set large)
+      for (const b of c.body || []) t.insertAdjacentHTML("beforeend", typeof b === "string" ? `<p>${b}</p>` : b.lead ? `<p class="lead">${b.lead}</p>` : `<p class="em">${b.em}</p>`);
+      const words = (c.body || []).map((b) => (typeof b === "string" ? b : b.em || b.lead)).join(" ").length;
+      if (words + (c.cta ? 160 : 0) > 420) el.classList.add("long");   // (the sign-up button counts too)   // the longer chapters: a touch tighter, so the whole chapter fits its screen
       if (c.cta) t.insertAdjacentHTML("beforeend", `<a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a>`
         + (c.ctaNote ? `<span class="tj-ctaNote">${c.ctaNote}</span>` : ""));
       el.append(m, t); storyEl.appendChild(el);
