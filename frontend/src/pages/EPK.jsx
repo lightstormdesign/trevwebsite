@@ -35,41 +35,50 @@ import {
 // Each also downloads full size (press: public/press, up to 3000px JPGs, and all of them in one zip).
 // Live shots first (stage, crowds), then portraits. Each one's press: the full-size JPG it downloads (public/press,
 // numbered in this order; the crowd photo is 01).
+// The lead photo, full width (the room lit up is what bookers want to see).
 const EPK_CROWD = [
-  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show", press: "/press/trev-press-01.jpg?v=3" },
+  { src: "/trev-epk-live-12.jpg", alt: "TREV on stage, arms open", press: "/press/trev-press-01.jpg?v=4" },
 ];
+// featured: shown at first; the rest open with "See all". Every photo's full-size JPG (press) is in the zip too.
 const EPK_GALLERY = [
-  { src: "/trev-epk-live-12.jpg", alt: "TREV on stage, arms open", press: "/press/trev-press-02.jpg?v=3" },
-  { src: "/trev-epk-live-01.jpg", alt: "TREV performing live, festival main stage", press: "/press/trev-press-03.jpg?v=3" },
-  { video: "/trev-epk-clip-01.mp4", poster: "/trev-epk-clip-01.jpg", alt: "Video: a festival crowd cheering for TREV" },
-  { src: "/trev-epk-live-02.jpg", alt: "TREV on the festival main stage", press: "/press/trev-press-04.jpg?v=3" },
-  { src: "/trev-epk-live-13.jpg", alt: "TREV singing a duet under purple stage light", press: "/press/trev-press-05.jpg?v=3" },
-  { src: "/trev-epk-live-03.jpg", alt: "The view from the stage over a festival crowd", press: "/press/trev-press-06.jpg?v=3" },
-  { src: "/trev-epk-live-04.jpg", alt: "TREV with a full house after an indoor show", press: "/press/trev-press-07.jpg?v=3" },
-  { src: "/trev-epk-live-05.jpg", alt: "TREV singing a duet on stage", press: "/press/trev-press-08.jpg?v=3" },
+  { src: "/trev-epk-live-01.jpg", alt: "TREV performing live, festival main stage", press: "/press/trev-press-02.jpg?v=4", featured: true },
+  { src: "/trev-epk-live-03.jpg", alt: "The view from the stage over a festival crowd", press: "/press/trev-press-03.jpg?v=4", featured: true },
+  { video: "/trev-epk-clip-01.mp4", poster: "/trev-epk-clip-01.jpg", alt: "Video: a festival crowd cheering for TREV", featured: true },
+  { src: "/trev-epk-live-13.jpg", alt: "TREV singing a duet under purple stage light", press: "/press/trev-press-04.jpg?v=4", featured: true },
+  { src: "/trev-epk-live-17.jpg", alt: "TREV and his band with a packed pavilion crowd at night", press: "/press/trev-press-05.jpg?v=4", featured: true },
+  { src: "/trev-epk-live-14.jpg", alt: "TREV on a stool on stage, eyes closed, in golden light", press: "/press/trev-press-06.jpg?v=4", featured: true },
+  { src: "/trev-epk-live-02.jpg", alt: "TREV on the festival main stage", press: "/press/trev-press-07.jpg?v=4", featured: true },
+  { src: "/trev-epk-studio-2.jpg", alt: "TREV at the mic in a red-lit studio", press: "/press/trev-press-08.jpg?v=4", featured: true },
+  { src: "/trev-epk-sedona-2.jpg", alt: "TREV in front of the red rocks, Sedona", press: "/press/trev-press-09.jpg?v=4", featured: true },
+  { src: "/trev-epk-film.jpg", alt: "TREV, black-and-white film portrait", press: "/press/trev-press-10.jpg?v=4", featured: true },
+  { src: "/trev-epk-live-05.jpg", alt: "TREV singing a duet on stage", press: "/press/trev-press-11.jpg?v=4" },
   { video: "/trev-epk-clip-02.mp4", poster: "/trev-epk-clip-02.jpg", alt: "Video: TREV performing in the middle of the crowd at a house show" },
-  { src: "/trev-epk-live-14.jpg", alt: "TREV on a stool on stage, eyes closed, in golden light", press: "/press/trev-press-09.jpg?v=3" },
-  { src: "/trev-epk-live-06.jpg", alt: "TREV singing outdoors in golden light", press: "/press/trev-press-10.jpg?v=3" },
-  { src: "/trev-epk-live-15.jpg", alt: "TREV in front of the SLUG Magazine main stage, Craft Lake City DIY Fest", press: "/press/trev-press-11.jpg?v=3" },
-  { src: "/trev-epk-live-07.jpg", alt: "TREV with a festival crowd after his set", press: "/press/trev-press-12.jpg?v=3" },
-  { src: "/trev-epk-live-08.jpg", alt: "TREV and fellow artists on stage, festival crowd behind", press: "/press/trev-press-13.jpg?v=3" },
-  { src: "/trev-epk-live-09.jpg", alt: "TREV and fellow artists on stage with the crowd", press: "/press/trev-press-14.jpg?v=3" },
-  { src: "/trev-epk-live-10.jpg", alt: "TREV and friends on stage at sunset, festival crowd behind", press: "/press/trev-press-15.jpg?v=3" },
+  { src: "/trev-epk-live-06.jpg", alt: "TREV singing outdoors in golden light", press: "/press/trev-press-12.jpg?v=4" },
+  { src: "/trev-epk-live-04.jpg", alt: "TREV with a full house after an indoor show", press: "/press/trev-press-13.jpg?v=4" },
+  { src: "/trev-epk-live-15.jpg", alt: "TREV in front of the SLUG Magazine main stage, Craft Lake City DIY Fest", press: "/press/trev-press-14.jpg?v=4" },
+  { src: "/trev-epk-live-07.jpg", alt: "TREV with a festival crowd after his set", press: "/press/trev-press-15.jpg?v=4" },
+  { src: "/trev-epk-live-08.jpg", alt: "TREV and fellow artists on stage, festival crowd behind", press: "/press/trev-press-16.jpg?v=4" },
+  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show", press: "/press/trev-press-17.jpg?v=4" },
+  { src: "/trev-epk-live-09.jpg", alt: "TREV and fellow artists on stage with the crowd", press: "/press/trev-press-18.jpg?v=4" },
+  { src: "/trev-epk-live-10.jpg", alt: "TREV and friends on stage at sunset, festival crowd behind", press: "/press/trev-press-19.jpg?v=4" },
   { video: "/trev-epk-clip-03.mp4", poster: "/trev-epk-clip-03.jpg", alt: "Video: a crowd around the fire at night" },
-  { src: "/trev-epk-live-11.jpg", alt: "TREV with the crowd in a festival tent at night", press: "/press/trev-press-16.jpg?v=3" },
-  { src: "/trev-epk-live-16.jpg", alt: "TREV with friends in a festival tent", press: "/press/trev-press-17.jpg?v=3" },
-  { src: "/trev-epk-sign-2.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-18.jpg?v=3" },
-  { src: "/trev-epk-sedona-2.jpg", alt: "TREV in front of the red rocks, Sedona", press: "/press/trev-press-19.jpg?v=3" },
-  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona", press: "/press/trev-press-20.jpg?v=3" },
-  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica", press: "/press/trev-press-21.jpg?v=3" },
-  { src: "/trev-epk-beach-2.jpg", alt: "TREV on the beach", press: "/press/trev-press-22.jpg?v=3" },
-  { src: "/trev-epk-beach-3.jpg", alt: "TREV on the beach, dispersion edit", press: "/press/trev-press-23.jpg?v=3" },
-  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona", press: "/press/trev-press-24.jpg?v=3" },
-  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona", press: "/press/trev-press-25.jpg?v=3" },
-  { src: "/trev-epk-11.jpg", alt: "TREV at sunset", press: "/press/trev-press-26.jpg?v=3" },
-  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio", press: "/press/trev-press-27.jpg?v=3" },
+  { src: "/trev-epk-live-11.jpg", alt: "TREV with the crowd in a festival tent at night", press: "/press/trev-press-20.jpg?v=4" },
+  { src: "/trev-epk-live-16.jpg", alt: "TREV with friends in a festival tent", press: "/press/trev-press-21.jpg?v=4" },
+  { src: "/trev-epk-sign-2.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-22.jpg?v=4" },
+  { src: "/trev-epk-zion.jpg", alt: "TREV in the canyon country of southern Utah", press: "/press/trev-press-23.jpg?v=4" },
+  { src: "/trev-epk-bucket.jpg", alt: "TREV smiling in a bucket hat", press: "/press/trev-press-24.jpg?v=4" },
+  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona", press: "/press/trev-press-25.jpg?v=4" },
+  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica", press: "/press/trev-press-26.jpg?v=4" },
+  { src: "/trev-epk-beach-2.jpg", alt: "TREV on the beach", press: "/press/trev-press-27.jpg?v=4" },
+  { src: "/trev-epk-beach-3.jpg", alt: "TREV on the beach, dispersion edit", press: "/press/trev-press-28.jpg?v=4" },
+  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona", press: "/press/trev-press-29.jpg?v=4" },
+  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona", press: "/press/trev-press-30.jpg?v=4" },
+  { src: "/trev-epk-11.jpg", alt: "TREV at sunset", press: "/press/trev-press-31.jpg?v=4" },
+  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio", press: "/press/trev-press-32.jpg?v=4" },
+  { src: "/trev-epk-we-are-the-i-am.jpg", alt: "Cover art: We Are The I Am, A Soundtrack for Awakening", press: "/press/trev-press-33.jpg?v=4" },
 ];
-const PRESS_ZIP = "/press/trev-press-photos.zip?v=3";
+const GALLERY_TOTAL = EPK_CROWD.length + EPK_GALLERY.length;
+const PRESS_ZIP = "/press/trev-press-photos.zip?v=4";
 
 // a photo that downloads full size when tapped, a small download mark in its corner
 // A short clip in the gallery: plays silently on a loop while it's on screen (paused off screen); the speaker
@@ -403,6 +412,8 @@ export const BookingForm = () => {
 };
 
 export default function EPK() {
+  const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const galleryTopRef = useRef(null);
   return (
     <div className="starfield relative min-h-screen">
       <Navbar />
@@ -491,7 +502,7 @@ export default function EPK() {
           }}
         />
         <Reveal className="order-2 lg:order-1" delay={0.2}>
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div ref={galleryTopRef} className="mb-4 flex scroll-mt-24 flex-wrap items-center justify-between gap-3">
             <span className="overline">Press Photos</span>
             <a
               href={PRESS_ZIP}
@@ -509,7 +520,7 @@ export default function EPK() {
             </div>
           ))}
           <div data-testid="epk-gallery" className="columns-2 gap-2 sm:columns-3 lg:columns-2">
-            {EPK_GALLERY.map((g) =>
+            {(showAllPhotos ? EPK_GALLERY : EPK_GALLERY.filter((g) => g.featured)).map((g) =>
               g.video ? (
                 <GalleryVideo key={g.video} g={g} className="mb-2 break-inside-avoid" />
               ) : (
@@ -517,6 +528,18 @@ export default function EPK() {
               ),
             )}
           </div>
+          <button
+            type="button"
+            data-testid="epk-gallery-toggle"
+            aria-expanded={showAllPhotos}
+            onClick={() => {
+              if (showAllPhotos) galleryTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              setShowAllPhotos((v) => !v);
+            }}
+            className="mt-2 w-full rounded-full border border-[var(--sm-gold)]/40 py-2.5 font-accent text-[0.7rem] uppercase tracking-[0.18em] text-[var(--sm-gold-light)] transition-colors hover:bg-[var(--sm-gold)] hover:text-black"
+          >
+            {showAllPhotos ? "Show fewer" : `See all ${GALLERY_TOTAL} photos & clips`}
+          </button>
           <p className="font-body mt-2 text-[0.65rem] text-white/35">Tap any photo to download it full size. Tap a clip's speaker for sound.</p>
         </Reveal>
 
