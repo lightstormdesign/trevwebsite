@@ -577,6 +577,10 @@ body:has(form:hover) .sacred-geometry-reveal { opacity: 0; }
 /* on the journey pages it sits fixed over the header's slot, left of the TREV letters */
 .tj-sound.tj-soundFixed { position: fixed; z-index: 45; margin: 0;
   top: calc(20px + env(safe-area-inset-top, 0px)); left: calc(max(22px, env(safe-area-inset-left, 0px)) - 8px); }
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  .tj-sound.tj-soundFixed { width: 54px; height: 54px; top: calc(26px + env(safe-area-inset-top, 0px)); left: 26px; }
+  .tj-sound.tj-soundFixed svg { width: 30px; height: 30px; }
+}
 
 /* ---------- film grain over the whole site (FilmGrain.jsx, Soleil's): one small tile, jittered a few
    times a second, plain see-through pixels with no blend mode, so nothing under it is re-blended ---------- */

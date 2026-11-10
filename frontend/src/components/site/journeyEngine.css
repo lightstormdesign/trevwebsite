@@ -1247,3 +1247,41 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
 /* performance: a creature off screen pauses its loops; the spinning auras rotate as composited layers (no repaint) */
 .tj-cr.tj-off, .tj-cr.tj-off * { animation-play-state: paused !important; }
 .tj-world .glow i, .tj-world .geo svg { will-change: transform; }
+
+/* ---------- desktop: the landing, the header, the quest and the scroll cues at a desktop's scale ---------- */
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  .tj-header { padding-top: calc(24px + env(safe-area-inset-top, 0px)); padding-left: 34px; padding-right: 26px; }
+  .tj-name img { height: clamp(26px, 2.2vw, 36px); }
+  .tj-soundSlot { width: 54px; height: 54px; }
+  .tj-menuBtn { width: 58px; height: 58px; gap: 9px; }
+  .tj-menuBtn span { width: 34px; height: 2px; }
+  .tj-menuBtn.open span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+  .tj-menuBtn.open span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+
+  .tj-emblem { height: clamp(150px, 29svh, 330px); }
+  .tj-landingText h1 { margin-top: min(44px, 4svh); font-size: min(clamp(38px, 3.3vw, 60px), 6.2svh); }
+  .tj-landingText .sub { margin-top: min(20px, 2svh); font-size: clamp(13px, 1vw, 16px); }
+  .tj-landingText p { margin-top: min(28px, 2.6svh); max-width: 34rem; font-size: min(clamp(19px, 1.45vw, 24px), 2.6svh); }
+  .tj-landingCol { padding-bottom: 24svh; }
+  .tj-cue { bottom: calc(min(88px, 6svh) + env(safe-area-inset-bottom, 0px)); }
+  .tj-cueInner .label { font-size: clamp(13px, 1vw, 15.5px); }
+  .tj-cueInner .capsule { margin-top: 16px; width: 36px; height: 58px; border-width: 2px; }
+  .tj-cueInner .drop { top: 11px; width: 7px; height: 13px; animation-name: tj-capsuleDropLg; }
+  .tj-cueInner .chevrons svg { width: 22px; height: 22px; margin-bottom: -14px; }
+
+  .tj-totems { top: calc(92px + env(safe-area-inset-top, 0px)); }
+  .tj-quest { margin-bottom: 16px; }
+  .tj-questTitle { font-size: clamp(15px, 1.15vw, 18px); }
+  .tj-questSub { margin-top: 10px !important; font-size: clamp(19px, 1.5vw, 24px); }
+  .tj-questCount { margin-top: 9px !important; font-size: clamp(14px, 1.05vw, 16px); }
+  .tj-totemRow { gap: 14px; }
+  .tj-totem { width: 46px; height: 46px; }
+  .tj-totems.lion .tj-lionTotem { width: 66px; height: 66px; margin: -33px 0 0 -33px; }
+  .tj-totems.lion .tj-totem:not(.tj-lionTotem) { margin: 0 -7px; }
+
+  .tj-progressHint { bottom: 40px; }
+  .tj-progressHint span { font-size: clamp(16px, 1.2vw, 19px); }
+  .tj-progressHint svg { width: 22px; height: 22px; margin-top: 6px; }
+  .tj-progressHint::before { width: 440px; height: 130px; }
+}
+@keyframes tj-capsuleDropLg { 0% { transform: translate(-50%, 27px); opacity: 0; } 20% { opacity: 1; } 70% { transform: translate(-50%, 6px); opacity: 1; } 100% { transform: translate(-50%, 0); opacity: 0; } }
