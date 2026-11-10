@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
 import { MailtoFallback } from "@/components/site/MailtoFallback";
 import { TrackPlayer } from "@/components/site/TrackPlayer";
-import { Download } from "lucide-react";
+import { Download, Volume2, VolumeX } from "lucide-react";
 import {
   ARTIST_NAME,
   BIO,
@@ -40,15 +40,18 @@ const EPK_CROWD = [
 ];
 const EPK_GALLERY = [
   { src: "/trev-epk-live-01.jpg", alt: "TREV performing live, festival main stage", press: "/press/trev-press-02.jpg?v=2" },
+  { video: "/trev-epk-clip-01.mp4", poster: "/trev-epk-clip-01.jpg", alt: "Video: a festival crowd cheering for TREV" },
   { src: "/trev-epk-live-02.jpg", alt: "TREV on the festival main stage", press: "/press/trev-press-03.jpg?v=2" },
   { src: "/trev-epk-live-03.jpg", alt: "The view from the stage over a festival crowd", press: "/press/trev-press-04.jpg?v=2" },
   { src: "/trev-epk-live-04.jpg", alt: "TREV with a full house after an indoor show", press: "/press/trev-press-05.jpg?v=2" },
   { src: "/trev-epk-live-05.jpg", alt: "TREV singing a duet on stage", press: "/press/trev-press-06.jpg?v=2" },
+  { video: "/trev-epk-clip-02.mp4", poster: "/trev-epk-clip-02.jpg", alt: "Video: TREV performing in the middle of the crowd at a house show" },
   { src: "/trev-epk-live-06.jpg", alt: "TREV singing outdoors in golden light", press: "/press/trev-press-07.jpg?v=2" },
   { src: "/trev-epk-live-07.jpg", alt: "TREV with a festival crowd after his set", press: "/press/trev-press-08.jpg?v=2" },
   { src: "/trev-epk-live-08.jpg", alt: "TREV and fellow artists on stage, festival crowd behind", press: "/press/trev-press-09.jpg?v=2" },
   { src: "/trev-epk-live-09.jpg", alt: "TREV and fellow artists on stage with the crowd", press: "/press/trev-press-10.jpg?v=2" },
   { src: "/trev-epk-live-10.jpg", alt: "TREV and friends on stage at sunset, festival crowd behind", press: "/press/trev-press-11.jpg?v=2" },
+  { video: "/trev-epk-clip-03.mp4", poster: "/trev-epk-clip-03.jpg", alt: "Video: a crowd around the fire at night" },
   { src: "/trev-epk-live-11.jpg", alt: "TREV with the crowd in a festival tent at night", press: "/press/trev-press-12.jpg?v=2" },
   { src: "/trev-epk-sign-2.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-13.jpg?v=2" },
   { src: "/trev-epk-01.jpg", alt: "TREV in Sedona", press: "/press/trev-press-14.jpg?v=2" },
@@ -62,6 +65,66 @@ const EPK_GALLERY = [
 const PRESS_ZIP = "/press/trev-press-photos.zip?v=2";
 
 // a photo that downloads full size when tapped, a small download mark in its corner
+// A short clip in the gallery: plays silently on a loop while it's on screen (paused off screen); the speaker
+// in its corner turns its sound on (and any other clip's off).
+const GalleryVideo = ({ g, className = "" }) => {
+  const ref = useRef(null);
+  const [muted, setMuted] = useState(true);
+  // (set on the element itself too: iOS autoplays only a clip that's muted as it starts)
+  useEffect(() => {
+    if (ref.current) ref.current.muted = muted;
+  }, [muted]);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || typeof IntersectionObserver === "undefined") return undefined;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) v.play().catch(() => {});
+      else v.pause();
+    }, { threshold: 0.25 });
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return undefined;
+    const onOther = (e) => { if (e.detail !== v) setMuted(true); };
+    window.addEventListener("epk-clip-sound", onOther);
+    return () => window.removeEventListener("epk-clip-sound", onOther);
+  }, []);
+  const toggle = () => {
+    const v = ref.current;
+    const next = !muted;
+    setMuted(next);
+    if (v && !next) {
+      window.dispatchEvent(new CustomEvent("epk-clip-sound", { detail: v }));
+      v.play().catch(() => {});
+    }
+  };
+  return (
+    <div data-testid="gallery-video" className={`relative overflow-hidden rounded-lg border border-white/10 bg-black/40 ${className}`}>
+      <video
+        ref={ref}
+        src={g.video}
+        poster={g.poster}
+        muted={muted}
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={g.alt}
+        className="block h-auto w-full"
+      />
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={muted ? "Turn this clip's sound on" : "Turn this clip's sound off"}
+        className="absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white/85 transition-colors hover:bg-[var(--sm-gold)] hover:text-black"
+      >
+        {muted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+      </button>
+    </div>
+  );
+};
+
 const PressPhoto = ({ g, className = "" }) => (
   <a
     href={g.press}
@@ -439,11 +502,15 @@ export default function EPK() {
             </div>
           ))}
           <div data-testid="epk-gallery" className="columns-2 gap-2 sm:columns-3 lg:columns-2">
-            {EPK_GALLERY.map((g) => (
-              <PressPhoto key={g.src} g={g} className="mb-2 break-inside-avoid" />
-            ))}
+            {EPK_GALLERY.map((g) =>
+              g.video ? (
+                <GalleryVideo key={g.video} g={g} className="mb-2 break-inside-avoid" />
+              ) : (
+                <PressPhoto key={g.src} g={g} className="mb-2 break-inside-avoid" />
+              ),
+            )}
           </div>
-          <p className="font-body mt-2 text-[0.65rem] text-white/35">Tap any photo to download it full size.</p>
+          <p className="font-body mt-2 text-[0.65rem] text-white/35">Tap any photo to download it full size. Tap a clip's speaker for sound.</p>
         </Reveal>
 
         <div className="order-1 text-center lg:order-2 lg:text-left">
