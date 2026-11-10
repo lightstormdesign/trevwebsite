@@ -286,7 +286,6 @@ const FLOWER = (() => {
 // "quiet" (small or no photo, centred, still). lay: "left"/"right" (the photo's side on a desktop) or "stack".
 // mood: the light behind it (aboutBg). Body lines: text, { em } (a held line), { reveal } (the story pauses on it),
 // { statement }, { quote, cite }.
-// Chapter 4's photo (TREV on the couch) goes in as story-14-couch.webp; until then the chapter has none.
 const STORY = [
   { kind: "open", eyebrow: "About", title: "My Story", media: "story-00-heart.webp", w: 1400, h: 933, pos: "44% 55%", mood: "open",
     alt: "TREV in Sedona, his hand over his heart" },
@@ -308,7 +307,7 @@ const STORY = [
     "Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
     "The net was a mirage.",
     { em: "And maybe I was too." }] },
-  { n: 4, title: "Rock Bottom", media: null, w: 0, h: 0, mode: "quiet", lay: "stack", mood: "low",
+  { n: 4, title: "Rock Bottom", media: "story-14-couch.webp", w: 1290, h: 1714, mode: "quiet", lay: "stack", mood: "low",
     alt: "TREV on a couch in a hoodie and glasses", body: [
     "I gave up on music and ended up in my mom’s basement, working night shifts at the post office.",
     "My dream was dead for a second time.",
@@ -1951,8 +1950,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     ensure(); const max = sizes.scrollMax, p = max > 0 ? scrollNow / max : 0;
     if (p > 0.02 && p < 0.97) idleT = later(() => {
       // in the world it names what's below; inside the story, between chapters, it just says to go on
-      if (sizes.scrollMax - scrollNow < Hs() * 1.2) return;   // (the end of the story: nothing further)
-      const label = scrolled() < ABOUT_FADE_TO ? "My Story" : "Keep scrolling";
+      if (scrolled() >= ABOUT_FADE_FROM) return;   // (the story is a page you read: no cue over its words)
+      const label = "My Story";
       if (progHintLabel.textContent !== label) progHintLabel.textContent = label;
       progHint.classList.add("show");
     }, PROGRESS_IDLE_MS);

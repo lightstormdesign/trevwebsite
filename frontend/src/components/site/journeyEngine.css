@@ -228,6 +228,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
   -webkit-mask: linear-gradient(180deg, transparent, #000 13%, #000 87%, transparent); mask: linear-gradient(180deg, transparent, #000 13%, #000 87%, transparent); }
 /* the quiet ones: smaller */
 .mode-quiet .ab-fig { width: min(72vw, 420px); }
+.ab-ch[data-ch="4"] .ab-fig { width: min(64vw, 340px); }
 
 /* ---------- each moment ---------- */
 .ab-open { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 0 13svh; }
@@ -296,6 +297,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
   .ab-ch.lay-stack .ab-cta { align-items: center; }
   .ab-ch.lay-stack.mode-b .ab-fig { width: min(76vw, 1100px, calc(74svh * var(--r))); }
   .ab-ch.mode-quiet .ab-fig { width: min(46vw, 640px, calc(60svh * var(--r))); }
+  .ab-ch[data-ch="4"] .ab-fig { width: min(30vw, 420px, calc(56svh * var(--r))); }
   .ab-ch.mode-quiet .ab-text { max-width: 34rem; }
   .ab-ch[data-ch="6"] .ab-fig { width: min(40vw, calc(72svh * var(--r))); }
   .ab-ch[data-ch="2"] .ab-fig { width: min(30vw, 440px); }
