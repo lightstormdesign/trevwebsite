@@ -356,7 +356,7 @@ const STORY_HINT_AT = 0.82;   // "My Story" rises on its own from here in the de
 const STORY_HOLD_SVH = 65, STEP_SVH = 70, TAIL_SVH = 40;
 const STORY_START_SVH = DESCENT_SVH + STORY_HOLD_SVH;
 
-const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Community", "/community"], ["Tour", "/tour"],
+const NAV = [["Home", "/"], ["About", "/about"], ["Music", "/music"], ["Gallery", "/gallery"], ["Community", "/community"], ["Tour", "/tour"],
   ["Shop", "/shop"], ["EPK", "/epk"], ["Contact", "/contact"]];
 
 const clamp01 = (t) => Math.min(1, Math.max(0, t));

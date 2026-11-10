@@ -9,6 +9,7 @@ import Music from "@/pages/Music";
 import Tour from "@/pages/Tour";
 import Community from "@/pages/Community";
 import Shop from "@/pages/Shop";
+import Gallery from "@/pages/Gallery";
 import { TrackingPixel } from "@/components/site/TrackingPixel";
 import { GlowCursor } from "@/components/site/GlowCursor";
 import { SacredGeometryField } from "@/components/site/SacredGeometryField";
@@ -45,6 +46,7 @@ function App() {
           <Route path="/epk" element={<EPK />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/music" element={<Music />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/tour" element={<Tour />} />
           <Route path="/community" element={<Community />} />
           <Route path="/shop" element={<Shop />} />

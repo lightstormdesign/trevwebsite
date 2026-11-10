@@ -10,6 +10,7 @@ export const NAV_LINKS = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Music", to: "/music" },
+  { label: "Gallery", to: "/gallery" },
   { label: "Community", to: "/community" },
   { label: "Tour", to: "/tour" },
   { label: "Shop", to: "/shop" },
