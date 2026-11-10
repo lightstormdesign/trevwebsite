@@ -213,7 +213,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-scroller.tj-aboutUp { z-index: 36; }
 
 /* ---------- the page ---------- */
-.tj-about { position: relative; color: #f1e9d8; padding-bottom: 14svh; overflow-x: clip; }
+.tj-about { position: relative; color: #f1e9d8; padding-bottom: 30svh; overflow-x: clip; }   /* (room for the texts card under the last line) */
 /* while the story is up: a soft dark at the top and bottom edges, so words pass under the header and the scroll
    line cleanly */
 .tj-aboutEdge { position: fixed; left: 0; right: 0; z-index: 37; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
@@ -227,6 +227,18 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
   -webkit-mask: radial-gradient(ellipse 92% 80% at 50% 48%, #000 46%, rgba(0,0,0,.55) 72%, transparent 100%); mask: radial-gradient(ellipse 92% 80% at 50% 48%, #000 46%, rgba(0,0,0,.55) 72%, transparent 100%); }
 @media (min-aspect-ratio: 1/1) { .tj-aboutBg .photo { background-position: center, 50% 42%;
   -webkit-mask: radial-gradient(ellipse 70% 86% at 50% 46%, #000 44%, rgba(0,0,0,.5) 74%, transparent 100%); mask: radial-gradient(ellipse 70% 86% at 50% 46%, #000 44%, rgba(0,0,0,.5) 74%, transparent 100%); } }
+/* the story's song: a small card under MY STORY */
+.ab-play { pointer-events: auto; margin: 22px auto 0; display: inline-flex; align-items: center; gap: 10px; padding: 9px 18px 9px 12px; border-radius: 999px; cursor: pointer;
+  background: rgba(10,8,6,.55); border: 1px solid rgba(231,201,143,.45); color: #f2dca5; font: 500 11.5px/1 var(--tj-display); letter-spacing: .22em; text-transform: uppercase;
+  box-shadow: 0 4px 20px rgba(0,0,0,.35); transition: border-color .3s ease, background .3s ease; }
+.ab-play:hover { border-color: rgba(246,220,150,.85); background: rgba(10,8,6,.7); }
+.ab-play .ic { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(140deg, #f6e2aa, #c09245); position: relative; flex: none; }
+.ab-play .ic::before { content: ""; position: absolute; left: 8.5px; top: 6.5px; border-left: 7px solid #1a1208; border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+.ab-play.on .ic::before { left: 7.5px; top: 7px; width: 2.5px; height: 8px; border: 0; background: #1a1208; box-shadow: 4.5px 0 0 #1a1208; }
+/* (in the sky above his head, clear of his face and the title) */
+.ab-open .ab-play { position: absolute; left: 50%; top: 22svh; margin: 0; transform: translateX(-50%); }
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) { .ab-play { font-size: 13px; padding: 11px 22px 11px 13px; } .ab-play .ic { width: 26px; height: 26px; }
+  .ab-play .ic::before { left: 10px; top: 8px; border-left-width: 8px; border-top-width: 5px; border-bottom-width: 5px; } .ab-play.on .ic::before { left: 9px; top: 8.5px; height: 9px; } }
 .ab-openAlt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* soft, edgeless darkness behind the words: the artwork stays, the words read */
@@ -290,7 +302,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .ab-ch[data-ch="4"] .ab-fig img { filter: brightness(.9) saturate(.92); }
 
 /* ---------- each moment (phone first) ---------- */
-.ab-open { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 54svh; }
+.ab-open { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 72svh; }
 .ab-openText { text-align: center; padding: 0 18px; }
 .ab-eyebrow { display: block; margin-bottom: 12px; font: 400 12px/1 var(--tj-sans); letter-spacing: .5em; padding-left: .5em; text-transform: uppercase; color: rgba(239,230,214,.82);
   text-shadow: 0 1px 10px rgba(0,0,0,.8); }
@@ -341,7 +353,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
   .ab-body p { font-size: 20px; line-height: 1.46; }
   .ab-metal { font-size: clamp(34px, 2.8vw, 42px); }
   .ab-title-xl { font-size: clamp(64px, 7vw, 110px); }
-  .ab-open { padding-top: 56svh; }
+  .ab-open { padding-top: 70svh; }
   .ab-prologue { flex-direction: row; justify-content: center; gap: 6vw; padding: 18svh 6vw 2svh; }
   .ab-prologue .ab-fig { flex: 0 0 auto; width: min(30vw, calc(70svh * var(--r))); }
   .ab-line { margin: 0; text-align: left; max-width: 15ch; font-size: clamp(40px, 3.6vw, 56px); }
@@ -396,7 +408,6 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
   animation: tj-chevron 1.9s ease-in-out infinite; }
 
 /* the text-list bubble, bottom left (Burnell's announcement bubble) */
-.tj-bubble { display: none !important; }   /* (the high-vibe texts pop-up: taken off) */
 .tj-bubble { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 44;
   display: flex; align-items: center; gap: 11px; padding: 11px 36px 11px 12px; border-radius: 18px; max-width: min(330px, calc(100vw - 32px));
   background: rgba(10,8,6,.78); border: 1px solid rgba(231,201,143,.35);   /* no backdrop blur: it re-blurs the moving world each frame */

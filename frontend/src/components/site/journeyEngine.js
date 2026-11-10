@@ -351,10 +351,9 @@ const STORY = [
     "But perhaps the greatest story ever told isn’t about becoming someone worthy of the Kingdom.",
     "It’s about remembering that we were never separate from it.",
     { quote: "“Except ye be converted, and become as little children, ye shall not enter into the kingdom of heaven.”", cite: "Matthew 18:3 (KJV)" },
-    { reveal: "The Kingdom is within.", last: true }],
-    cta: "Get High-Vibe Texts", ctaNote: "Unreleased music, new shows and messages from TREV, first." },
+    { reveal: "The Kingdom is within.", last: true }] },
 ];
-const BUBBLE_AFTER_MS = 10000;
+const BUBBLE_AFTER_MS = 20000;   // the texts card rises this long after the world's bottom is reached (not over the story)
 const ROAR_MS = 3200;
 // the climax: everything settles (FOCUS_MS) before the lion may roar; the finale clip would start
 // FINALE_AFTER_MS into the roar, once the shake and the ripples have settled on the still frame
@@ -385,7 +384,7 @@ const THIN_FRAME = `<div class="tj-thinFrame" aria-hidden="true">
     <path d="M2 37 H20 L25 30 H31 L34 19 L39 17 L41 9 H48 L50 17 L54 19 L57 30 H66 L70 22 H79 L83 30 H96 L102 37 H130" stroke-width="1.3"/>
     <path d="M36 30 H52 M72 30 H80" stroke-width=".8" opacity=".5"/></svg></div>`;
 const BISON_AUTO_MS = [2600, 2800];   // after the fifth totem (the bison itself / another animal), its moment played: the bison turns to you
-const INTRO_FADE_MS = 5000;   // the intro fades out from the fifth totem's tap, as the lion comes
+const INTRO_FADE_MS = 3000;   // the intro fades out (eased, sound.fadeIntro) over this from the fifth totem, as the lion comes
 const ALIGN_MS = 600;
 // the roar's rings over the video: the pulse rises RING_PULSES more times, RING_PULSE_GAP_MS apart, from the same
 // spot (no camera tracking); full until 2.51 s, gone by 4.01 s on the video's own clock (FINALE.rings)
@@ -552,7 +551,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     </div>
     <a class="tj-bubble" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer" aria-label="Get high-vibe texts from TREV">
       <span class="tj-bubbleIcon" aria-hidden="true">✦</span>
-      <span class="tj-bubbleText"><b>High-vibe texts from TREV</b><span>Unreleased music &amp; new shows, first</span></span>
+      <span class="tj-bubbleText"><b>Receive high-vibe texts</b><span>Unreleased music, new shows and messages from TREV, first.</span></span>
       <button class="tj-bubbleClose" type="button" aria-label="Close">&times;</button>
     </a>
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
@@ -1164,7 +1163,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     for (const c of STORY) {
       if (c.kind === "open") {   // (its photograph is in the background: aboutBg .photo)
         html += `<section class="ab-open" data-mood="${c.mood}" aria-label="About"><span class="ab-openAlt" role="img" aria-label="${c.alt}"></span>`
-          + `<div class="ab-openText ab-rv"><span class="ab-eyebrow">${c.eyebrow}</span><h2 class="ab-metal ab-title-xl">${c.title}</h2></div></section>`;
+          + `<div class="ab-openText ab-rv"><span class="ab-eyebrow">${c.eyebrow}</span><h2 class="ab-metal ab-title-xl">${c.title}</h2></div>`
+          // a small card: the story's own song while you read (unnamed)
+          + `<button class="ab-play" type="button" aria-pressed="false"><span class="ic" aria-hidden="true"></span><span class="lb">Play audio</span></button></section>`;
       } else if (c.kind === "prologue") {
         html += `<section class="ab-prologue" data-mood="${c.mood}">${fig(c, "archival")}<p class="ab-line ab-rv">${c.line}</p></section>`;
       } else {
@@ -1177,6 +1178,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       }
     }
     aboutEl.innerHTML = html;
+    const play = aboutEl.querySelector(".ab-play");
+    if (play) {
+      const paint = () => { const on = sound.storyPlaying; play.classList.toggle("on", on); play.setAttribute("aria-pressed", String(on));
+        play.querySelector(".lb").textContent = on ? "Pause audio" : "Play audio"; };
+      on(play, "click", (e) => { e.preventDefault(); sound.story(); paint(); });
+      off.push(sound.subscribe(paint)); paint();
+    }
     const v = aboutEl.querySelector(".ab-vid video");
     if (v) { v.muted = true; showWhenPlaying(v); aboutVideo = v; }
     const reduce = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1505,7 +1513,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (!climaxed && TOTEMS.every((t) => awake.has(t))) later(() => { if (bisonReady()) bisonMoment(); }, 2500);
     if (climaxed) { totemRow.classList.add("lion"); lionMode = true; root.classList.add("lion"); later(() => finale.prepare(), 8000); sound.preload(); }   // already awake (the finale loads once the world has settled)
     paintTotems();   // (the bison's pose and its half-lit totem, for a visit already under way)
-    if (!bubbleClosed) later(() => { if (!bubbleClosed) bubble.classList.add("show"); }, BUBBLE_AFTER_MS);
+    // (the texts card: see bubbleTick)
     for (const c of CLOUDS) c.gone = false;
     worldStage.style.visibility = "visible";
     if (!aboutEl.parentNode) {
@@ -1999,6 +2007,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // just before the world settles (the end of the descent, until the story comes up), "My Story" and its
   // arrow rise on their own and breathe, so nobody thinks the world is the end
   let hintNear = false;
+  // "Receive high-vibe texts": a small card, bottom left. It rises BUBBLE_AFTER_MS after the bottom of the world
+  // is reached, if they aren't reading the story by then; and at the end of the story. Closed, it stays closed.
+  let bottomAt = 0, bubbleDue = false;
+  function bubbleTick() {
+    if (bubbleClosed) return;
+    const now = performance.now();
+    if (!bottomAt && cur / DESCENT_SVH >= 0.97) bottomAt = now;
+    if (bottomAt && !bubbleDue && now - bottomAt > BUBBLE_AFTER_MS) bubbleDue = true;
+    const inStory = cur > ABOUT_FADE_FROM, atEnd = inStory && sizes.scrollMax - scrollNow < Hs() * 0.9;
+    const want = (bubbleDue && !inStory) || atEnd;
+    if (want !== bubble.classList.contains("show")) bubble.classList.toggle("show", want);
+  }
   function storyHint() {
     const near = phase === "world" && cur / DESCENT_SVH > STORY_HINT_AT && cur < ABOUT_FADE_FROM + 20;
     if (near === hintNear) return;
@@ -2082,7 +2102,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (!prog.classList.contains("on")) prog.classList.add("on");
     { const pd = cur / DESCENT_SVH, on = totemRow.classList.contains("show");   // (from 85% of the way down; away again above 80%)
       if (!on && pd >= TOTEMS_FROM) totemRow.classList.add("show"); else if (on && pd < TOTEMS_FROM - 0.05) totemRow.classList.remove("show"); }
-    progress(); storyHint();
+    progress(); storyHint(); bubbleTick();
     const inStory = cur > ABOUT_FADE_FROM + 10;
     if (inStory !== totemRow.classList.contains("away")) totemRow.classList.toggle("away", inStory);   // the lion (and totems) fade out over the story
     target = scrolled();

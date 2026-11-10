@@ -11,9 +11,9 @@
 //    "K-ingdom", which lands with the bass LION_DROP_S after the tap: the roar
 // Each cut has its own player, the lion's loaded ahead, so it starts at once in the tap (swapping one
 // player's file makes iPhone start late).
-// The song from Tap to Enter on (and on every page after): "We Are The I Am", from its very start, looping
-// (70% volume baked in). "Kingdom" stays the lion's (LION_SRC, its beat map).
-const SRC = "/journey/trev-intro-we-are-the-i-am.m4a?v=1";   // bump with the file (phones cache it)
+const SRC = "/journey/trev-kingdom-intro.m4a?v=3";   // bump with the file (phones cache it)
+// The About story's own song (its "Play audio" card): We Are The I Am, from the top, once (70% level baked in)
+const STORY_SRC = "/journey/trev-story-song.m4a?v=1";
 let LION_SRC = "/journey/trev-kingdom-lion.m4a?v=5"; const LION_FROM = 26.55;   // (through the hook: it fades out across the breakdown)
 export const LION_HOOK_END_S = 28.4;   // into the lion cut: the hook is over (the fade is nearly done)
 export const LION_DROP_S = 0.94;   // into the lion cut: "K-ingdom" and the bass, together (27.49s in the song): the roar
@@ -21,7 +21,7 @@ const BEAT_MAP = "/journey/trev-kingdom-beat.bin";
 const BEAT_FPS = 30;
 export const DROP_AT = 27.47; // seconds into the song: the first bass note (nothing reacts to the beat before it)
 
-let audio = null, lionAudio = null, introAfterLion = true;
+let audio = null, lionAudio = null, storyAudio = null, introAfterLion = true;
 let started = false;
 let beatMap = null;
 const subs = new Set();
@@ -49,16 +49,37 @@ function lionEl() {
   lionAudio.addEventListener("ended", () => { if (!userMuted && introAfterLion) sound.start(); else { mode = "intro"; started = false; emit(); } });   // the hook is over: the intro loops on again (unless the finale ends in silence)
   return lionAudio;
 }
-const cur = () => (mode === "lion" ? lionEl() : el());
+function storyEl() {
+  if (storyAudio) return storyAudio;
+  storyAudio = new Audio();
+  storyAudio.preload = "metadata";
+  storyAudio.src = STORY_SRC;
+  ["play", "pause", "ended"].forEach((t) => storyAudio.addEventListener(t, emit));
+  return storyAudio;
+}
+const cur = () => (mode === "lion" ? lionEl() : mode === "story" ? storyEl() : el());
 function emit() { subs.forEach((f) => f()); }
 
+// a slow, cinematic fade: it eases away (gently at first, then settling into silence), not a straight line
+const fadeCurve = (t) => { t = Math.min(1, Math.max(0, t)); const e = t * t * (3 - 2 * t); return Math.pow(1 - e, 1.6); };
+
 export const sound = {
-  get playing() { const a = mode === "lion" ? lionAudio : audio; return !!a && !a.paused; },
+  get playing() { const a = mode === "lion" ? lionAudio : mode === "story" ? storyAudio : audio; return !!a && !a.paused; },
+  // the About story's song: the card's play / pause (the intro or the lion's song makes way for it)
+  get storyPlaying() { return mode === "story" && !!storyAudio && !storyAudio.paused; },
+  story() {
+    const s = storyEl();
+    if (mode === "story" && !s.paused) { s.pause(); userMuted = true; return Promise.resolve(); }
+    if (audio) audio.pause(); if (lionAudio) lionAudio.pause();
+    mode = "story"; started = true; userMuted = false;
+    if (s.ended) { try { s.currentTime = 0; } catch (e) { /* from the top anyway */ } }
+    return s.play().catch(() => {});
+  },
   get beckoning() { return beckoning && !this.playing; },
   subscribe(f) { subs.add(f); return () => subs.delete(f); },
   // from the very start (Tap to Enter, or the speaker before anything has played)
   start() {
-    if (lionAudio) lionAudio.pause();
+    if (lionAudio) lionAudio.pause(); if (storyAudio) storyAudio.pause();
     mode = "intro";
     const a = el();
     started = true; userMuted = false;
@@ -90,7 +111,7 @@ export const sound = {
   lion() {
     if (userMuted) return;
     const l = lionEl();
-    if (audio) audio.pause();
+    if (audio) audio.pause(); if (storyAudio) storyAudio.pause();
     mode = "lion"; started = true;
     try { l.currentTime = 0; } catch (e) { /* starts at 0 anyway */ }
     l.play().catch(() => {});   // (refused: the next touch starts it, sound.kick)
@@ -105,8 +126,8 @@ export const sound = {
     const done = () => { a.pause(); a.__fading = false; };
     a.volume = 0.999;
     if (a.volume === 0.999) {   // the volume can be set (not iPhone): a straight fade, 100% to 0
-      const t0 = performance.now(), step = () => { const k = 1 - (performance.now() - t0) / ms;
-        if (k <= 0 || mode !== "intro") { done(); a.volume = 1; return; } a.volume = Math.max(0, k); requestAnimationFrame(step); };
+      const t0 = performance.now(), step = () => { const t = (performance.now() - t0) / ms;
+        if (t >= 1 || mode !== "intro") { done(); a.volume = 1; return; } a.volume = Math.max(0, fadeCurve(t)); requestAnimationFrame(step); };
       return requestAnimationFrame(step);
     }
     // iPhone ignores .volume: the fade runs through Web Audio. It's only switched over once Web Audio
@@ -124,7 +145,8 @@ export const sound = {
         if (ctx.state !== "running" || mode !== "intro" || a.paused) return false;
         begun = true; unlisten();
         const g = ctx.createGain(); (a.__src || (a.__src = ctx.createMediaElementSource(a))).connect(g); g.connect(ctx.destination);
-        g.gain.setValueAtTime(1, ctx.currentTime); g.gain.linearRampToValueAtTime(0, ctx.currentTime + ms / 1000);
+        const curve = new Float32Array(64); for (let i = 0; i < 64; i++) curve[i] = fadeCurve(i / 63);
+        g.gain.setValueCurveAtTime(curve, ctx.currentTime, ms / 1000);
         // once it's silent: stopped, and straight through again (so the speaker can bring it back at full volume)
         setTimeout(() => { done(); try { a.__src.disconnect(); g.disconnect(); a.__src.connect(ctx.destination); } catch (e) { /* gone */ } }, ms + 60);
         return true;
@@ -143,7 +165,7 @@ export const sound = {
   lionTime() { return mode === "lion" && lionAudio && !userMuted ? lionAudio.currentTime : null; },
   // the finale takes the sound over: whatever is playing stops (the speaker's mute is kept)
   get muted() { return userMuted; },
-  hush() { if (audio) audio.pause(); if (lionAudio) lionAudio.pause(); },
+  hush() { if (audio) audio.pause(); if (lionAudio) lionAudio.pause(); if (storyAudio) storyAudio.pause(); },
   setBeckon(on) { beckoning = on; emit(); },
   // the lion's tap plays this instead of the lion's cut (the finale video's own edit of the song,
   // which starts the same way: "Welcome to my", the K at LION_DROP_S)
