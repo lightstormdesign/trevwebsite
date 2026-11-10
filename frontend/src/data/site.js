@@ -137,6 +137,44 @@ export const MUSIC_PLATFORM_LINKS = [
   { label: "Bandcamp", href: "https://trevworld.bandcamp.com" },
 ];
 
+// EPK: the pills under the player (the same artist links as above)
+export const STREAMING_LINKS = MUSIC_PLATFORM_LINKS;
+
+// EPK player: his own files (not Spotify's embed: 30-second previews to anyone logged out, no skip).
+// duration (seconds) shows each song's length before it loads. TODO: TREV's other songs (MP3s) and the
+// cover to use for all of them; "Kingdom" (the full song, already on the site) until then.
+export const EPK_TRACKS = [
+  { title: "Kingdom", src: "/journey/trev-kingdom.m4a?v=3", duration: 221 },
+];
+export const ALBUM_COVER = "/trev-epk-cover.jpg";
+
+// EPK video: a live performance (YouTube) leads once there is one; until then the highlight reel
+// (public/trev-epk-reel.mp4, hidden while it doesn't exist). { youtubeId: "...", title: "Live at ..." }
+export const EPK_PERFORMANCE_VIDEO = null;
+
+// EPK press quotes: { quote, source, href? }. The section shows once there's at least one.
+export const PRESS_QUOTES = [];
+
+// EPK stage plot & tech rider.
+// MOCKUP, to confirm with TREV: a sensible draft for a conscious hip-hop / spoken-word set (vocal over
+// tracks, optional live guitar and percussion). Replace with his real setup.
+export const TECH_RIDER = {
+  lineup: "TREV on vocals over tracks, or with up to two live musicians (guitar / percussion)",
+  setLength: "30–75 minutes",
+  changeover: "15 minutes changeover · 20 minutes soundcheck",
+  inputs: [
+    { ch: 1, source: "Lead vocal", mic: "Shure SM58 or Beta 58, boom stand" },
+    { ch: 2, source: "Backing tracks L", mic: "DI from laptop / interface" },
+    { ch: 3, source: "Backing tracks R", mic: "DI from laptop / interface" },
+    { ch: 4, source: "Guitar", mic: "DI (band shows)" },
+    { ch: 5, source: "Percussion", mic: "SM57 or similar (band shows)" },
+    { ch: 6, source: "Spare vocal / host mic", mic: "SM58, straight stand" },
+  ],
+  monitors: "One wedge for TREV, center front (one more per live musician)",
+  venueProvides: ["PA system and sound engineer", "Vocal mic, boom stand and spare", "Stereo DI for tracks", "Monitor wedge(s)", "Small table for the laptop, side of stage", "Power at center stage and at the table", "Water on stage"],
+  artistBrings: ["Laptop and audio interface for tracks", "Instrument cables", "Musicians' own instruments (band shows)"],
+};
+
 // Featured release: "Kingdom". The Music page plays a 20-second preview of the official video, then
 // asks people to "Get the full video" via the Laylo list (LAYLO_URL), which gates the full video.
 // File: public/trev-kingdom-preview.mp4 (TREV's "Kingdom official preview"), poster: trev-kingdom-preview.jpg.

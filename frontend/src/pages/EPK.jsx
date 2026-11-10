@@ -3,6 +3,8 @@ import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Reveal } from "@/components/site/Reveal";
 import { MailtoFallback } from "@/components/site/MailtoFallback";
+import { TrackPlayer } from "@/components/site/TrackPlayer";
+import { Download } from "lucide-react";
 import {
   ARTIST_NAME,
   BIO,
@@ -19,24 +21,125 @@ import {
   BOOKING_EMAIL,
   FORMSPREE_ENDPOINT,
   SOCIALS,
+  STREAMING_LINKS,
+  EPK_TRACKS,
+  ALBUM_COVER,
+  EPK_PERFORMANCE_VIDEO,
+  PRESS_QUOTES,
+  TECH_RIDER,
 } from "@/data/site";
 
 // EPK gallery — a mix of live, travel, studio and Sedona shots (natural aspect, masonry columns).
 // The "Kingdom" video stills are limited to a few strong ones, never mid-verse.
 // Every crowd/live photo goes here (shown first, full width). Add more as they come in.
+// Each also downloads full size (press: public/press, up to 3000px JPGs, and all of them in one zip).
 const EPK_CROWD = [
-  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show" },
+  { src: "/trev-community-crowd.jpg", alt: "TREV with the crowd at a house show", press: "/press/trev-press-01.jpg" },
 ];
 const EPK_GALLERY = [
-  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona" },
-  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica" },
-  { src: "/trev-epk-sign.jpg", alt: "TREV holding a sign: The Kingdom Is Within You" },
-  { src: "/trev-epk-beach.jpg", alt: "TREV on the beach" },
-  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio" },
-  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona" },
-  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona" },
-  { src: "/trev-epk-11.jpg", alt: "TREV at sunset" },
+  { src: "/trev-epk-01.jpg", alt: "TREV in Sedona", press: "/press/trev-press-02.jpg" },
+  { src: "/trev-epk-costa-rica.jpg", alt: "TREV in Costa Rica", press: "/press/trev-press-03.jpg" },
+  { src: "/trev-epk-sign.jpg", alt: "TREV holding a sign: The Kingdom Is Within You", press: "/press/trev-press-04.jpg" },
+  { src: "/trev-epk-beach.jpg", alt: "TREV on the beach", press: "/press/trev-press-05.jpg" },
+  { src: "/trev-story-03-the-room.jpg", alt: "TREV in his studio", press: "/press/trev-press-06.jpg" },
+  { src: "/trev-epk-09.jpg", alt: "TREV sitting above Sedona", press: "/press/trev-press-07.jpg" },
+  { src: "/trev-epk-02.jpg", alt: "TREV in prayer, Sedona", press: "/press/trev-press-08.jpg" },
+  { src: "/trev-epk-11.jpg", alt: "TREV at sunset", press: "/press/trev-press-09.jpg" },
 ];
+const PRESS_ZIP = "/press/trev-press-photos.zip";
+
+// a photo that downloads full size when tapped, a small download mark in its corner
+const PressPhoto = ({ g, className = "" }) => (
+  <a
+    href={g.press}
+    download
+    aria-label={`Download this photo full size: ${g.alt}`}
+    data-testid="press-photo"
+    className={`group relative block overflow-hidden rounded-lg border border-white/10 bg-black/40 ${className}`}
+  >
+    <img src={g.src} alt={g.alt} className="block h-auto w-full" loading="lazy" />
+    <span className="absolute bottom-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white/85 transition-colors group-hover:bg-[var(--sm-gold)] group-hover:text-black">
+      <Download size={12} />
+    </span>
+  </a>
+);
+
+// The stage plot: the stage from above, the audience at the bottom. TREV center; the live musicians'
+// spots (dashed) for band shows; the tracks table stage left.
+const StagePlot = () => {
+  const gold = "rgba(243,212,142,0.9)";
+  const dim = "rgba(255,255,255,0.38)";
+  const person = (x, label, sub, dashed) => (
+    <g>
+      <circle cx={x} cy={96} r={20} fill={dashed ? "none" : "rgba(227,163,92,0.16)"} stroke={dashed ? dim : gold} strokeDasharray={dashed ? "4 4" : undefined} />
+      <text x={x} y={132} textAnchor="middle" fill={dashed ? dim : gold} fontSize="10" letterSpacing="1">{label}</text>
+      <text x={x} y={145} textAnchor="middle" fill={dim} fontSize="8.5">{sub}</text>
+      <path d={`M${x - 14} 166 h28 l-5 10 h-18 z`} fill="none" stroke={dashed ? dim : gold} strokeDasharray={dashed ? "3 3" : undefined} />
+    </g>
+  );
+  return (
+    <svg viewBox="0 0 320 222" className="w-full" role="img" aria-label="Stage plot: TREV center, guitar and percussion either side for band shows, tracks table stage left">
+      <rect x="6" y="6" width="308" height="192" rx="10" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.15)" />
+      <text x="160" y="24" textAnchor="middle" fill={dim} fontSize="8.5" letterSpacing="2">UPSTAGE</text>
+      {person(75, "GUITAR", "DI (band shows)", true)}
+      {person(160, "TREV", "vocal mic", false)}
+      {person(245, "PERCUSSION", "1 mic (band shows)", true)}
+      <rect x="18" y="38" width="46" height="22" rx="3" fill="none" stroke={gold} />
+      <text x="41" y="52" textAnchor="middle" fill={gold} fontSize="7.5">TRACKS</text>
+      <text x="41" y="72" textAnchor="middle" fill={dim} fontSize="7">stereo DI</text>
+      <text x="160" y="58" textAnchor="middle" fill={gold} fontSize="9">⚡ power</text>
+      <text x="41" y="32" textAnchor="middle" fill={gold} fontSize="8">⚡</text>
+      <text x="160" y="214" textAnchor="middle" fill={dim} fontSize="8.5" letterSpacing="2">AUDIENCE</text>
+    </svg>
+  );
+};
+
+const TechRider = () => (
+  <details data-testid="tech-rider" className="group mt-10 rounded-xl border border-white/12 bg-black/30 px-5 py-4 text-left sm:px-6">
+    <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+      <span>
+        <span className="font-display block text-xl text-white">Stage Plot &amp; Tech Rider</span>
+        <span className="font-body mt-0.5 block text-xs text-white/45">{TECH_RIDER.lineup}</span>
+      </span>
+      <span className="font-accent shrink-0 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)] group-open:hidden">View</span>
+      <span className="font-accent hidden shrink-0 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)] group-open:inline">Close</span>
+    </summary>
+    <div className="mt-5">
+      <StagePlot />
+      <p className="font-body mt-4 text-xs text-white/55">
+        Set length: {TECH_RIDER.setLength} · {TECH_RIDER.changeover}
+      </p>
+      <p className="font-accent mt-5 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Input List</p>
+      <table className="font-body mt-2 w-full text-xs text-white/70">
+        <tbody>
+          {TECH_RIDER.inputs.map((x) => (
+            <tr key={x.ch} className="border-b border-white/10 align-top">
+              <td className="py-1.5 pr-3 tabular-nums text-white/40">{x.ch}</td>
+              <td className="py-1.5 pr-3 text-white/80">{x.source}</td>
+              <td className="py-1.5 text-white/55">{x.mic}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="font-body mt-3 text-xs text-white/55">Monitors: {TECH_RIDER.monitors}</p>
+      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        {[
+          ["Venue Provides", TECH_RIDER.venueProvides],
+          ["Artist Brings", TECH_RIDER.artistBrings],
+        ].map(([h, list]) => (
+          <div key={h}>
+            <p className="font-accent text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">{h}</p>
+            <ul className="font-body mt-2 space-y-1 text-xs text-white/65">
+              {list.map((x) => (
+                <li key={x}>· {x}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </details>
+);
 
 // Live performance highlight reel, front and centre. public/trev-epk-reel.mp4 (web-compressed from
 // TREV's highlight reel); the block hides itself until that file exists.
@@ -44,6 +147,24 @@ const EPK_REEL = { src: "/trev-epk-reel.mp4", poster: "/trev-epk-reel.jpg" };
 
 const PerformanceReel = () => {
   const [missing, setMissing] = useState(false);
+  if (EPK_PERFORMANCE_VIDEO) {
+    return (
+      <div data-testid="epk-reel" className="mx-auto mt-10 max-w-4xl">
+        <span className="overline">Live Performance</span>
+        <div className="mt-4 overflow-hidden rounded-xl border border-[var(--sm-gold)]/25 bg-black shadow-[0_0_60px_rgba(227,163,92,0.12)]">
+          <iframe
+            className="aspect-video w-full"
+            src={`https://www.youtube.com/embed/${EPK_PERFORMANCE_VIDEO.youtubeId}`}
+            title={`${ARTIST_NAME}: ${EPK_PERFORMANCE_VIDEO.title}`}
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+          />
+        </div>
+      </div>
+    );
+  }
   if (missing) return null;
   return (
     <div data-testid="epk-reel" className="mx-auto mt-10 max-w-4xl">
@@ -189,6 +310,21 @@ export default function EPK() {
           <h1 className="font-display mt-5 text-5xl font-normal text-[var(--sm-text)] sm:text-6xl">{ARTIST_NAME}</h1>
           <p className="font-accent mt-4 text-sm uppercase tracking-[0.2em] text-white/60">{SITE_GENRE_TAGS}</p>
           <p className="font-accent mt-2 text-base italic text-white/50">{SITE_LOCATION}</p>
+          {/* his music first: a few songs to play right here, then where to hear the rest */}
+          <TrackPlayer tracks={EPK_TRACKS} cover={ALBUM_COVER} className="mx-auto mt-7 max-w-sm" />
+          <div data-testid="epk-streaming" className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {STREAMING_LINKS.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-white/20 px-4 py-1.5 font-accent text-[0.65rem] uppercase tracking-[0.18em] text-white/75 transition-colors hover:border-[var(--sm-gold)]/60 hover:text-[var(--sm-gold-light)]"
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
         </Reveal>
 
         <Reveal delay={0.05}>
@@ -252,19 +388,29 @@ export default function EPK() {
           }}
         />
         <Reveal className="order-2 lg:order-1" delay={0.2}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <span className="overline">Press Photos</span>
+            <a
+              href={PRESS_ZIP}
+              download
+              data-testid="press-zip"
+              className="flex items-center gap-1.5 rounded-full border border-[var(--sm-gold)]/40 px-4 py-1.5 font-body text-xs text-[var(--sm-gold-light)] transition-colors hover:bg-[var(--sm-gold)]/10"
+            >
+              <Download size={13} /> Download all
+            </a>
+          </div>
           {/* Crowd shots lead, full width: the live room is what bookers want to see */}
           {EPK_CROWD.map((g) => (
-            <div key={g.src} className="mb-2 overflow-hidden rounded-lg border border-[rgba(227,163,92,0.3)] bg-black/40" data-testid="epk-crowd">
-              <img src={g.src} alt={g.alt} className="block h-auto w-full" loading="lazy" />
+            <div key={g.src} data-testid="epk-crowd">
+              <PressPhoto g={g} className="mb-2 !border-[rgba(227,163,92,0.3)]" />
             </div>
           ))}
           <div data-testid="epk-gallery" className="columns-2 gap-2 sm:columns-3 lg:columns-2">
             {EPK_GALLERY.map((g) => (
-              <div key={g.src} className="mb-2 break-inside-avoid overflow-hidden rounded-lg border border-white/10 bg-black/40">
-                <img src={g.src} alt={g.alt} className="block h-auto w-full" loading="lazy" />
-              </div>
+              <PressPhoto key={g.src} g={g} className="mb-2 break-inside-avoid" />
             ))}
           </div>
+          <p className="font-body mt-2 text-[0.65rem] text-white/35">Tap any photo to download it full size.</p>
         </Reveal>
 
         <div className="order-1 text-center lg:order-2 lg:text-left">
@@ -293,6 +439,28 @@ export default function EPK() {
             </div>
           </Reveal>
 
+          {PRESS_QUOTES.length > 0 && (
+            <Reveal delay={0.17}>
+              <div data-testid="epk-press" className="mt-10 space-y-6">
+                <span className="overline">Press</span>
+                {PRESS_QUOTES.map((q) => (
+                  <figure key={q.quote}>
+                    <blockquote className="font-accent text-lg italic leading-snug text-white/85">“{q.quote}”</blockquote>
+                    <figcaption className="font-body mt-1.5 text-xs uppercase tracking-[0.15em] text-white/45">
+                      {q.href ? (
+                        <a href={q.href} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--sm-gold-light)]">
+                          {q.source}
+                        </a>
+                      ) : (
+                        q.source
+                      )}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </Reveal>
+          )}
+
           <Reveal delay={0.18}>
             <div data-testid="epk-highlights" className="mt-10">
               <span className="overline">Career Highlights</span>
@@ -318,6 +486,10 @@ export default function EPK() {
               <p className="font-accent mt-6 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)]">Festivals</p>
               <p className="font-body mt-2 text-sm leading-loose text-white/55">{FESTIVALS.join(" · ")}</p>
             </div>
+          </Reveal>
+
+          <Reveal delay={0.22}>
+            <TechRider />
           </Reveal>
 
           <Reveal delay={0.25}>
