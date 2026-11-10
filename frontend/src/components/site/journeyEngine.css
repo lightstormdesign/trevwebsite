@@ -155,6 +155,21 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-aboutBg[data-mood="open"] .m-open, .tj-aboutBg[data-mood="memory"] .m-memory, .tj-aboutBg[data-mood="mirage"] .m-mirage,
 .tj-aboutBg[data-mood="low"] .m-low, .tj-aboutBg[data-mood="warm"] .m-warm, .tj-aboutBg[data-mood="sunset"] .m-sunset,
 .tj-aboutBg[data-mood="open2"] .m-open2, .tj-aboutBg[data-mood="stage"] .m-stage, .tj-aboutBg[data-mood="kingdom"] .m-kingdom { opacity: 1; }
+/* the sacred-geometry lion in the lower left of the world: hidden through the early chapters, surfacing slowly
+   with "Remember Who You Are", staying faint after; until the visitor has woken the lion in the world (.tj.lion),
+   only its crown and eyes show through, faintly */
+.tj-aboutBg .lion { left: auto; right: auto; top: auto; inset: auto auto -7svh -20vw; width: 82vw; aspect-ratio: 3 / 4;
+  background: center / contain no-repeat; opacity: 0; transition: opacity 4.5s ease;
+  -webkit-mask: radial-gradient(ellipse 52% 46% at 50% 36%, #000 30%, transparent 78%); mask: radial-gradient(ellipse 52% 46% at 50% 36%, #000 30%, transparent 78%); }
+.tj.lion .tj-aboutBg .lion { -webkit-mask: radial-gradient(ellipse 60% 58% at 50% 46%, #000 52%, transparent 90%); mask: radial-gradient(ellipse 60% 58% at 50% 46%, #000 52%, transparent 90%); }
+.tj-aboutBg[data-mood="sunset"] .lion { opacity: .05; }
+.tj-aboutBg[data-mood="open2"] .lion, .tj-aboutBg[data-mood="stage"] .lion { opacity: .045; }
+.tj-aboutBg[data-mood="kingdom"] .lion { opacity: .06; }
+.tj.lion .tj-aboutBg[data-mood="sunset"] .lion { opacity: .085; }
+.tj.lion .tj-aboutBg[data-mood="open2"] .lion, .tj.lion .tj-aboutBg[data-mood="stage"] .lion { opacity: .07; }
+.tj.lion .tj-aboutBg[data-mood="kingdom"] .lion { opacity: .095; }
+@media (min-aspect-ratio: 1/1) { .tj-aboutBg .lion { left: -3vw; bottom: -12svh; width: auto; height: 82svh; } }
+@media (prefers-reduced-motion: reduce) { .tj-aboutBg .lion { transition: none; } }
 /* the end: the world grows luminous again behind the revelation */
 .tj-aboutBg[data-mood="kingdom"] .tone { opacity: .62; }
 /* resting behind the story: hidden, its loops paused */
@@ -347,7 +362,7 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-landing.show { visibility: visible; }
 .tj-landing.is-gone { visibility: hidden; }
 .tj-landingCol { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 20svh; }
-.tj-emblem { position: relative; height: clamp(150px, 26svh, 250px); aspect-ratio: 338 / 760;
+.tj-emblem { position: relative; height: clamp(132px, 22svh, 222px); aspect-ratio: 576 / 780;
   opacity: 0; transform: scale(.86); filter: blur(10px);
   transition: opacity 1.8s ease, transform 2s cubic-bezier(.16,1,.3,1), filter 1.8s ease; }
 .tj-landing.show .tj-emblem { opacity: 1; transform: none; filter: none; }
@@ -356,18 +371,32 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-emblem img { position: absolute; inset: 0; width: 100%; height: 100%; }
 /* lights up with each bass hit after the drop (its opacity follows the beat map) */
 .tj-emblem .beat { filter: blur(7px) brightness(1.6); opacity: 0; will-change: opacity; }
-.tj-emblem .halo { position: absolute; left: 50%; top: 58%; width: 260%; height: 120%; transform: translate(-50%, -50%); border-radius: 50%;
+.tj-emblem .halo { position: absolute; left: 50%; top: 42%; width: 175%; height: 112%; transform: translate(-50%, -50%); border-radius: 50%;
   background: radial-gradient(closest-side, rgba(214,179,101,.22), rgba(214,179,101,.07) 45%, transparent 72%); animation: tj-halo 5s ease-in-out infinite; }
 .tj-emblem .face { animation: tj-swordGlow 5s ease-in-out infinite; }
 .tj-emblem .glow { filter: blur(9px) brightness(1.15); opacity: .35; animation: tj-breathe 5s ease-in-out infinite alternate; }
-/* a faint band of light that drifts down the blade now and then */
-.tj-emblem .glint { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .55;
+/* light catching the gold: now and then a soft highlight travels across the T, only where the gold is
+   (masked to its silhouette), with long pauses between */
+.tj-emblem .glint { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .5;
   -webkit-mask: var(--sword) center / contain no-repeat; mask: var(--sword) center / contain no-repeat;
-  background: linear-gradient(170deg, transparent 38%, rgba(255,246,222,.55) 48%, transparent 58%) 0 0 / 100% 300% no-repeat;
-  background-position: 0 100%; animation: none; }
-/* (it runs from the landing, so its first sweep starts from the tip once the sword is in, never caught
-   part-way down at the hilt as the sword appears) */
-.tj-landing.show .tj-emblem .glint { animation: tj-glintDown 7s ease-in-out -2.2s infinite; }
+  background: linear-gradient(112deg, transparent 40%, rgba(255,244,214,.5) 47%, rgba(255,250,236,.7) 50%, rgba(255,244,214,.5) 53%, transparent 60%) 0 0 / 300% 100% no-repeat;
+  background-position: 100% 0; animation: none; }
+.tj-landing.show .tj-emblem .glint { animation: tj-glintAcross 10s ease-in-out 1.6s infinite; }
+@keyframes tj-glintAcross { 0%, 52% { background-position: 100% 0; } 80%, 100% { background-position: 0% 0; } }
+/* the sun: a warm light at its heart that breathes, barely */
+.tj-emblem .sun { position: absolute; left: 50.2%; top: 29.6%; width: 48%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+  mix-blend-mode: screen; background: radial-gradient(closest-side, rgba(255,251,236,.7), rgba(255,218,140,.3) 42%, rgba(255,200,110,.08) 68%, transparent 80%);
+  opacity: .6; animation: tj-sunLive 7s ease-in-out infinite; }
+@keyframes tj-sunLive { 0%, 100% { opacity: .55; transform: translate(-50%, -50%) scale(.97); } 50% { opacity: .85; transform: translate(-50%, -50%) scale(1.03); } }
+/* and once in a while a small star of light where the sun meets the T */
+.tj-emblem .spark { position: absolute; left: 50.2%; top: 34.6%; width: 30%; aspect-ratio: 1; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+  background: linear-gradient(90deg, transparent 48.6%, rgba(255,250,236,.95) 50%, transparent 51.4%), linear-gradient(0deg, transparent 48.6%, rgba(255,250,236,.95) 50%, transparent 51.4%),
+    radial-gradient(closest-side, rgba(255,250,236,.9), transparent 22%);
+  -webkit-mask: radial-gradient(closest-side, #000 15%, transparent 100%); mask: radial-gradient(closest-side, #000 15%, transparent 100%);
+  transform: translate(-50%, -50%) scale(.3); }
+.tj-landing.show .tj-emblem .spark { animation: tj-spark 12s ease-in-out 4s infinite; }
+@keyframes tj-spark { 0%, 84%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(0deg); }
+  89% { opacity: .9; transform: translate(-50%, -50%) scale(1) rotate(18deg); } 94% { opacity: 0; transform: translate(-50%, -50%) scale(.5) rotate(30deg); } }
 @keyframes tj-swordGlow { 0%, 100% { filter: drop-shadow(0 0 5px rgba(240,210,140,.35)) drop-shadow(0 0 16px rgba(214,179,101,.2)); }
   50% { filter: drop-shadow(0 0 7px rgba(255,226,160,.5)) drop-shadow(0 0 24px rgba(214,179,101,.3)); } }
 @keyframes tj-halo { 0%, 100% { opacity: .6; transform: translate(-50%, -50%) scale(.96); } 50% { opacity: .9; transform: translate(-50%, -50%) scale(1.04); } }
@@ -559,7 +588,7 @@ html.tj-flier-hover, html.tj-flier-hover * { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .tj-bison .glow, .tj-bison .geo, .tj-bison .glow i, .tj-bison .geo svg, .tj-cr-perch .glow, .tj-cr-perch .geo, .tj-cr-perch .glow i, .tj-cr-perch .geo svg, .tj-cr-butterfly .glow, .tj-cr-butterfly .geo, .tj-cr-butterfly .glow i, .tj-cr-butterfly .geo svg, .tj-cr-butterfly.landed .wings, .tj-bison .pulse, .tj-bison .tail, .tj-cr-owl .geo { animation: none; }
   .tj-me, .tj-meImg, .tj-enter, .tj-enter > span { transition: none; }
-  .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint,
+  .tj-gold, .tj-enter .glow, .tj-emblem .face, .tj-emblem .glow, .tj-emblem .halo, .tj-emblem .glint, .tj-emblem .sun, .tj-emblem .spark,
   .tj-cueInner, .tj-cueInner .drop, .tj-cueInner .chevrons svg { animation: none; }
 }
 

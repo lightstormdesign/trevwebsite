@@ -440,7 +440,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mouse = matchMedia("(hover: hover)").matches;
   let raf = 0, phase = start === "world" ? "world" : "hero";
-  const sword = `${A}trev-sword.webp`;
+  const sword = `${A}trev-t-sun.webp`;   // (TREV's golden T and sun: the landing's symbol, in the sword's place)
   const enterLabel = `${mouse ? "Click" : "Tap"} to enter`;
 
   root.classList.add("tj");
@@ -488,7 +488,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-lionFocus" aria-hidden="true"><i style="background-image:url(/trev-grain.webp)"></i></div>
     <div class="tj-aboutBg" aria-hidden="true" data-mood="open"><i class="still phone"></i><i class="still desk"></i><i class="tone"></i>
-      ${["open", "memory", "mirage", "low", "warm", "sunset", "open2", "stage", "kingdom"].map((m) => `<i class="mood m-${m}"></i>`).join("")}</div>
+      ${["open", "memory", "mirage", "low", "warm", "sunset", "open2", "stage", "kingdom"].map((m) => `<i class="mood m-${m}"></i>`).join("")}<i class="lion"></i></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
         <div class="tj-emblem" style="--sword:url(${sword})">
@@ -497,6 +497,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
             <img class="glow" src="${sword}" alt="" aria-hidden="true">
             <img class="beat" src="${sword}" alt="" aria-hidden="true">
             <img class="face" src="${sword}" alt="TREV">
+            <span class="sun" aria-hidden="true"></span>
+            <span class="spark" aria-hidden="true"></span>
             <span class="glint" aria-hidden="true"></span>
           </div>
         </div>
@@ -626,6 +628,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const aboutBg = $(".tj-aboutBg");
   aboutBg.querySelector(".still.phone").style.backgroundImage = `url(${A}trev-about-world-phone.webp)`;
   aboutBg.querySelector(".still.desk").style.backgroundImage = `url(${A}trev-about-world-desk.webp)`;
+  // the sacred-geometry lion, set into the lower left of the world behind the story (the bison's diagonal
+  // partner on the portal); it surfaces from "Remember Who You Are" on, fuller for those who woke the lion
+  aboutBg.querySelector(".lion").style.backgroundImage = `url(${A}trev-about-lion.webp)`;
   const aboutEl = document.createElement("div"); aboutEl.className = "tj-about";
   let worldBuilt = false, layersLoaded = 0, layersReady = false;
   const layersWanted = LAYERS.length + CLOUDS.length + 1;
