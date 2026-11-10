@@ -65,6 +65,7 @@ const DESK_GROW_S = 1.2;      // desktop: the phone video grows from the hero's 
 const ENTER_WAIT_MS = 4000;  // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
+const DESK_VIEW_H = 950, DESK_FOCUS = [600, 918];   // (wide screens: worldFit)
 const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357;
 const DESCENT_SVH = 236, SCROLL_EASE = 5, PART_RANGE = 0.9;
 // Burnell's tilt (WorldHome.jsx): canvas px of shift at full tilt; far layers slide one way and
@@ -291,23 +292,23 @@ const STORY = [
     alt: "TREV in Sedona, his hand over his heart" },
   { kind: "prologue", line: "This whole thing started the day I quit music.", media: "story-01-quit-music.webp", w: 1056, h: 1400, mood: "memory",
     alt: "TREV as a boy, holding a microphone beside another child" },
-  { n: 1, title: "Not Chosen", media: "story-02-first-dream.webp", w: 1400, h: 1050, mode: "a", lay: "left", mood: "memory",
+  { n: 1, title: "Not Chosen", m: "edit-l", media: "story-02-first-dream.webp", w: 1400, h: 1050, mode: "a", lay: "left", mood: "memory",
     alt: "TREV as a boy in his basketball jersey", body: [
     "Basketball was my religion and Michael Jordan was God.",
     "Then I didn’t make the high school team. The coach was the bishop, and every kid he picked was from his church.",
     "My first lesson on the “Kingdom of Heaven”: it was an exclusive club, and I wasn’t chosen."] },
-  { n: 2, title: "Becoming Somebody", media: "story-03-the-room.webp", w: 414, h: 414, mode: "a", lay: "right", push: true, mood: "memory",
+  { n: 2, title: "Becoming Somebody", m: "edit-r", media: "story-03-the-room.webp", w: 414, h: 414, mode: "a", lay: "right", push: true, mood: "memory",
     alt: "TREV in his room, under his T-MENTAL graffiti", body: [
     "If I couldn’t find God in basketball, I’d find it through hip-hop.",
     "I locked myself in my room to meditate and write until I became the best rapper in the world.",
     "But behind all that ambition, I was caught in cycles of addiction. I was chasing the person I thought I needed to become, without learning how to be myself."] },
-  { n: 3, title: "The Mirage", media: "story-04-the-leap.webp", w: 1400, h: 1400, mode: "b", lay: "left", para: true, mood: "mirage",
+  { n: 3, title: "The Mirage", m: "cine", media: "story-04-the-leap.webp", w: 1400, h: 1400, mode: "b", lay: "left", para: true, mood: "mirage",
     alt: "TREV on a porch in Costa Rica, looking out at a rainbow over the hills", body: [
     "Years later, a few videos took off: over a million views, opening for artists I idolized.",
     "Believing “if you jump, the net will appear,” we took a one-way flight to Costa Rica.",
     "The net was a mirage.",
     { em: "And maybe I was too." }] },
-  { n: 4, title: "Rock Bottom", media: "story-14-couch.webp", w: 1290, h: 1714, mode: "quiet", lay: "stack", mood: "low",
+  { n: 4, title: "Rock Bottom", m: "intimate", media: "story-14-couch.webp", w: 1290, h: 1714, mode: "quiet", lay: "stack", mood: "low",
     alt: "TREV on a couch in a hoodie and glasses", body: [
     "I gave up on music and ended up in my mom’s basement, working night shifts at the post office.",
     "My dream was dead for a second time.",
@@ -316,12 +317,12 @@ const STORY = [
     "No label, no manager, no miracle was coming.",
     { reveal: "I was the one I’d been waiting for." },
     "So I wrote my way out."] },
-  { n: 5, title: "Choosing Myself", media: "story-06-the-crowd.webp", w: 1120, h: 1400, mode: "a", lay: "right", push: true, mood: "warm",
+  { n: 5, title: "Choosing Myself", m: "edit-w", media: "story-06-the-crowd.webp", w: 1120, h: 1400, mode: "a", lay: "right", push: true, mood: "warm",
     alt: "TREV singing in the middle of a packed house show", body: [
     "I started to build. I saved post office checks for my first tour and did every job myself.",
     "After that tour, I wasn’t trying to “make it” anymore.",
     { reveal: "I WAS making it." }] },
-  { n: 6, title: "Remember Who You Are", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed-fade.mp4", w: 1280, h: 720, mode: "a", lay: "left", mood: "sunset",
+  { n: 6, title: "Remember Who You Are", m: "intimate", media: "story-12-eyes-closed.webp", video: "story-12-eyes-closed-fade.mp4", w: 1280, h: 720, mode: "a", lay: "left", mood: "sunset",
     alt: "TREV at sunset, his eyes closed", body: [
     "I spent my whole life trying to become somebody.",
     "Then I finally understood The Lion King.",
@@ -330,18 +331,18 @@ const STORY = [
     "But the mission was never to become someone else.",
     "It was to strip away everything that wasn’t me. To speak my naked truth. To see how much more of myself I could bring into every moment.",
     { reveal: "To fully become who I AM." }] },
-  { n: 7, title: "Living My Truth", media: "story-05-kingdom-sign.webp", w: 1400, h: 870, mode: "b", lay: "stack", push: true, mood: "open2",
+  { n: 7, title: "Living My Truth", m: "cine", media: "story-05-kingdom-sign.webp", w: 1400, h: 870, mode: "b", lay: "stack", push: true, mood: "open2",
     alt: "TREV holding a handmade cardboard sign: The Kingdom Is Within You", body: [
     "I stopped searching for a kingdom outside myself and started creating a life that reflected who I really am.",
     "Today, I tour internationally and make my living through music.",
     "Not because someone chose me. Because I chose to follow my own path."] },
-  { n: 8, title: "Why I Make Music", media: "story-13-stage.webp", w: 960, h: 1280, mode: "b", lay: "right", para: true, mood: "stage",
+  { n: 8, title: "Why I Make Music", m: "cine", media: "story-13-stage.webp", w: 960, h: 1280, mode: "b", lay: "right", para: true, mood: "stage",
     alt: "TREV performing under a glowing purple circle, the audience’s hands raised", body: [
     { statement: "My name is TREV." },
     "I believe in the infinite power of the spoken word.",
     "Through music, I turn my experiences into expressions of truth, love, and everything that makes us human.",
     "Every song carries a piece of my journey, in the hope that it might inspire someone else to stand in the knowing of all that they are."] },
-  { n: 9, title: "The Greatest Story Ever Told", media: "story-08-sword.webp", w: 1400, h: 939, mode: "quiet", lay: "stack", mood: "kingdom",
+  { n: 9, title: "The Greatest Story Ever Told", m: "quiet", media: "story-08-sword.webp", w: 1400, h: 939, mode: "quiet", lay: "stack", mood: "kingdom",
     alt: "TREV as a boy, trying to pull a sword from a stone", body: [
     "My story began with a boy who believed the Kingdom of Heaven was a place he hadn’t been chosen to enter.",
     "For years, I searched for my way in. Through greatness, success, and becoming somebody.",
@@ -464,6 +465,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-worldStage" ${phase === "hero" ? 'style="visibility:hidden"' : ""}>
       <div class="tj-side"></div>
       <div class="tj-world"></div>
+      <i class="tj-worldEdge l" aria-hidden="true"></i><i class="tj-worldEdge r" aria-hidden="true"></i>
       <div class="tj-veil" aria-hidden="true"></div>
       <div class="tj-shade"></div>
       <div class="tj-dawn" aria-hidden="true"></div>
@@ -488,7 +490,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
     <div class="tj-lionFocus" aria-hidden="true"><i style="background-image:url(/trev-grain.webp)"></i></div>
     <div class="tj-aboutBg" aria-hidden="true" data-mood="open"><i class="still phone"></i><i class="still desk"></i><i class="tone"></i>
-      ${["open", "memory", "mirage", "low", "warm", "sunset", "open2", "stage", "kingdom"].map((m) => `<i class="mood m-${m}"></i>`).join("")}<i class="lion"></i></div>
+      ${["open", "memory", "mirage", "low", "warm", "sunset", "open2", "stage", "kingdom"].map((m) => `<i class="mood m-${m}"></i>`).join("")}<i class="photo soft"></i><i class="photo sharp"></i><i class="lion"></i></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
         <div class="tj-emblem" style="--sword:url(${sword})">
@@ -631,6 +633,12 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // the sacred-geometry lion, set into the lower left of the world behind the story (the bison's diagonal
   // partner on the portal); it surfaces from "Remember Who You Are" on, fuller for those who woke the lion
   aboutBg.querySelector(".lion").style.backgroundImage = `url(${A}trev-about-lion.webp)`;
+  // the opening's photograph (TREV in Sedona, hand on heart): out of the dark it comes in soft, then into focus;
+  // its sky held down by a veil of dark so nothing flares; it gives way to the world again as the story goes on
+  const photoShade = "linear-gradient(180deg, rgba(8,6,5,.82) 0%, rgba(8,6,5,.42) 30%, rgba(8,6,5,.16) 52%, rgba(8,6,5,.38) 76%, rgba(8,6,5,.86) 100%)";
+  const photoSoft = aboutBg.querySelector(".photo.soft"), photoSharp = aboutBg.querySelector(".photo.sharp");
+  photoSoft.style.backgroundImage = `${photoShade}, url(${A}story-00-heart-soft.webp)`;
+  photoSharp.style.backgroundImage = `${photoShade}, url(${A}story-00-heart.webp)`;
   const aboutEl = document.createElement("div"); aboutEl.className = "tj-about";
   let worldBuilt = false, layersLoaded = 0, layersReady = false;
   const layersWanted = LAYERS.length + CLOUDS.length + 1;
@@ -1148,17 +1156,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       : b.quote ? `<blockquote class="ab-quote ab-rv"><p>${b.quote}</p><cite>${b.cite}</cite></blockquote>` : "";
     let html = "";
     for (const c of STORY) {
-      if (c.kind === "open") {
-        html += `<section class="ab-open" data-mood="${c.mood}" aria-label="About">${fig(c, "ab-openFig")}`
+      if (c.kind === "open") {   // (its photograph is in the background: aboutBg .photo)
+        html += `<section class="ab-open" data-mood="${c.mood}" aria-label="About"><span class="ab-openAlt" role="img" aria-label="${c.alt}"></span>`
           + `<div class="ab-openText ab-rv"><span class="ab-eyebrow">${c.eyebrow}</span><h2 class="ab-metal ab-title-xl">${c.title}</h2></div></section>`;
       } else if (c.kind === "prologue") {
         html += `<section class="ab-prologue" data-mood="${c.mood}">${fig(c, "archival")}<p class="ab-line ab-rv">${c.line}</p></section>`;
       } else {
-        const text = `<div class="ab-text">${`<span class="ab-num ab-rv">${String(c.n).padStart(2, "0")}</span>`}`
-          + `<h3 class="ab-metal ab-rv">${c.title}</h3>${c.body.map(line).join("")}`
+        // the chapter in three pieces (its title, photograph and words), so each can be composed on its own
+        const head = `<header class="ab-head"><span class="ab-num ab-rv">${String(c.n).padStart(2, "0")}</span><h3 class="ab-metal ab-rv">${c.title}</h3></header>`;
+        const body = `<div class="ab-body">${c.body.map(line).join("")}`
           + (c.cta ? `<div class="ab-cta ab-rv"><a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a><span class="tj-ctaNote">${c.ctaNote}</span></div>` : "")
           + `</div>`;
-        html += `<article class="ab-ch mode-${c.mode} lay-${c.lay}${c.media ? "" : " nofig"}" data-mood="${c.mood}" data-ch="${c.n}">${fig(c)}${text}</article>`;
+        html += `<article class="ab-ch mode-${c.mode} lay-${c.lay} m-${c.m}${c.media ? "" : " nofig"}" data-mood="${c.mood}" data-ch="${c.n}">${head}${fig(c)}${body}</article>`;
       }
     }
     aboutEl.innerHTML = html;
@@ -1215,25 +1224,37 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
 
   // Sized by the stage itself (max(100lvh, 100vh): it doesn't change as Safari's toolbars come and
   // go), never by the live window height.
-  function worldFit() {
+  // Wide screens: the painting blown up (soft, as the phone's painting is), as large as it can be while
+  // everything the visitor hunts for (the owl high in the aspens to the cocoon and the salmon low by the
+  // pool, DESK_VIEW of the canvas) still fits the screen once landed; the view travels down the painting
+  // through the descent (DESK_FOCUS, canvas y at its middle), and the blurred sky fills the sides
+  function worldFit(p = 0) {
     ensure(); const W = sizes.sw, H = sizes.sh;
     const narrow = W / H <= 0.8;
-    const colW = narrow ? W : Math.min(W, H * CANVAS.w / CANVAS.h);
-    const k = Math.max(colW / CANVAS.w, H / CANVAS.h);
+    if (!narrow) {
+      const k = Math.min(W / CANVAS.w, H / DESK_VIEW_H), colW = CANVAS.w * k;
+      const fy = DESK_FOCUS[0] + (DESK_FOCUS[1] - DESK_FOCUS[0]) * smooth(p);
+      const oy = Math.min(0, Math.max(H - CANVAS.h * k, H / 2 - fy * k));
+      return { W, H, narrow, colW, k, ox: (W - colW) / 2, oy };
+    }
+    const colW = W, k = Math.max(colW / CANVAS.w, H / CANVAS.h);
     return { W, H, narrow, colW, k, ox: (W - CANVAS.w * k) / 2, oy: (H - CANVAS.h * k) / 2 };
   }
   let tx = 0, ty = 0;   // the eased phone tilt (Burnell's: it glides rather than jitters)
   // write a style only when its value changes (an unchanged write still makes the browser re-check)
   const put = (el, prop, v) => { const k = "_" + prop; if (el[k] !== v) { el[k] = v; el.style[prop] = v; } };
-  let sideEl = null;
+  let sideEl = null, edgeEls = null;
   function worldLayout(p) {
     sideEl = sideEl || $(".tj-side");
-    const { H, narrow, colW, k, ox, oy: oy0 } = worldFit();
+    const { W, H, narrow, colW, k, ox, oy: oy0 } = worldFit(p);
     // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
     // rises by that much, so at the bottom the whole painting is in view above the toolbar
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
     setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
     put(sideEl, "display", narrow ? "none" : "block");
+    if (!narrow) { const e = edgeEls || (edgeEls = [...worldStage.querySelectorAll(".tj-worldEdge")]); const ew = Math.min(160, colW * 0.14);
+      put(e[0], "transform", `translateX(${(ox - 1).toFixed(1)}px)`); put(e[1], "transform", `translateX(${(ox + colW - ew + 1).toFixed(1)}px)`);
+      put(e[0], "width", ew.toFixed(0) + "px"); put(e[1], "width", ew.toFixed(0) + "px"); }
     // the lion's moment, with the finale video: the world eases onto exactly where the video's first
     // picture will sit on this screen (its fit, Safari's bars and all), so the takeover doesn't jump
     let wx = ox, wy = oy, wk = k;
@@ -1326,7 +1347,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   // Past the descent the world recedes: its still (softened, dimmed) fades in over it; once that covers it,
   // the live world is hidden (nothing in it is drawn while you read) and the story, an ordinary page in the
   // scroller, comes up over it (the scroller rises above the world from there)
-  let bgShown = -1, worldResting = false, aboutUp = false;
+  let bgShown = -1, worldResting = false, aboutUp = false, softShown = -1, sharpShown = -1;
   function aboutLayout() {
     const o = smooth(clamp01((cur - ABOUT_FADE_FROM) / (ABOUT_FADE_TO - ABOUT_FADE_FROM)));
     if (o !== bgShown && (Math.abs(o - bgShown) > 0.003 || o === 0 || o === 1)) {
@@ -1334,6 +1355,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     }
     const rest = o >= 0.999;
     if (rest !== worldResting) { worldResting = rest; worldStage.style.visibility = rest ? "hidden" : "visible"; root.classList.toggle("tj-worldRest", rest); }
+    // the opening photograph: soft out of the dark, then sharp (a little settling of scale with it), then
+    // away again as the prologue comes up
+    const away = 1 - smooth((cur - STORY_START_SVH - 35) / 60);
+    const so = smooth((cur - ABOUT_FADE_TO + 4) / 40) * away, sh = smooth((cur - ABOUT_FADE_TO - 26) / 50) * away;
+    if (Math.abs(so - softShown) > 0.003 || (so === 0) !== (softShown === 0)) { softShown = so; photoSoft.style.opacity = so.toFixed(3); photoSoft.style.visibility = so > 0 ? "visible" : "hidden"; }
+    if (Math.abs(sh - sharpShown) > 0.003 || (sh === 0) !== (sharpShown === 0)) { sharpShown = sh; photoSharp.style.opacity = sh.toFixed(3); photoSharp.style.visibility = sh > 0 ? "visible" : "hidden";
+      photoSharp.style.transform = `scale(${(1.035 - 0.035 * Math.min(1, sh / Math.max(away, 0.001))).toFixed(4)})`; }
     const up = scrolled() >= ABOUT_FADE_TO - 2;
     if (up !== aboutUp) { aboutUp = up; scroller.classList.toggle("tj-aboutUp", up); }
   }
