@@ -116,6 +116,30 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-transSide { position: absolute; inset: 0; background: center/cover no-repeat; filter: blur(28px) brightness(.55); transform: scale(1.1); }
 .tj-tv { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 .tj-snap { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
+/* desktop hero: the dark that holds the wordmark, left of the photo (and the same dark under the transition) */
+.tj-heroSide { position: absolute; inset: 0; display: none; background: #0b0807 center / cover no-repeat; filter: blur(30px) brightness(.32); transform: scale(1.1); }
+.tj-heroShade, .tj-transShade { position: absolute; left: 0; top: 0; bottom: 0; width: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(7,5,4,.96) 0%, rgba(7,5,4,.9) 55%, rgba(7,5,4,.5) 80%, transparent 100%); }
+.tj-transShade { z-index: 1; }
+.tj-tv { z-index: 2; }
+.tj-heroMark { position: absolute; display: none; height: auto; pointer-events: none; z-index: 6;
+  filter: drop-shadow(0 4px 30px rgba(0,0,0,.6)); opacity: 0; transform: translateY(10px); transition: opacity 1.6s ease .4s, transform 1.8s cubic-bezier(.2,.7,.2,1) .4s; }
+.tj-box.ready ~ .tj-heroMark { opacity: 1; transform: none; }
+.tj-heroMark.leave { opacity: 0 !important; transition: opacity .5s ease !important; }
+.tj.tj-deskHero .tj-heroSide, .tj.tj-deskHero .tj-heroMark { display: block; }
+.tj.tj-deskHero .tj-hero .tj-flower.tj-mandala { z-index: 5; }
+/* (the header's small TREV gives way to the big one on the desktop hero) */
+html.tj-heroPhase .tj.tj-deskHero .tj-name { opacity: 0; pointer-events: none; }
+/* desktop landing: TREV's full wordmark in the T's place, Sierra's spacing */
+.tj-landMark { display: none; }
+@media (min-width: 900px) and (min-aspect-ratio: 1/1) {
+  .tj-landing .tj-emblem { display: none; }
+  .tj-landMark { display: block; width: min(40vw, 620px, 36svh * 1.688); height: auto; filter: drop-shadow(0 4px 28px rgba(0,0,0,.5));
+    opacity: 0; transform: scale(.94); transition: opacity 1.8s ease, transform 2s cubic-bezier(.16,1,.3,1); }
+  .tj-landing.show .tj-landMark { opacity: 1; transform: none; }
+  .tj-landingText h1 br { display: none; }
+  .tj-landingText h1 br + * { margin-left: .35em; }
+}
 
 /* ---------- world ---------- */
 .tj-worldStage { position: fixed; left: 0; right: 0; top: 0; z-index: 10; overflow: hidden; background: transparent; pointer-events: none; }
@@ -1259,10 +1283,10 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
   .tj-menuBtn.open span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
 
   .tj-emblem { height: clamp(150px, 29svh, 330px); }
-  .tj-landingText h1 { margin-top: min(44px, 4svh); font-size: min(clamp(38px, 3.3vw, 60px), 6.2svh); }
+  .tj-landingText h1 { margin-top: min(36px, 3.6svh); white-space: nowrap; font-size: min(clamp(34px, 3vw, 54px), 5.4svh); }
   .tj-landingText .sub { margin-top: min(20px, 2svh); font-size: clamp(13px, 1vw, 16px); }
   .tj-landingText p { margin-top: min(28px, 2.6svh); max-width: 34rem; font-size: min(clamp(19px, 1.45vw, 24px), 2.6svh); }
-  .tj-landingCol { padding-bottom: 24svh; }
+  .tj-landingCol { padding-bottom: 18svh; }
   .tj-cue { bottom: calc(min(88px, 6svh) + env(safe-area-inset-bottom, 0px)); }
   .tj-cueInner .label { font-size: clamp(13px, 1vw, 15.5px); }
   .tj-cueInner .capsule { margin-top: 16px; width: 36px; height: 58px; border-width: 2px; }

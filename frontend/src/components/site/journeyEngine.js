@@ -61,7 +61,9 @@ const TRANS = { hevc: "trev-transition-720-hevc.mp4", h264Phone: "trev-transitio
 const LANDING_AT = 6.0;     // seconds into the transition when the veil + copy begin (all in by the 8s end)
 const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
-const DESK_GROW_S = 1.2;      // desktop: the phone video grows from the hero's framing to full screen over this long
+const DESK_GROW_S = 1.2;      // (desktop, before: the phone video grew to full screen over this long)
+const DESK_HEAD_X = 0.7;      // desktop hero: TREV's head this far across the screen (the wordmark and Click to enter on the left)
+const DESK_SNAP_FADE_S = 2.4; // desktop transition: the hero around the playing video gives way to the soft sky over this long
 const ENTER_WAIT_MS = 4000;  // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
@@ -473,8 +475,9 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-rain" aria-hidden="true"><i class="dark"></i><i class="drops" style="background-image:url(${A}trev-world-rain.webp)"></i><i class="drops b" style="background-image:url(${A}trev-world-rain.webp)"></i></div>
     </div>
     ${phase === "hero" ? `
-    <div class="tj-trans"><div class="tj-transSide"></div><video class="tj-tv" muted playsinline preload="none" tabindex="-1"></video><div class="tj-keep" hidden></div></div>
+    <div class="tj-trans"><div class="tj-transSide"></div><div class="tj-transShade" aria-hidden="true"></div><video class="tj-tv" muted playsinline preload="none" tabindex="-1"></video><div class="tj-keep" hidden></div></div>
     <div class="tj-hero">
+      <div class="tj-heroSide" aria-hidden="true"></div>
       <div class="tj-box">
         <img class="tj-plate tj-plateStill" alt="">
         <video class="tj-plate tj-hidden" muted loop playsinline autoplay preload="auto"></video>
@@ -485,6 +488,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         <img class="tj-meImg" alt="TREV" hidden>
       </div>
       <div class="tj-grade"></div>
+      <div class="tj-heroShade" aria-hidden="true"></div>
+      <img class="tj-heroMark" src="${A}trev-wordmark.webp" alt="TREV" width="1200" height="711">
       <div class="tj-flower tj-mandala" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn"><img class="glow" src="${A}trev-bison-mandala-line.webp" alt=""><img src="${A}trev-bison-mandala-line.webp" alt=""></div></div></div></div>
     </div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
@@ -493,6 +498,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       ${["open", "memory", "mirage", "low", "warm", "sunset", "open2", "stage", "kingdom"].map((m) => `<i class="mood m-${m}"></i>`).join("")}<i class="photo soft"></i><i class="photo sharp"></i><i class="lion"></i></div>
     <div class="tj-landing">
       <div class="tj-landingCol">
+        <img class="tj-landMark" src="${A}trev-wordmark.webp" alt="TREV" width="1200" height="711">
         <div class="tj-emblem" style="--sword:url(${sword})">
           <span class="halo" aria-hidden="true"></span>
           <div class="tj-swordTilt">
@@ -1525,6 +1531,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
     const trees = [...root.querySelectorAll(".tj-tree")];
     const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
+    const heroSide = $(".tj-heroSide"), heroShade = $(".tj-heroShade"), heroMark = $(".tj-heroMark"), transShade = $(".tj-transShade");
     let readyAt = 0;
     const trans = $(".tj-trans"), keep = $(".tj-keep");
     const tv = $(".tj-tv");
@@ -1620,14 +1627,25 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       // (framed in the visible screen, so he's never cut off by the bottom toolbar; under the toolbar, where
       // the page shows through it, a soft blurred continuation of the same photo: .tj-hero::before)
       heroEl.style.setProperty("--tj-heroFill", `url(${A}${set.poster})`);
+      const desk = set === HERO_SETS.desktop;
       fit = { k,
-        ox: Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
+        // (desktop: TREV to the right, DESK_HEAD_X across; the left, where the photo runs out, is the wordmark's)
+        ox: desk ? Math.min(W * DESK_HEAD_X - set.headX * k, W * 0.45) : Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
+      root.classList.toggle("tj-deskHero", desk);
+      // the photo's left edge melts into the dark that holds the wordmark (the same dark under the transition)
+      const shadeW = Math.max(0, fit.ox + set.w * k * 0.26);
+      heroShade.style.width = transShade.style.width = (desk ? shadeW : 0).toFixed(0) + "px";
+      heroSide.style.backgroundImage = desk ? `url(${A}${set.poster})` : "";
       box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
       // (?mandala=behind: the mandala inside the photo, behind the two tree cutouts; placed in the photo's own
       // pixels so it sits exactly where it does in front)
       const mf = MANDALA_BEHIND && heroEl.querySelector(".tj-flower");
-      if (mf) {
+      if (mf && desk) {   // desktop: the mandala in the top-left corner, over the dark, clear of his head
+        if (mf.parentNode !== heroEl) heroEl.insertBefore(mf, heroMark.nextSibling);
+        const topF = matchMedia("(hover: hover) and (pointer: fine)").matches ? 0.10 : 0.14;
+        Object.assign(mf.style, { left: "0px", top: (H * topF).toFixed(1) + "px", width: (0.55 * Math.max(W, H)).toFixed(1) + "px" });
+      } else if (mf) {
         if (mf.parentNode !== box) box.insertBefore(mf, box.querySelector(".tj-tree"));
         const topF = matchMedia("(hover: hover) and (pointer: fine)").matches ? 0.10 : 0.14;
         Object.assign(mf.style, { left: ((W - fit.ox) / k).toFixed(1) + "px", top: ((H * topF - fit.oy) / k).toFixed(1) + "px",
@@ -1641,8 +1659,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const hx = fit.ox + set.headX * k, half = enter.offsetWidth / 2;
       // between the name and his head; a screen too short for that (a phone on its side): low, over him
       const roomy = headTop - nameR.bottom > 70;
+      if (desk) {   // the wordmark, large, centred in the space left of him; Click to enter under it
+        const cx = Math.max(W * 0.24, Math.min(W * 0.3, (fit.ox + set.cut.x * k) / 2 + W * 0.04));
+        const mw = Math.min(W * 0.4, 660, H * 0.6 * 1.688), mh = mw / 1.688, my = H * 0.43 - mh / 2;
+        Object.assign(heroMark.style, { left: (cx - mw / 2).toFixed(1) + "px", top: my.toFixed(1) + "px", width: mw.toFixed(1) + "px" });
+        enter.style.left = cx.toFixed(1) + "px"; enter.style.top = (my + mh + Math.max(44, H * 0.075)).toFixed(1) + "px";
+      } else {
       enter.style.left = (roomy ? Math.min(W - 16 - half, Math.max(16 + half, hx)) : W / 2).toFixed(1) + "px";
       enter.style.top = (roomy ? mid : H - Math.max(56, H * 0.13)).toFixed(1) + "px";
+      }
       if (phase === "trans") placeVideo(recovered || tv);
     }
 
@@ -1740,11 +1765,14 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         const kc = Math.max(W / TRANS.w, H0 / TRANS.h);
         const C = { k: kc, x: (W - TRANS.w * kc) / 2, y: Math.min(0, Math.max(H0 - TRANS.h * kc, H0 / 2 - HERO_SETS.mobile.fy * TRANS.h * kc)) };
         const Wd = { k: wf.k * CANVAS.w / TRANS.w, x: wf.ox, y: wf.oy };
-        const g = smooth((v.currentTime || 0) / DESK_GROW_S), e = smooth((u - 0.55) / 0.45);
-        const lerp = (a, b, t) => a + (b - a) * t;
-        const P = { k: lerp(A.k, C.k, g), x: lerp(A.x, C.x, g), y: lerp(A.y, C.y, g) };
-        v.style.transform = `translate(${lerp(P.x, Wd.x, e).toFixed(1)}px, ${lerp(P.y, Wd.y, e).toFixed(1)}px) scale(${lerp(P.k, Wd.k, e).toFixed(5)})`;
+        // Now: no growing. The video plays exactly where it starts (over him, his framing), its sides
+        // feathered; the hero around it gives way to the soft sky; at the end it dissolves into the world
+        void C; void Wd;
+        v.style.transform = `translate(${A.x.toFixed(1)}px, ${A.y.toFixed(1)}px) scale(${A.k.toFixed(5)})`;
+        if (!v._feathered) { v._feathered = true; const m = "linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent)"; v.style.webkitMaskImage = m; v.style.maskImage = m; }
+        const g = smooth((v.currentTime || 0) / DESK_SNAP_FADE_S);
         if (snap) snap.style.opacity = (1 - g).toFixed(3);
+        transShade.style.opacity = (1 - 0.55 * g).toFixed(3);
       }
     }
     let failsafe = 0, stallIv = 0, freezeIv = 0, snap = null;
@@ -1880,7 +1908,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       sound.enter();
       if (!warm) warmUp();
       const go = (fadeNow) => {
-        enter.classList.remove("waiting"); enter.classList.add("leave"); grade.style.opacity = 0;
+        enter.classList.remove("waiting"); enter.classList.add("leave"); grade.style.opacity = 0; heroMark.classList.add("leave");
         if (fadeNow) fadeFrom = performance.now();
         playTransition();
       };
