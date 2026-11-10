@@ -65,7 +65,7 @@ const DESK_GROW_S = 1.2;      // desktop: the phone video grows from the hero's 
 const ENTER_WAIT_MS = 4000;  // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
-const DESK_VIEW_H = 950, DESK_FOCUS = [600, 918];   // (wide screens: worldFit)
+const DESK_FOCUS = [430, 1130], DESK_BUILD = 0.6, DESK_PAN_FROM = 0.52;   // (wide screens: worldFit)
 const SUN_SKY_Y = 716, SUN_R = 26, RIDGE_Y = 357;
 const DESCENT_SVH = 236, SCROLL_EASE = 5, PART_RANGE = 0.9;
 // Burnell's tilt (WorldHome.jsx): canvas px of shift at full tilt; far layers slide one way and
@@ -1224,16 +1224,16 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
 
   // Sized by the stage itself (max(100lvh, 100vh): it doesn't change as Safari's toolbars come and
   // go), never by the live window height.
-  // Wide screens: the painting blown up (soft, as the phone's painting is), as large as it can be while
-  // everything the visitor hunts for (the owl high in the aspens to the cocoon and the salmon low by the
-  // pool, DESK_VIEW of the canvas) still fits the screen once landed; the view travels down the painting
-  // through the descent (DESK_FOCUS, canvas y at its middle), and the blurred sky fills the sides
+  // Wide screens: the painting stretched edge to edge (soft, as the phone's painting is). It's then much
+  // taller than the screen, so the world assembles over the first DESK_BUILD of the descent and the rest
+  // of it travels down the finished painting (DESK_FOCUS, canvas y at the screen's middle): from the owl
+  // high in the aspens down to where the bison, the bluebird, the cocoon and the salmon all sit together
   function worldFit(p = 0) {
     ensure(); const W = sizes.sw, H = sizes.sh;
     const narrow = W / H <= 0.8;
     if (!narrow) {
-      const k = Math.min(W / CANVAS.w, H / DESK_VIEW_H), colW = CANVAS.w * k;
-      const fy = DESK_FOCUS[0] + (DESK_FOCUS[1] - DESK_FOCUS[0]) * smooth(p);
+      const k = W / CANVAS.w, colW = W;
+      const fy = DESK_FOCUS[0] + (DESK_FOCUS[1] - DESK_FOCUS[0]) * smooth((p - DESK_PAN_FROM) / (1 - DESK_PAN_FROM));
       const oy = Math.min(0, Math.max(H - CANVAS.h * k, H / 2 - fy * k));
       return { W, H, narrow, colW, k, ox: (W - colW) / 2, oy };
     }
@@ -1247,12 +1247,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   function worldLayout(p) {
     sideEl = sideEl || $(".tj-side");
     const { W, H, narrow, colW, k, ox, oy: oy0 } = worldFit(p);
+    if (!narrow) p = Math.min(1, p / DESK_BUILD);   // (wide: the world is whole before the view travels down it)
     // the stage runs under Safari's bottom toolbar; over the second half of the descent the world
     // rises by that much, so at the bottom the whole painting is in view above the toolbar
     const oy = oy0 - Math.max(0, H - Hs()) * smooth((p - 0.5) / 0.5);
     setVignette(VIG_LANDED - (VIG_LANDED - VIG_BOTTOM) * clamp01(p));   // 85% on the landing to 15% at the bottom
     put(sideEl, "display", narrow ? "none" : "block");
-    if (!narrow) { const e = edgeEls || (edgeEls = [...worldStage.querySelectorAll(".tj-worldEdge")]); const ew = Math.min(160, colW * 0.14);
+    if (!narrow) { const e = edgeEls || (edgeEls = [...worldStage.querySelectorAll(".tj-worldEdge")]); const ew = colW >= W - 1 ? 0 : Math.min(160, colW * 0.14);   // (edge to edge: no seam to soften)
       put(e[0], "transform", `translateX(${(ox - 1).toFixed(1)}px)`); put(e[1], "transform", `translateX(${(ox + colW - ew + 1).toFixed(1)}px)`);
       put(e[0], "width", ew.toFixed(0) + "px"); put(e[1], "width", ew.toFixed(0) + "px"); }
     // the lion's moment, with the finale video: the world eases onto exactly where the video's first
