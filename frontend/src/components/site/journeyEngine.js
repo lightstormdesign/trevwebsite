@@ -352,7 +352,7 @@ const STORY = [
     "It’s about remembering that we were never separate from it.",
     { quote: "“Except ye be converted, and become as little children, ye shall not enter into the kingdom of heaven.”", cite: "Matthew 18:3 (KJV)" },
     { reveal: "The Kingdom is within.", last: true }],
-    song: "Hear this story in song", cta: "Receive High-Vibe Texts", ctaNote: "Messages of inspiration, unreleased songs and meditations from TREV." },
+    song: "Hear this story in song", ctaHead: "The Story Continues.", ctaNote: "Your invitation to stay connected.", cta: "Join the Journey" },
 ];
 const BUBBLE_AFTER_MS = 20000, BUBBLE_SHOW_MS = 7000;   // the texts card rises this long after the world's bottom is reached (not over the story)
 const ROAR_MS = 3200;
@@ -1173,7 +1173,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         const body = `<div class="ab-body">${c.body.map(line).join("")}`
           // the story, ended, in song (We Are The I Am): a small card under the last line
           + (c.song ? `<div class="ab-song ab-rv"><button class="ab-play" type="button" aria-pressed="false"><span class="ic" aria-hidden="true"></span><span class="lb">${c.song}</span></button></div>` : "")
-          + (c.cta ? `<div class="ab-cta ab-rv"><a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a><span class="tj-ctaNote">${c.ctaNote}</span></div>` : "")
+          + (c.cta ? `<div class="ab-cta ab-rv"><p class="ab-ctaHead">${c.ctaHead}</p><span class="tj-ctaNote">${c.ctaNote}</span>`
+            + `<a class="tj-cta" href="${LAYLO_URL}" target="_blank" rel="noopener noreferrer">${c.cta}</a></div>` : "")
           + `</div>`;
         html += `<article class="ab-ch mode-${c.mode} lay-${c.lay} m-${c.m}${c.media ? "" : " nofig"}" data-mood="${c.mood}" data-ch="${c.n}">${head}${fig(c)}${body}</article>`;
       }
