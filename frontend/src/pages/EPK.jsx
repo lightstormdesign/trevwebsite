@@ -74,6 +74,7 @@ const StagePlot = () => {
   );
 };
 
+const RIDER_PDF = "/press/TREV-Stage-Plot-Tech-Rider.pdf?v=1";
 const TechRider = () => (
   <details data-testid="tech-rider" className="group mt-10 rounded-xl border border-white/12 bg-black/30 px-5 py-4 text-left sm:px-6">
     <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
@@ -84,6 +85,16 @@ const TechRider = () => (
           {TECH_RIDER.lineup}
         </span>
       </span>
+      {/* the rider as a one-page PDF for promoters and sound engineers (public/press, made from this section) */}
+      <a
+        href={RIDER_PDF}
+        download="TREV-Stage-Plot-Tech-Rider.pdf"
+        data-testid="rider-pdf"
+        onClick={(e) => e.stopPropagation()}
+        className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 font-body text-[0.7rem] text-white/75 transition-colors hover:border-[var(--sm-gold)]/60 hover:text-[var(--sm-gold-light)]"
+      >
+        <Download size={12} /> PDF
+      </a>
       <span className="font-accent shrink-0 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)] group-open:hidden">View</span>
       <span className="font-accent hidden shrink-0 text-xs uppercase tracking-[0.15em] text-[var(--sm-gold)] group-open:inline">Close</span>
     </summary>
