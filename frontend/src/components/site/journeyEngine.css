@@ -117,9 +117,11 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 .tj-tv { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 .tj-snap { position: absolute; left: 0; top: 0; transform-origin: 0 0; display: block; }
 /* desktop hero: the dark that holds the wordmark, left of the photo (and the same dark under the transition) */
-.tj-heroSide { position: absolute; inset: 0; display: none; background: #0b0807 center / cover no-repeat; filter: blur(30px) brightness(.32); transform: scale(1.1); }
+.tj-meBox { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
+.tj-box.ready ~ .tj-meBox { opacity: 1; }
+.tj-heroSide { position: absolute; inset: 0; display: none !important; background: #0b0807 center / cover no-repeat; filter: blur(30px) brightness(.32); transform: scale(1.1); }
 .tj-heroShade, .tj-transShade { position: absolute; left: 0; top: 0; bottom: 0; width: 0; pointer-events: none;
-  background: linear-gradient(90deg, rgba(7,5,4,.96) 0%, rgba(7,5,4,.9) 55%, rgba(7,5,4,.5) 80%, transparent 100%); }
+  background: linear-gradient(90deg, rgba(7,5,4,.72) 0%, rgba(7,5,4,.55) 45%, rgba(7,5,4,.25) 75%, transparent 100%); }
 .tj-transShade { z-index: 1; }
 .tj-tv { z-index: 2; }
 .tj-heroMark { position: absolute; display: none; height: auto; pointer-events: none; z-index: 6;

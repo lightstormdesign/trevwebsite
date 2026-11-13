@@ -63,7 +63,8 @@ const WARM_DELAY_MS = 800, WARM_FALLBACK_MS = 3500;
 const STALL_MS = 1200, FAILSAFE_MS = 11000, FRAME_WAIT_MAX_MS = 150;
 const DESK_GROW_S = 1.2;      // (desktop, before: the phone video grew to full screen over this long)
 const DESK_HEAD_X = 0.7;      // desktop hero: TREV's head this far across the screen (the wordmark and Click to enter on the left)
-const DESK_SNAP_FADE_S = 2.4; // desktop transition: the hero around the playing video gives way to the soft sky over this long
+const DESK_SNAP_FADE_S = 2.4; // desktop transition: the dark behind the T gives way over this long
+const DESK_PLATE_FY = 0.52;   // desktop (Soleil's way): the phone plate fills the screen edge to edge, this far down at mid-screen
 const ENTER_WAIT_MS = 4000;  // on a slow connection, how long a tap waits for the transition to be in memory
 
 const CANVAS = { w: 941, h: 1672 };
@@ -487,6 +488,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         <canvas class="tj-me"></canvas>
         <img class="tj-meImg" alt="TREV" hidden>
       </div>
+      <div class="tj-meBox"></div>
       <div class="tj-grade"></div>
       <div class="tj-heroShade" aria-hidden="true"></div>
       <img class="tj-heroMark" src="${A}trev-t-sun.webp" alt="TREV" width="576" height="780">
@@ -1541,6 +1543,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const canvas = $(".tj-me"), meImg = $(".tj-meImg"), grade = $(".tj-grade");
     const trees = [...root.querySelectorAll(".tj-tree")];
     const enter = $(".tj-enter"), enterLayer = $(".tj-enterLayer");
+    const meBox = $(".tj-meBox");
+    let plateFit = { k: 1, ox: 0, oy: 0 };
     const heroSide = $(".tj-heroSide"), heroShade = $(".tj-heroShade"), heroMark = $(".tj-heroMark"), transShade = $(".tj-transShade");
     let readyAt = 0;
     const trans = $(".tj-trans"), keep = $(".tj-keep");
@@ -1606,19 +1610,25 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const next = heroW() / heroH() < 0.9 ? HERO_SETS.mobile : HERO_SETS.desktop;
       if (next === set) return;
       set = next;
+      // Desktop is Soleil's: the phone plate (the transition's own first frame) fills the screen edge to
+      // edge, and TREV (his desktop cutout) stands on his own on the right, in meBox; so Click to enter
+      // hands straight to the video, same picture, same framing
+      const P = HERO_SETS.mobile, desk = set === HERO_SETS.desktop;
       box.classList.remove("ready");
-      box.style.width = set.w + "px"; box.style.height = set.h + "px";
-      Object.assign(plate.style, { width: set.w + "px", height: set.h + "px" });
-      plateStill.src = A + set.poster + MV; plate.src = A + set.video + MV; showWhenPlaying(plate);
-      Object.assign(plateStill.style, { width: set.w + "px", height: set.h + "px" });
-      // the two trees (cut from the phone plate, so on a phone only): the middle plane, between the
-      // still sky and TREV
-      trees.forEach((tr) => { tr.hidden = set.w > set.h; Object.assign(tr.style, { width: set.w + "px", height: set.h + "px" }); });
-      $(".tj-heroPatch").hidden = set.w > set.h;   // (the phone plate's patch)
+      box.style.width = P.w + "px"; box.style.height = P.h + "px";
+      Object.assign(plate.style, { width: P.w + "px", height: P.h + "px" });
+      plateStill.src = A + P.poster + MV; plate.src = A + P.video + MV; showWhenPlaying(plate);
+      Object.assign(plateStill.style, { width: P.w + "px", height: P.h + "px" });
+      // the two trees (cut from the phone plate): the middle plane, between the still sky and TREV (phones)
+      trees.forEach((tr) => { tr.hidden = desk; Object.assign(tr.style, { width: P.w + "px", height: P.h + "px" }); });
+      $(".tj-heroPatch").hidden = false;   // (the phone plate's patch)
+      const meHome = desk ? meBox : box;
+      if (canvas.parentNode !== meHome) { meHome.appendChild(canvas); meHome.appendChild(meImg); }
+      meBox.style.width = set.w + "px"; meBox.style.height = set.h + "px";
 
       plate.play().then(() => afterFirstFrame(plate, () => later(warmUp, WARM_DELAY_MS))).catch(() => {});  // Low Power Mode: the poster stays
       let loaded = 0; const done = () => { if (++loaded === 2) { box.classList.add("ready"); readyAt = readyAt || performance.now(); } };
-      const p = new Image(); p.onload = done; p.onerror = done; p.src = A + set.poster;
+      const p = new Image(); p.onload = done; p.onerror = done; p.src = A + P.poster;
       const img = new Image();
       img.onload = () => {
         if (gl || initGL()) { buildMesh(img); canvas.hidden = false; meImg.hidden = true; }
@@ -1636,18 +1646,26 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const W = heroW(), H = Math.min(heroH(), Hs()), k = Math.max(W / set.w, H / set.h);
       // (framed in the visible screen, so he's never cut off by the bottom toolbar; under the toolbar, where
       // the page shows through it, a soft blurred continuation of the same photo: .tj-hero::before)
-      heroEl.style.setProperty("--tj-heroFill", `url(${A}${set.poster})`);
+      heroEl.style.setProperty("--tj-heroFill", `url(${A}${HERO_SETS.mobile.poster})`);
       const desk = set === HERO_SETS.desktop;
       fit = { k,
         // (desktop: TREV to the right, DESK_HEAD_X across; the left, where the photo runs out, is the wordmark's)
         ox: desk ? Math.min(W * DESK_HEAD_X - set.headX * k, W * 0.45) : Math.min(0, Math.max(W - set.w * k, W / 2 - set.fx * set.w * k)),
         oy: Math.min(0, H - set.h * k) };   // the portrait sits on the bottom of the screen, never cut off by it (any crop comes off the sky)
       root.classList.toggle("tj-deskHero", desk);
-      // the photo's left edge melts into the dark that holds the wordmark (the same dark under the transition)
+      // a soft dark on the left that holds the T (the same dark lies under the transition, then lifts)
       const shadeW = Math.max(0, fit.ox + set.w * k * 0.26);
       heroShade.style.width = transShade.style.width = (desk ? shadeW : 0).toFixed(0) + "px";
-      heroSide.style.backgroundImage = desk ? `url(${A}${set.poster})` : "";
-      box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
+      heroSide.style.backgroundImage = "";
+      if (desk) {   // the phone plate, edge to edge (its own scale), TREV in meBox at his
+        const P = HERO_SETS.mobile, pk = Math.max(W / P.w, H / P.h);
+        plateFit = { k: pk, ox: (W - P.w * pk) / 2, oy: Math.min(0, Math.max(H - P.h * pk, H / 2 - DESK_PLATE_FY * P.h * pk)) };
+        box.style.transform = `translate(${plateFit.ox}px, ${plateFit.oy}px) scale(${pk})`;
+        meBox.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
+      } else {
+        plateFit = fit;
+        box.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${k})`;
+      }
       // (?mandala=behind: the mandala inside the photo, behind the two tree cutouts; placed in the photo's own
       // pixels so it sits exactly where it does in front)
       const mf = MANDALA_BEHIND && heroEl.querySelector(".tj-flower");
@@ -1766,23 +1784,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
         const kw = wf.k * CANVAS.w / TRANS.w, e = smooth(u);
         v.style.transform = `translate(${(hx + (wf.ox - hx) * e).toFixed(1)}px, ${(hy + (wf.oy - hy) * e).toFixed(1)}px) scale(${(k + (kw - k) * e).toFixed(5)})`;
       } else {
-        // Desktop (until there's a 16:9 transition): the phone video starts exactly over the hero (its
-        // first frame is the phone plate, mapped onto the desktop plate through TREV's cutout), grows to
-        // fill the screen over DESK_GROW_S while a still of the hero around it fades, holds full-screen,
-        // and over the last stretch settles into the world's column, its landing frame.
-        const mob = HERO_SETS.mobile.cut, desk = set.cut, r = mob.w / desk.w;
-        const A = { k: fit.k / r, x: fit.ox + (desk.x - mob.x / r) * fit.k, y: fit.oy + (desk.y - mob.y / r) * fit.k };
-        const kc = Math.max(W / TRANS.w, H0 / TRANS.h);
-        const C = { k: kc, x: (W - TRANS.w * kc) / 2, y: Math.min(0, Math.max(H0 - TRANS.h * kc, H0 / 2 - HERO_SETS.mobile.fy * TRANS.h * kc)) };
-        const Wd = { k: wf.k * CANVAS.w / TRANS.w, x: wf.ox, y: wf.oy };
-        // Now: no growing. The video plays exactly where it starts (over him, his framing), its sides
-        // feathered; the hero around it gives way to the soft sky; at the end it dissolves into the world
-        void C; void Wd;
-        v.style.transform = `translate(${A.x.toFixed(1)}px, ${A.y.toFixed(1)}px) scale(${A.k.toFixed(5)})`;
-        if (!v._feathered) { v._feathered = true; const m = "linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent)"; v.style.webkitMaskImage = m; v.style.maskImage = m; }
+        // Desktop (Soleil's): the video starts exactly on the plate's framing (it is the same picture),
+        // edge to edge, and pans down to the world's framing as it plays: the same scale throughout, no
+        // column, no blur; the dark behind the T lifts as it goes
+        const S = plateFit, Wd = { k: wf.k * CANVAS.w / TRANS.w, x: wf.ox, y: wf.oy }, e = smooth(u);
+        v.style.transform = `translate(${(S.ox + (Wd.x - S.ox) * e).toFixed(1)}px, ${(S.oy + (Wd.y - S.oy) * e).toFixed(1)}px) scale(${(S.k + (Wd.k - S.k) * e).toFixed(5)})`;
         const g = smooth((v.currentTime || 0) / DESK_SNAP_FADE_S);
-        if (snap) snap.style.opacity = (1 - g).toFixed(3);
-        transShade.style.opacity = (1 - 0.55 * g).toFixed(3);
+        transShade.style.opacity = (1 - g).toFixed(3);
       }
     }
     let failsafe = 0, stallIv = 0, freezeIv = 0, snap = null;
@@ -1880,20 +1888,13 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       started = true;
       if (!tv.src) { tv.src = transUrl; tv.preload = "auto"; }
       placeVideo(tv);
-      if (set === HERO_SETS.desktop) $(".tj-transSide").style.backgroundImage = `url(${A}w3-sky.webp)`;
-      else $(".tj-transSide").style.display = "none";
+      $(".tj-transSide").style.display = "none";   // (the video fills the screen on every device)
       on(tv, "playing", () => afterFirstFrame(tv, () => {
         if (playing) return; playing = true;
         phase = "trans"; keep.hidden = false;
         if (!fadeFrom) fadeFrom = performance.now();   // from the network: TREV fades once it's actually playing
         // the plate lifts off the identical first frame; TREV's real photo stays over the playing
         // video, fading (see fadeMe) — the artist is never in the AI video itself
-        if (set === HERO_SETS.desktop) {   // a still of the hero's current frame, under the growing video
-          snap = document.createElement("canvas"); snap.className = "tj-snap"; snap.width = set.w; snap.height = set.h;
-          try { snap.getContext("2d").drawImage(plate.readyState >= 2 ? plate : plateStill, 0, 0, set.w, set.h); } catch (err) { /* poster only */ }
-          snap.style.transform = `translate(${fit.ox}px, ${fit.oy}px) scale(${fit.k})`;
-          tv.parentNode.insertBefore(snap, tv);
-        }
         heroEl.classList.add("thru");
         plate.pause(); watchStall(); watchFreeze();
       }), { once: true });
