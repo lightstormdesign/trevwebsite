@@ -107,8 +107,14 @@ export const BOOKING_STATUS = "Now Booking for 2027";
 export const BOOKING_COPY = "Festivals, retreats, private events, and conscious gatherings worldwide.";
 
 // Tour — the 2026 Kingdom Tour is over; one more show this year (from the Facebook event TREV sent).
-export const TOUR_STATUS = "The 2026 Kingdom Tour has ended";
+export const TOUR_STATUS = "The final leg of the 2026 Kingdom Tour";
 export const TOUR_DATES = [
+  {
+    date: "Nov 20",
+    event: "TREV with Sierra Marin & Burnell Washburn",
+    location: "The Harp · Ocean Beach, San Diego",
+    note: "Friday, November 20, 2026 · $5 at the door",
+  },
   {
     date: "Nov 27",
     event: "The Giving Room Experiment with Tubby Love & Friends",

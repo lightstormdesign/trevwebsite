@@ -48,7 +48,7 @@ export default function Tour() {
                     {TOUR_STATUS}
                   </p>
                 )}
-                <TourFlyer title="One More Night in 2026" dates={TOUR_DATES} />
+                <TourFlyer title="The Final Leg" dates={TOUR_DATES} />
               </div>
             </Reveal>
 
