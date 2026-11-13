@@ -3,7 +3,7 @@
 // live site is flagged below as a placeholder rather than invented.
 
 export const ARTIST_NAME = "TREV";
-export const SITE_LOCATION = "Salt Lake City, Utah";
+export const SITE_LOCATION = "Based in San Diego · Deep roots in Utah";
 
 // Top-level navigation (multi-page routes).
 export const NAV_LINKS = [
@@ -33,7 +33,7 @@ export const BIO = [
   "TREV is a Conscious Hip-Hop Artist using the infinite power of the spoken word to activate the awakening of humanity.",
   "Inspired by artists like J. Cole and Brother Ali, and guided by teachers like Ram Dass and Yogananda, his music weaves heart-opening, masterful poetry over cinematic, head-nodding beats, blending loving truths, dynamic wordplay, and empowering affirmations into a meditative, ceremonial, and deeply interactive experience - a prayerformance that invites presence, connection, and inspiration.",
   "His prayer - and his decree - is that his music supports people in taking massive inspired action toward the New Earth from a place of ultimate alignment.",
-  "Based in Salt Lake City, Utah, TREV is touring the U.S. full-time, building community.",
+  "Based in San Diego, California, with deep roots in Utah, TREV is touring the U.S. full-time, building community.",
 ];
 
 // Short hero/intro line (first sentence of the bio).
