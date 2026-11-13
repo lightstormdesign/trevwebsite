@@ -44,7 +44,7 @@ export default function Tour() {
             <Reveal delay={0.2}>
               <div className="mt-16">
                 {TOUR_STATUS && (
-                  <p data-testid="tour-status" className="font-accent mb-8 text-sm uppercase tracking-[0.2em] text-white/60">
+                  <p data-testid="tour-status" className="font-accent mb-8 whitespace-pre-line text-sm uppercase tracking-[0.2em] text-white/60">
                     {TOUR_STATUS}
                   </p>
                 )}

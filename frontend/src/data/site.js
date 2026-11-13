@@ -107,7 +107,7 @@ export const BOOKING_STATUS = "Now Booking for 2027";
 export const BOOKING_COPY = "Festivals, retreats, private events, and conscious gatherings worldwide.";
 
 // Tour — the 2026 Kingdom Tour is over; one more show this year (from the Facebook event TREV sent).
-export const TOUR_STATUS = "The final leg of the 2026 Kingdom Tour";
+export const TOUR_STATUS = "The final leg of the\n2026 Kingdom Tour";
 export const TOUR_DATES = [
   {
     date: "Nov 20",
