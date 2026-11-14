@@ -444,7 +444,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mouse = matchMedia("(hover: hover)").matches;
   let raf = 0, phase = start === "world" ? "world" : "hero";
-  const sword = `${A}trev-t-sun.webp`;   // (TREV's golden T and sun: the landing's symbol, in the sword's place)
+  const sword = `${A}trev-t-sun.webp?v=2`;   // (TREV's golden T and sun: the landing's symbol, in the sword's place)
   const enterLabel = `${mouse ? "Click" : "Tap"} to enter`;
 
   root.classList.add("tj");
@@ -491,7 +491,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       <div class="tj-meBox"></div>
       <div class="tj-grade"></div>
       <div class="tj-heroShade" aria-hidden="true"></div>
-      <img class="tj-heroMark" src="${A}trev-t-sun.webp" alt="TREV" width="576" height="780">
+      <img class="tj-heroMark" src="${A}trev-t-sun.webp?v=2" alt="TREV" width="792" height="1040">
       <div class="tj-flower tj-mandala" aria-hidden="true"><div class="in"><div class="breathe"><div class="turn"><img class="glow" src="${A}trev-bison-mandala-line.webp" alt=""><img src="${A}trev-bison-mandala-line.webp" alt=""></div></div></div></div>
     </div>` : ""}
     <div class="tj-vignette" aria-hidden="true"><div class="sides"></div><div class="top"></div></div>
@@ -1689,7 +1689,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       const roomy = headTop - nameR.bottom > 70;
       if (desk) {   // his golden T and sun, large, centred in the space left of him; Click to enter under it
         const cx = Math.max(W * 0.24, Math.min(W * 0.3, (fit.ox + set.cut.x * k) / 2 + W * 0.04));
-        const mh = Math.min(H * 0.5, W * 0.4 / 0.738, 560), mw = mh * 0.738, my = H * 0.42 - mh / 2;
+        const mh = Math.min(H * 0.5, W * 0.4 / 0.762, 560), mw = mh * 0.762, my = H * 0.42 - mh / 2;
         Object.assign(heroMark.style, { left: (cx - mw / 2).toFixed(1) + "px", top: my.toFixed(1) + "px", width: mw.toFixed(1) + "px" });
         enter.style.left = cx.toFixed(1) + "px"; enter.style.top = (my + mh + Math.max(44, H * 0.075)).toFixed(1) + "px";
       } else {
