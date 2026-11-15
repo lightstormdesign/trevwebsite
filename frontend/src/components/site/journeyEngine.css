@@ -247,13 +247,13 @@ html.tj-menuOpen .tj-sound.tj-soundFixed { z-index: 62; }
 
 /* soft, edgeless darkness behind the words: the artwork stays, the words read */
 .ab-head, .ab-body, .ab-line, .ab-openText { position: relative; isolation: isolate; }
-.ab-head::before, .ab-body::before, .ab-line::before, .ab-openText::before { content: ""; position: absolute; inset: -10% -14%; z-index: -1; pointer-events: none;
-  background: radial-gradient(ellipse 60% 56% at 50% 50%, rgba(6,5,4,.58), rgba(6,5,4,.3) 58%, transparent 80%); }
+.ab-head::before, .ab-body::before, .ab-line::before, .ab-openText::before { content: ""; position: absolute; inset: -34% -18%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(6,5,4,.3), rgba(6,5,4,.22) 35%, rgba(6,5,4,.1) 68%, rgba(6,5,4,.03) 88%, transparent); filter: blur(22px); }
 
 /* ---------- type ---------- */
 .ab-body { width: 100%; max-width: 34rem; padding: 0 24px; text-align: center; }
 .ab-body p { font: 400 clamp(18px, 4.75vw, 19px)/1.43 var(--tj-serif); letter-spacing: .003em; color: rgba(245,238,224,.98);
-  text-shadow: 0 1px 10px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.4); }
+  text-shadow: 0 1px 10px rgba(0,0,0,.78), 0 0 3px rgba(0,0,0,.55); }
 .ab-body p + p { margin-top: .72em; }
 /* the chapter's number, held to its title, and the title held to its words */
 .ab-head { padding: 0 22px; text-align: center; }
