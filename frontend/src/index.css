@@ -257,23 +257,24 @@ body {
    still gives the shadow a box to project from). Brightens slightly over
    anything clickable via .glow-cursor--active, same DOM-semantic hover
    check the wand used, for a hint of affordance without decoration. */
-.glow-cursor { position: fixed; left: 0; top: 0; width: 0; height: 0; transition: opacity .2s ease; }
-.glow-cursor--gone { opacity: 0; }
-.glow-cursor__sun { position: absolute; left: -17px; top: -17px; width: 34px; height: 34px; display: block;
-  transition: transform .28s cubic-bezier(.3, 1.4, .5, 1), filter .28s ease; }
-.glow-cursor__sun::before { content: ""; position: absolute; inset: -40%; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, rgba(255, 224, 160, .32), rgba(214, 179, 101, .12) 45%, transparent 70%); }
-.glow-cursor__sun img { position: relative; width: 100%; height: 100%; display: block; user-select: none;
-  filter: drop-shadow(0 0 3px rgba(0, 0, 0, .55)); animation: sun-cursor-turn 40s linear infinite; }
-@keyframes sun-cursor-turn { to { transform: rotate(360deg); } }
-.glow-cursor--active .glow-cursor__sun { transform: scale(1.45); filter: brightness(1.18) drop-shadow(0 0 6px rgba(255, 210, 130, .6)); }
-.glow-cursor--flare .glow-cursor__sun { animation: sun-cursor-flare .55s ease-out; }
-@keyframes sun-cursor-flare { 0% { filter: brightness(1.7) drop-shadow(0 0 14px rgba(255, 220, 150, .95)); } 100% { filter: none; } }
-/* the OS cursor gives way to the sun (text fields keep their I-beam) */
-html.sun-cursor, html.sun-cursor * { cursor: none !important; }
-html.sun-cursor input:not([type="button"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]),
-html.sun-cursor textarea, html.sun-cursor [contenteditable="true"] { cursor: text !important; }
-@media (prefers-reduced-motion: reduce) { .glow-cursor__sun img { animation: none; } }
+.glow-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  margin-top: -4.5px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 9px 3px rgba(214, 179, 101, 0.55), 0 0 18px 7px rgba(214, 179, 101, 0.22);
+  opacity: 0.85;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.glow-cursor--active {
+  box-shadow: 0 0 12px 4px rgba(74, 157, 171, 0.6), 0 0 22px 9px rgba(74, 157, 171, 0.28);
+  opacity: 1;
+}
 
 .animate-float-slow {
   animation: float-slow 7s ease-in-out infinite;
