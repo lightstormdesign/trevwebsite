@@ -1350,3 +1350,17 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
 .tj.tj-deskHero .tj-mandala .in { --from: 0deg; }
 @keyframes tj-mandalaDraw { from { --tj-draw: -30deg; } to { --tj-draw: 400deg; } }
 @media (prefers-reduced-motion: reduce) { .ab-fig.in::after { animation: none; } .tj-mandala .in { animation: tj-flowerIn 3s ease-out 1.2s both; -webkit-mask-image: none; mask-image: none; } }
+
+/* Phones: the story's words warm as they reach the middle of the screen (journeyEngine.js, ab-lightup) */
+.ab-lightup .ab-body > p:not(.ab-rv), .ab-lightup .ab-quote p { transition: color 1.2s ease; }
+.ab-lightup .ab-body > p:not(.ab-rv):not(.lit), .ab-lightup .ab-quote p:not(.lit) { color: rgba(198, 191, 180, .5); }
+
+/* Phones: a thin golden reading line down the story's left edge, filling as you read */
+.tj-readLine { display: none; }
+@media (hover: none), (pointer: coarse) {
+  .tj-readLine { display: block; position: fixed; left: 7px; top: 22svh; bottom: 22svh; width: 2px; z-index: 43; pointer-events: none;
+    border-radius: 2px; background: rgba(255, 255, 255, .08); opacity: 0; transition: opacity .8s ease; }
+  .tj-readLine.on { opacity: 1; }
+  .tj-readLine i { position: absolute; inset: 0; border-radius: 2px; transform-origin: 50% 0; transform: scaleY(0); will-change: transform;
+    background: linear-gradient(to bottom, #fff3d6, #e8cf9a 35%, #c09245); box-shadow: 0 0 10px 1px rgba(243, 223, 176, .55); }
+}

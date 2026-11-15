@@ -626,3 +626,16 @@ html.tj-inWorld .film-grain { animation: none !important; }   /* (in the scroll 
   transition: transform var(--rise) cubic-bezier(.55, 0, .35, 1), opacity calc(var(--rise) * .6) ease-out; }
 .sunrise.rise.lift { pointer-events: none; opacity: 0; transform: translate3d(0, -8%, 0);
   transition: transform var(--fade) cubic-bezier(.25, .6, .3, 1), opacity var(--fade) ease; }
+
+/* Touch: a ring of golden light from the fingertip on every press (TapRipple.jsx) */
+.tap-ripple { position: fixed; z-index: 9600; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; pointer-events: none;
+  border: 1.5px solid rgba(255, 222, 160, .85); box-shadow: 0 0 14px 2px rgba(240, 190, 110, .45), inset 0 0 10px rgba(255, 220, 150, .35);
+  animation: tap-ripple .7s cubic-bezier(.2, .7, .3, 1) forwards; }
+@keyframes tap-ripple { from { transform: scale(.2); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+
+/* Phones: press photos come into focus the first time they reach the middle of the screen (PressGallery.jsx) */
+@media (hover: none), (pointer: coarse) {
+  .print-tilt > img, .print-tilt > video { filter: blur(5px) brightness(.7); transition: filter 1s ease; }
+  .print-tilt.focused > img, .print-tilt.focused > video { filter: none; }
+}
+@media (prefers-reduced-motion: reduce) { .print-tilt > img, .print-tilt > video { filter: none !important; } }

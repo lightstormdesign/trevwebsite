@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, Volume2, VolumeX } from "lucide-react";
+import { motion } from "@/utils/motion";
 
 // TREV's press photos and clips, shared by the EPK (its best few first, "See full gallery" for the rest) and the
 // Gallery page (all of them).
@@ -68,10 +69,49 @@ const TILT_DEG = 7;
 const canTilt = () =>
   typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
   !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Phones: the same print, moved by tilting the phone (utils/motion.js), for the photos on screen; and each one
+// comes into focus (from soft and dim) the first time it reaches the middle of the screen.
+const onScreen = new Set();
+let phoneRaf = 0;
+const phoneTick = () => {
+  phoneRaf = 0;
+  if (!onScreen.size) return;
+  if (motion.on) {
+    const x = motion.x, y = motion.y;
+    onScreen.forEach((el) => {
+      el.style.transform = `perspective(900px) rotateX(${(-y * 5).toFixed(2)}deg) rotateY(${(x * 5).toFixed(2)}deg)`;
+      el.style.setProperty("--lift", "0.35");
+      el.style.setProperty("--gx", `${((x + 1) * 50).toFixed(1)}%`);
+      el.style.setProperty("--gy", `${((y + 1) * 50).toFixed(1)}%`);
+    });
+  }
+  phoneRaf = requestAnimationFrame(phoneTick);
+};
+let seenIO = null, focusIO = null;
+const phoneWatch = (el) => {
+  if (typeof IntersectionObserver === "undefined") { el.classList.add("focused"); return () => {}; }
+  if (!seenIO) {
+    seenIO = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) onScreen.add(e.target);
+      else { onScreen.delete(e.target); e.target.style.transform = ""; }
+      if (onScreen.size && !phoneRaf) phoneRaf = requestAnimationFrame(phoneTick);
+    }));
+    focusIO = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add("focused"); focusIO.unobserve(e.target); }
+    }), { rootMargin: "-14% 0px -14% 0px" });
+  }
+  seenIO.observe(el); focusIO.observe(el);
+  return () => { seenIO.unobserve(el); focusIO.unobserve(el); onScreen.delete(el); };
+};
+const isPhone = () =>
+  typeof window !== "undefined" && !window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 export const usePrintTilt = () => {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
+    if (el && isPhone()) return phoneWatch(el);
     if (!el || !canTilt()) return undefined;
     let raf = 0, tx = 0, ty = 0, x = 0, y = 0, lift = 0, tl = 0;
     const tick = () => {

@@ -560,6 +560,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     <div class="tj-progress" aria-hidden="true"><div class="tj-progressHint"><span>Keep scrolling</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></div>
       <div class="tj-progressLine"><i class="tj-progressFill"></i><i class="tj-progressDrop"></i></div></div>
+    <div class="tj-readLine" aria-hidden="true"><i></i></div>
     <div class="tj-totems">
       <div class="tj-quest" aria-live="polite">
         <p class="tj-questTitle">Find the animal totems</p>
@@ -1194,9 +1195,18 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     const reduce = typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (typeof IntersectionObserver === "undefined") { aboutEl.querySelectorAll(".ab-rv").forEach((e) => e.classList.add("in")); return; }
     // things rise in once as they come into view (the titles' glint with them)
-    const rv = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); rv.unobserve(e.target); } }),
+    const rv = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); rv.unobserve(e.target);
+      if (e.target.classList.contains("ab-cta")) haptic([15, 60, 25]); } }),   // (the story's end: a soft double buzz)
       { root: scroller, rootMargin: "0px 0px -10% 0px", threshold: 0.12 });
     aboutEl.querySelectorAll(".ab-rv").forEach((e) => rv.observe(e));
+    // phones: the story's words warm from soft grey to full cream as each one reaches the middle of the screen
+    if (!reduce && matchMedia("(hover: none), (pointer: coarse)").matches) {
+      aboutEl.classList.add("ab-lightup");
+      const lu = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("lit"); lu.unobserve(e.target); } }),
+        { root: scroller, rootMargin: "0px 0px -42% 0px", threshold: 0 });
+      aboutEl.querySelectorAll(".ab-body > p:not(.ab-rv), .ab-quote p").forEach((e) => lu.observe(e));
+      off.push(() => lu.disconnect());
+    }
     // the light behind the story follows the chapter crossing the middle of the screen
     const mo = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) aboutBg.dataset.mood = e.target.dataset.mood; }),
       { root: scroller, rootMargin: "-48% 0px -48% 0px", threshold: 0 });
@@ -1450,7 +1460,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   }
   function wake(k) {
     if (!TOTEMS.includes(k) || awake.has(k)) return;
-    awake.add(k); paintTotems(); finale.preload();   // the finale video starts downloading at the first totem
+    awake.add(k); paintTotems(); finale.preload(); haptic(18);   // the finale video starts downloading at the first totem
     if (bisonReady()) {   // all five: the intro fades away (in this tap), and the bison turns to you by itself
       sound.fadeIntro(INTRO_FADE_MS);
       later(() => { if (bisonReady()) bisonMoment(); }, k === "bison" ? BISON_AUTO_MS[0] : BISON_AUTO_MS[1]);
@@ -1916,7 +1926,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
       if (leaving) return; leaving = true;
       unlayer();   // (the journey starts: the floating layer settles back)
       window.scrollTo(0, 0); docEl.classList.remove("tj-heroPhase"); lockPage(); remeasure();   // (the fixed layers fixed again, the page locked)
-      sound.enter();
+      sound.enter(); haptic(15);
       if (!warm) warmUp();
       const go = (fadeNow) => {
         enter.classList.remove("waiting"); enter.classList.add("leave"); grade.style.opacity = 0; heroMark.classList.add("leave");
@@ -2007,6 +2017,7 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const prog = $(".tj-progress"), progFill = $(".tj-progressFill"), progDrop = $(".tj-progressDrop"), progHint = $(".tj-progressHint");
   const progHintLabel = progHint.querySelector("span");
   let progShown = -1, idleT = 0;
+  const readLine = $(".tj-readLine"), readFill = readLine.querySelector("i"); let readOn = false;
   // just before the world settles (the end of the descent, until the story comes up), "My Story" and its
   // arrow rise on their own and breathe, so nobody thinks the world is the end
   let hintNear = false;
@@ -2050,6 +2061,11 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     if (Math.abs(p - progShown) < 0.0005) return;
     progShown = p;
     progFill.style.transform = `scaleX(${p.toFixed(4)})`;
+    // phones: inside the story, a thin golden line down its left edge fills as you read (the sun rising)
+    const pct = scrolled(), maxPct = max / Math.max(1, Hs()) * 100;
+    const inStory = pct > ABOUT_FADE_FROM + 12, sp = clamp01((pct - ABOUT_FADE_FROM - 12) / Math.max(1, maxPct - ABOUT_FADE_FROM - 12));
+    if (inStory !== readOn) { readOn = inStory; readLine.classList.toggle("on", inStory); }
+    readFill.style.transform = `scaleY(${sp.toFixed(4)})`;
     progDrop.style.transform = `translate3d(${(p * sizes.progW).toFixed(1)}px, 0, 0)`;
   }
   const scrolled = () => Math.max(0, scrollNow / Math.max(1, Hs()) * 100);

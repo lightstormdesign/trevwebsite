@@ -16,6 +16,8 @@ import { SacredGeometryField } from "@/components/site/SacredGeometryField";
 import { WorldDim } from "@/components/site/WorldDim";
 import { FilmGrain } from "@/components/site/FilmGrain";
 import { Magnetic } from "@/components/site/Magnetic";
+import { TapRipple } from "@/components/site/TapRipple";
+import { RouteTint } from "@/components/site/RouteTint";
 import { SunriseTransition } from "@/components/site/SunriseTransition";
 
 function ScrollToTop() {
@@ -55,6 +57,8 @@ function App() {
         </Routes>
         <SunriseTransition />
         <Magnetic />
+        <TapRipple />
+        <RouteTint />
         <FilmGrain />
       </BrowserRouter>
     </div>
