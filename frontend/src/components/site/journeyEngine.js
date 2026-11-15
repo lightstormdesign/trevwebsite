@@ -38,7 +38,7 @@ import { createFinale, FINALE } from "./finale";
 const A = "/journey/";
 // Cache-buster for re-encoded media (Burnell's MEDIA_V): bump it whenever a video, the song or the
 // hero stills are replaced, or phones keep showing the old files.
-const MV = "?v=4";
+const MV = "?v=5";
 
 const HERO_SETS = {
   desktop: { w: 1920, h: 1740, video: "trev-hero-desktop.mp4", poster: "trev-hero-desktop-poster.jpg",
