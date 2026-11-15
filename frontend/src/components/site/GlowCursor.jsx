@@ -15,6 +15,9 @@ import { useEffect, useRef, useState } from "react";
 // read these and keep working unmodified, now lit by this plain cursor
 // instead of a wand.
 const EASE = 0.6;
+// TREV's sun is the cursor (desktop, a real mouse): it sits exactly on the pointer (its centre is the tip), turns
+// slowly, opens and brightens over anything clickable, and flares on a click. The OS cursor is hidden only once the
+// sun is on screen (html.sun-cursor); text fields keep their I-beam.
 
 const INTERACTIVE_SELECTOR = "a, button, [role='button'], input, select, textarea, label, [tabindex]:not([tabindex='-1'])";
 const isInteractive = (el) => !!el.closest?.(INTERACTIVE_SELECTOR);
@@ -36,9 +39,12 @@ export const GlowCursor = () => {
     const eased = { ...target };
     let hoverCheckPending = false;
 
+    const docEl = document.documentElement;
     const onMove = (e) => {
       target.x = e.clientX;
       target.y = e.clientY;
+      if (!docEl.classList.contains("sun-cursor")) docEl.classList.add("sun-cursor");
+      dotRef.current?.classList.remove("glow-cursor--gone");
       if (!hoverCheckPending) {
         hoverCheckPending = true;
         requestAnimationFrame(() => {
@@ -50,6 +56,15 @@ export const GlowCursor = () => {
       }
     };
     window.addEventListener("mousemove", onMove, { passive: true });
+    let flareT = 0;
+    const onDown = () => {
+      const d = dotRef.current; if (!d) return;
+      d.classList.remove("glow-cursor--flare"); void d.offsetWidth; d.classList.add("glow-cursor--flare");
+      clearTimeout(flareT); flareT = setTimeout(() => d.classList.remove("glow-cursor--flare"), 600);
+    };
+    const onOut = (e) => { if (!e.relatedTarget) dotRef.current?.classList.add("glow-cursor--gone"); };
+    window.addEventListener("mousedown", onDown, { passive: true });
+    document.addEventListener("mouseout", onOut);
 
     let rafId;
     const tick = () => {
@@ -61,8 +76,8 @@ export const GlowCursor = () => {
       document.documentElement.style.setProperty("--wand-ndx", `${(eased.x / window.innerWidth - 0.5) * 2}`);
       document.documentElement.style.setProperty("--wand-ndy", `${(eased.y / window.innerHeight - 0.5) * 2}`);
 
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${eased.x}px, ${eased.y}px, 0)`;
+      if (dotRef.current) {   // (the sun itself sits exactly on the pointer, no lag)
+        dotRef.current.style.transform = `translate3d(${target.x}px, ${target.y}px, 0)`;
       }
 
       rafId = requestAnimationFrame(tick);
@@ -72,6 +87,10 @@ export const GlowCursor = () => {
     return () => {
       cancelAnimationFrame(rafId);
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mousedown", onDown);
+      document.removeEventListener("mouseout", onOut);
+      clearTimeout(flareT);
+      docEl.classList.remove("sun-cursor");
       document.documentElement.style.removeProperty("--wand-mx");
       document.documentElement.style.removeProperty("--wand-my");
       document.documentElement.style.removeProperty("--wand-ndx");
@@ -81,5 +100,9 @@ export const GlowCursor = () => {
 
   if (!enabled) return null;
 
-  return <div ref={dotRef} aria-hidden className="glow-cursor pointer-events-none fixed left-0 top-0 z-[9999]" style={{ willChange: "transform" }} />;
+  return (
+    <div ref={dotRef} aria-hidden className="glow-cursor glow-cursor--gone pointer-events-none fixed left-0 top-0 z-[9999]" style={{ willChange: "transform" }}>
+      <span className="glow-cursor__sun"><img src="/trev-sun-cursor.webp" alt="" draggable="false" /></span>
+    </div>
+  );
 };
