@@ -15,6 +15,8 @@ import { GlowCursor } from "@/components/site/GlowCursor";
 import { SacredGeometryField } from "@/components/site/SacredGeometryField";
 import { WorldDim } from "@/components/site/WorldDim";
 import { FilmGrain } from "@/components/site/FilmGrain";
+import { Magnetic } from "@/components/site/Magnetic";
+import { SunriseTransition } from "@/components/site/SunriseTransition";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -51,6 +53,8 @@ function App() {
           <Route path="/community" element={<Community />} />
           <Route path="/shop" element={<Shop />} />
         </Routes>
+        <SunriseTransition />
+        <Magnetic />
         <FilmGrain />
       </BrowserRouter>
     </div>

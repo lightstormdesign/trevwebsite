@@ -598,7 +598,7 @@ html.tj-face-grain .film-grain-frame {
 html.tj-inWorld .film-grain { animation: none !important; }   /* (in the scroll world the grain holds still: one less full-screen repaint) */
 .film-grain { position: absolute; inset: -64px; pointer-events: none;
   background-size: 128px 128px; /* the tile (trev-grain.webp) is set inline in FilmGrain.jsx */
-  opacity: 0.25;
+  opacity: 0.32;
   animation: grain-jitter 0.9s steps(5) infinite;
   will-change: transform; }
 @media (prefers-reduced-motion: reduce) {
@@ -616,3 +616,13 @@ html.tj-inWorld .film-grain { animation: none !important; }   /* (in the scroll 
 @keyframes gallery-drift { from { transform: translate3d(0, -3px, 0) rotate(-.25deg); } to { transform: translate3d(0, 3px, 0) rotate(.25deg); } }
 @media (prefers-reduced-motion: reduce) { .gallery-drift { animation: none; } .gallery-col { transform: none !important; } }
 .gallery-drift:hover { z-index: 2; }
+
+/* Page changes as a sunrise (SunriseTransition.jsx): warm light swells up from the bottom, then lifts away */
+.sunrise { position: fixed; inset: 0; z-index: 9500; pointer-events: none; opacity: 0; transform: translate3d(0, 100%, 0);
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 100%, rgba(255, 226, 168, .95), rgba(240, 170, 90, .6) 38%, transparent 72%),
+    linear-gradient(to top, #2a1708 0%, #140b05 45%, #0a0604 100%); }
+.sunrise.rise { pointer-events: auto; opacity: 1; transform: none;
+  transition: transform var(--rise) cubic-bezier(.55, 0, .35, 1), opacity calc(var(--rise) * .6) ease-out; }
+.sunrise.rise.lift { pointer-events: none; opacity: 0; transform: translate3d(0, -8%, 0);
+  transition: transform var(--fade) cubic-bezier(.25, .6, .3, 1), opacity var(--fade) ease; }
