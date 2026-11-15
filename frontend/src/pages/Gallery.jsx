@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
 import { Navbar } from "@/components/site/Navbar";
@@ -22,10 +22,35 @@ const useColumns = () => {
   return n;
 };
 
+// the columns drift at their own pace as the page scrolls (a few dozen px apart at most, eased)
+const DRIFT = [-26, 18, -12, 30];
+const useColumnDrift = (n) => {
+  const grid = useRef(null);
+  useEffect(() => {
+    const el = grid.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    let raf = 0, cur = 0;
+    const tick = () => {
+      const r = el.getBoundingClientRect(), vh = window.innerHeight;
+      const t = Math.max(-1, Math.min(1, ((r.top + r.height / 2) - vh / 2) / (r.height / 2 + vh / 2)));
+      cur += (t - cur) * 0.08;
+      Array.from(el.children).forEach((c, i) => { c.style.transform = `translate3d(0, ${(cur * DRIFT[i % DRIFT.length]).toFixed(2)}px, 0)`; });
+      raf = Math.abs(t - cur) > 0.0005 ? requestAnimationFrame(tick) : 0;
+    };
+    const go = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    window.addEventListener("scroll", go, { passive: true });
+    window.addEventListener("resize", go);
+    go();
+    return () => { window.removeEventListener("scroll", go); window.removeEventListener("resize", go); cancelAnimationFrame(raf); };
+  }, [n]);
+  return grid;
+};
+
 export default function Gallery() {
   // dealt out across the columns in turn (not column by column), so the strongest shots fill the top row
   const n = useColumns();
   const cols = Array.from({ length: n }, (_, c) => ITEMS.filter((_, i) => i % n === c));
+  const grid = useColumnDrift(n);
   return (
     <div className="starfield relative min-h-screen">
       <Navbar />
@@ -48,12 +73,18 @@ export default function Gallery() {
           </div>
         </Reveal>
         <Reveal delay={0.1}>
-          <div data-testid="gallery-grid" className="mt-10 flex items-start gap-2">
+          <div ref={grid} data-testid="gallery-grid" className="mt-10 flex items-start gap-2">
             {cols.map((col, c) => (
-              <div key={c} className="flex min-w-0 flex-1 flex-col gap-2">
-                {col.map((g) =>
-                  g.video ? <GalleryVideo key={g.video} g={g} /> : <PressPhoto key={g.src} g={g} />,
-                )}
+              <div key={c} className="gallery-col flex min-w-0 flex-1 flex-col gap-2">
+                {col.map((g, i) => (
+                  <div
+                    key={g.video || g.src}
+                    className="gallery-drift"
+                    style={{ "--dur": `${8 + ((i * 7 + c * 3) % 5)}s`, "--delay": `${-((i * 5 + c * 11) % 9)}s` }}
+                  >
+                    {g.video ? <GalleryVideo g={g} /> : <PressPhoto g={g} />}
+                  </div>
+                ))}
               </div>
             ))}
           </div>

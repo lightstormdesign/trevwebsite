@@ -62,11 +62,48 @@ export const EPK_GALLERY = [
 export const GALLERY_TOTAL = EPK_CROWD.length + EPK_GALLERY.length;
 export const PRESS_ZIP = "/press/trev-press-photos.zip?v=5";
 
+// Held like a print: on a mouse (never touch, never with reduced motion) the photo lifts off the page and
+// tilts its near edge toward the cursor, a soft sheen following it; it settles back flat when the cursor leaves.
+const TILT_DEG = 7;
+const canTilt = () =>
+  typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+export const usePrintTilt = () => {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !canTilt()) return undefined;
+    let raf = 0, tx = 0, ty = 0, x = 0, y = 0, lift = 0, tl = 0;
+    const tick = () => {
+      x += (tx - x) * 0.14; y += (ty - y) * 0.14; lift += (tl - lift) * 0.14;
+      el.style.transform = `perspective(900px) translateY(${(-6 * lift).toFixed(2)}px) scale(${(1 + 0.025 * lift).toFixed(4)}) rotateX(${(-y * TILT_DEG).toFixed(2)}deg) rotateY(${(x * TILT_DEG).toFixed(2)}deg)`;
+      el.style.setProperty("--lift", lift.toFixed(3));
+      el.style.setProperty("--gx", `${((x + 1) * 50).toFixed(1)}%`);
+      el.style.setProperty("--gy", `${((y + 1) * 50).toFixed(1)}%`);
+      const settled = Math.abs(tx - x) + Math.abs(ty - y) + Math.abs(tl - lift) < 0.002;
+      if (settled && tl === 0) { el.style.transform = ""; el.style.zIndex = ""; raf = 0; return; }
+      raf = requestAnimationFrame(tick);
+    };
+    const go = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    const move = (e) => {
+      const r = el.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width) * 2 - 1; ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+      tl = 1; el.style.zIndex = "2"; go();
+    };
+    const leave = () => { tx = 0; ty = 0; tl = 0; go(); };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerleave", leave);
+    return () => { el.removeEventListener("pointermove", move); el.removeEventListener("pointerleave", leave); cancelAnimationFrame(raf); };
+  }, []);
+  return ref;
+};
+
 // a photo that downloads full size when tapped, a small download mark in its corner
 // A short clip in the gallery: plays silently on a loop while it's on screen (paused off screen); the speaker
 // in its corner turns its sound on (and any other clip's off).
 export const GalleryVideo = ({ g, className = "" }) => {
   const ref = useRef(null);
+  const tiltRef = usePrintTilt();
   const [muted, setMuted] = useState(true);
   // (set on the element itself too: iOS autoplays only a clip that's muted as it starts)
   useEffect(() => {
@@ -99,7 +136,7 @@ export const GalleryVideo = ({ g, className = "" }) => {
     }
   };
   return (
-    <div data-testid="gallery-video" className={`relative overflow-hidden rounded-lg border border-white/10 bg-black/40 ${className}`}>
+    <div ref={tiltRef} data-testid="gallery-video" className={`print-tilt relative overflow-hidden rounded-lg border border-white/10 bg-black/40 ${className}`}>
       <video
         ref={ref}
         src={g.video}
@@ -124,18 +161,23 @@ export const GalleryVideo = ({ g, className = "" }) => {
   );
 };
 
-export const PressPhoto = ({ g, className = "" }) => (
+export const PressPhoto = ({ g, className = "" }) => {
+  const ref = usePrintTilt();
+  return (
   <a
+    ref={ref}
     href={g.press}
     download
     aria-label={`Download this photo full size: ${g.alt}`}
     data-testid="press-photo"
-    className={`group relative block overflow-hidden rounded-lg border border-white/10 bg-black/40 ${className}`}
+    className={`print-tilt group relative block overflow-hidden rounded-lg border border-white/10 bg-black/40 ${className}`}
   >
     <img src={g.src} alt={g.alt} className="block h-auto w-full" loading="lazy" />
+    <span aria-hidden="true" className="print-sheen" />
     <span className="absolute bottom-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white/85 transition-colors group-hover:bg-[var(--sm-gold)] group-hover:text-black">
       <Download size={12} />
     </span>
   </a>
-);
+  );
+};
 
