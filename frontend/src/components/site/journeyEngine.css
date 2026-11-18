@@ -1342,18 +1342,23 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
   75% { opacity: .8; } 100% { opacity: 0; transform: translateX(70%) skewX(-14deg); } }
 
 /* The bison mandala draws itself in: a sweep around its centre, through the half on screen first */
+/* (desktop only: on phones repainting the masked mandala every frame slowed the whole homepage) */
 @property --tj-draw { syntax: "<angle>"; inherits: false; initial-value: 400deg; }
+@media (hover: hover) and (pointer: fine) {
 .tj-mandala .in { --from: 180deg;
   -webkit-mask-image: conic-gradient(from var(--from), #000 0deg, #000 var(--tj-draw), transparent calc(var(--tj-draw) + 30deg));
   mask-image: conic-gradient(from var(--from), #000 0deg, #000 var(--tj-draw), transparent calc(var(--tj-draw) + 30deg));
   animation: tj-flowerIn 1.2s ease-out 1.2s both, tj-mandalaDraw 5.5s cubic-bezier(.5, .05, .35, 1) 1.2s both; }
 .tj.tj-deskHero .tj-mandala .in { --from: 0deg; }
+}
 @keyframes tj-mandalaDraw { from { --tj-draw: -30deg; } to { --tj-draw: 400deg; } }
 @media (prefers-reduced-motion: reduce) { .ab-fig.in::after { animation: none; } .tj-mandala .in { animation: tj-flowerIn 3s ease-out 1.2s both; -webkit-mask-image: none; mask-image: none; } }
 
 /* Phones: the story's words warm as they reach the middle of the screen (journeyEngine.js, ab-lightup) */
-.ab-lightup .ab-body > p:not(.ab-rv), .ab-lightup .ab-quote p { transition: color 1.2s ease; }
-.ab-lightup .ab-body > p:not(.ab-rv):not(.lit), .ab-lightup .ab-quote p:not(.lit) { color: rgba(198, 191, 180, .5); }
+/* (by opacity, which the phone fades on its own without repainting the words; a colour fade repainted every
+   line of shadowed text on every frame) */
+.ab-lightup .ab-body > p:not(.ab-rv), .ab-lightup .ab-quote p { opacity: .42; transition: opacity 1.2s ease; }
+.ab-lightup .ab-body > p.lit:not(.ab-rv), .ab-lightup .ab-quote p.lit { opacity: 1; }
 
 /* Phones: a thin golden reading line down the story's left edge, filling as you read */
 .tj-readLine { display: none; }
@@ -1364,3 +1369,5 @@ html.tj-heroPhase .tj-scroller { pointer-events: none; }
   .tj-readLine i { position: absolute; inset: 0; border-radius: 2px; transform-origin: 50% 0; transform: scaleY(0); will-change: transform;
     background: linear-gradient(to bottom, #fff3d6, #e8cf9a 35%, #c09245); box-shadow: 0 0 10px 1px rgba(243, 223, 176, .55); }
 }
+/* (phones: the light leak without a blend mode, a little softer; blend layers are heavy for them) */
+@media (hover: none), (pointer: coarse) { .ab-fig::after { mix-blend-mode: normal; filter: opacity(.6); } }

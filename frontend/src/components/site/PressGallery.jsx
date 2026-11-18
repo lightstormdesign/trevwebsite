@@ -72,21 +72,21 @@ const canTilt = () =>
 // Phones: the same print, moved by tilting the phone (utils/motion.js), for the photos on screen; and each one
 // comes into focus (from soft and dim) the first time it reaches the middle of the screen.
 const onScreen = new Set();
-let phoneRaf = 0;
+let phoneRaf = 0, shownX = 9, shownY = 9;
+// (runs only while the phone is actually sending its tilt and photos are on screen; writes a transform only
+// when the tilt has moved enough to see; no sheen on phones: a blend layer per photo is heavy for them)
 const phoneTick = () => {
   phoneRaf = 0;
-  if (!onScreen.size) return;
-  if (motion.on) {
-    const x = motion.x, y = motion.y;
-    onScreen.forEach((el) => {
-      el.style.transform = `perspective(900px) rotateX(${(-y * 5).toFixed(2)}deg) rotateY(${(x * 5).toFixed(2)}deg)`;
-      el.style.setProperty("--lift", "0.35");
-      el.style.setProperty("--gx", `${((x + 1) * 50).toFixed(1)}%`);
-      el.style.setProperty("--gy", `${((y + 1) * 50).toFixed(1)}%`);
-    });
+  if (!onScreen.size || !motion.on) return;
+  const x = motion.x, y = motion.y;
+  if (Math.abs(x - shownX) + Math.abs(y - shownY) > 0.02) {
+    shownX = x; shownY = y;
+    const t = `perspective(900px) rotateX(${(-y * 5).toFixed(2)}deg) rotateY(${(x * 5).toFixed(2)}deg)`;
+    onScreen.forEach((el) => { el.style.transform = t; });
   }
-  phoneRaf = requestAnimationFrame(phoneTick);
+  if (performance.now() - motion.last < 1000) phoneRaf = requestAnimationFrame(phoneTick);
 };
+motion.onChange = () => { if (!phoneRaf && onScreen.size) phoneRaf = requestAnimationFrame(phoneTick); };
 let seenIO = null, focusIO = null;
 const phoneWatch = (el) => {
   if (typeof IntersectionObserver === "undefined") { el.classList.add("focused"); return () => {}; }
@@ -94,7 +94,8 @@ const phoneWatch = (el) => {
     seenIO = new IntersectionObserver((es) => es.forEach((e) => {
       if (e.isIntersecting) onScreen.add(e.target);
       else { onScreen.delete(e.target); e.target.style.transform = ""; }
-      if (onScreen.size && !phoneRaf) phoneRaf = requestAnimationFrame(phoneTick);
+      shownX = 9;   // (a photo just came on screen: give it the current tilt)
+      if (onScreen.size && !phoneRaf && motion.on) phoneRaf = requestAnimationFrame(phoneTick);
     }));
     focusIO = new IntersectionObserver((es) => es.forEach((e) => {
       if (e.isIntersecting) { e.target.classList.add("focused"); focusIO.unobserve(e.target); }

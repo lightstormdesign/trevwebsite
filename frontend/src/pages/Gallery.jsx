@@ -29,6 +29,7 @@ const useColumnDrift = (n) => {
   useEffect(() => {
     const el = grid.current;
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return undefined;   // (desktop only)
     let raf = 0, cur = 0;
     const tick = () => {
       const r = el.getBoundingClientRect(), vh = window.innerHeight;

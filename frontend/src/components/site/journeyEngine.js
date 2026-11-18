@@ -2017,7 +2017,8 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
   const prog = $(".tj-progress"), progFill = $(".tj-progressFill"), progDrop = $(".tj-progressDrop"), progHint = $(".tj-progressHint");
   const progHintLabel = progHint.querySelector("span");
   let progShown = -1, idleT = 0;
-  const readLine = $(".tj-readLine"), readFill = readLine.querySelector("i"); let readOn = false;
+  const readLine = $(".tj-readLine"), readFill = readLine.querySelector("i"); let readOn = false, readShown = -1;
+  const readPhone = typeof matchMedia !== "undefined" && matchMedia("(hover: none), (pointer: coarse)").matches;
   // just before the world settles (the end of the descent, until the story comes up), "My Story" and its
   // arrow rise on their own and breathe, so nobody thinks the world is the end
   let hintNear = false;
@@ -2062,10 +2063,15 @@ export function mountJourney(root, { start = "hero", navigate } = {}) {
     progShown = p;
     progFill.style.transform = `scaleX(${p.toFixed(4)})`;
     // phones: inside the story, a thin golden line down its left edge fills as you read (the sun rising)
-    const pct = scrolled(), maxPct = max / Math.max(1, Hs()) * 100;
-    const inStory = pct > ABOUT_FADE_FROM + 12, sp = clamp01((pct - ABOUT_FADE_FROM - 12) / Math.max(1, maxPct - ABOUT_FADE_FROM - 12));
-    if (inStory !== readOn) { readOn = inStory; readLine.classList.toggle("on", inStory); }
-    readFill.style.transform = `scaleY(${sp.toFixed(4)})`;
+    // (phones only, and only written inside the story, when it has moved: never a write per frame in the world)
+    if (readPhone) {
+      const pct = scrolled(), inStory = pct > ABOUT_FADE_FROM + 12;
+      if (inStory !== readOn) { readOn = inStory; readLine.classList.toggle("on", inStory); }
+      if (inStory) {
+        const maxPct = max / Math.max(1, Hs()) * 100, sp = clamp01((pct - ABOUT_FADE_FROM - 12) / Math.max(1, maxPct - ABOUT_FADE_FROM - 12));
+        if (Math.abs(sp - readShown) > 0.002) { readShown = sp; readFill.style.transform = `scaleY(${sp.toFixed(3)})`; }
+      }
+    }
     progDrop.style.transform = `translate3d(${(p * sizes.progW).toFixed(1)}px, 0, 0)`;
   }
   const scrolled = () => Math.max(0, scrollNow / Math.max(1, Hs()) * 100);

@@ -615,6 +615,8 @@ html.tj-inWorld .film-grain { animation: none !important; }   /* (in the scroll 
 .gallery-drift { position: relative; animation: gallery-drift var(--dur, 9s) ease-in-out var(--delay, 0s) infinite alternate; }
 @keyframes gallery-drift { from { transform: translate3d(0, -3px, 0) rotate(-.25deg); } to { transform: translate3d(0, 3px, 0) rotate(.25deg); } }
 @media (prefers-reduced-motion: reduce) { .gallery-drift { animation: none; } .gallery-col { transform: none !important; } }
+/* (phones: no drift; four dozen photos each animating is what made the gallery stutter there) */
+@media (hover: none), (pointer: coarse) { .gallery-drift { animation: none; } .gallery-col { transform: none !important; } }
 .gallery-drift:hover { z-index: 2; }
 
 /* Page changes as a sunrise (SunriseTransition.jsx): warm light swells up from the bottom, then lifts away */
@@ -639,3 +641,4 @@ html.tj-inWorld .film-grain { animation: none !important; }   /* (in the scroll 
   .print-tilt.focused > img, .print-tilt.focused > video { filter: none; }
 }
 @media (prefers-reduced-motion: reduce) { .print-tilt > img, .print-tilt > video { filter: none !important; } }
+@media (hover: none), (pointer: coarse) { .print-sheen { display: none; } }
